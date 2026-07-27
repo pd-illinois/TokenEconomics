@@ -1,0 +1,2 @@
+# Install the allowlisted FutureTokenPredictor package and its declared runtime closure.
+./FutureTokenPredictor

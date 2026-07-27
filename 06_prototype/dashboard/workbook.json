@@ -1,0 +1,101 @@
+{
+  "$schema": "https://github.com/Microsoft/Application-Insights-Workbooks/blob/master/schema/workbook.json",
+  "version": "Notebook/1.0",
+  "items": [
+    {
+      "type": 1,
+      "content": {
+        "json": "# Cost-Governance Dashboard\nToken cost, savings, and quality for the agentic app. Data source: `costgov.request` events emitted by the prototype to Application Insights (`traces` table, `customDimensions`). This is the production counterpart of the local `dashboard.html`."
+      }
+    },
+    {
+      "type": 9,
+      "content": {
+        "version": "KqlParameterItem/1.0",
+        "parameters": [
+          {
+            "id": "tr",
+            "version": "KqlParameterItem/1.0",
+            "name": "TimeRange",
+            "type": 4,
+            "value": { "durationMs": 86400000 },
+            "typeSettings": {
+              "selectableValues": [
+                { "durationMs": 3600000 }, { "durationMs": 86400000 },
+                { "durationMs": 604800000 }, { "durationMs": 2592000000 }
+              ]
+            }
+          }
+        ],
+        "style": "pills"
+      }
+    },
+    {
+      "type": 3,
+      "content": {
+        "version": "KqlItem/1.0",
+        "query": "traces | where message == 'costgov.request' | extend cost = todouble(customDimensions.cost_usd), latency = todouble(customDimensions.latency_ms), cache_hit = toint(customDimensions.cache_hit) | summarize ['Total cost $'] = round(sum(cost), 4), ['Avg latency ms'] = round(avg(latency), 0), ['Cache hit %'] = round(100.0 * sum(cache_hit) / count(), 0), ['Requests'] = count()",
+        "size": 3,
+        "title": "Run KPIs",
+        "queryType": 0,
+        "resourceType": "microsoft.insights/components",
+        "visualization": "table"
+      }
+    },
+    {
+      "type": 3,
+      "content": {
+        "version": "KqlItem/1.0",
+        "query": "traces | where message == 'costgov.request' | extend cost = todouble(customDimensions.cost_usd), model = tostring(customDimensions.model) | summarize ['cost $'] = round(sum(cost), 5) by model | order by ['cost $'] desc",
+        "size": 0,
+        "title": "Cost by model served",
+        "queryType": 0,
+        "resourceType": "microsoft.insights/components",
+        "visualization": "barchart"
+      }
+    },
+    {
+      "type": 3,
+      "content": {
+        "version": "KqlItem/1.0",
+        "query": "traces | where message == 'costgov.request' | extend cost = todouble(customDimensions.cost_usd), tenant = tostring(customDimensions.tenant) | summarize ['cost $'] = round(sum(cost), 5), requests = count() by tenant | order by ['cost $'] desc",
+        "size": 0,
+        "title": "Cost by tenant (chargeback)",
+        "queryType": 0,
+        "resourceType": "microsoft.insights/components",
+        "visualization": "barchart"
+      }
+    },
+    {
+      "type": 3,
+      "content": {
+        "version": "KqlItem/1.0",
+        "query": "traces | where message == 'costgov.request' | extend cost = todouble(customDimensions.cost_usd), difficulty = tostring(customDimensions.difficulty), model = tostring(customDimensions.model) | summarize cost = round(sum(cost),5), requests = count() by difficulty, model | order by difficulty asc",
+        "size": 0,
+        "title": "Cost by difficulty and model (is cheap serving hard traffic?)",
+        "queryType": 0,
+        "resourceType": "microsoft.insights/components",
+        "visualization": "table"
+      }
+    },
+    {
+      "type": 3,
+      "content": {
+        "version": "KqlItem/1.0",
+        "query": "traces | where message == 'costgov.request' | extend cost = todouble(customDimensions.cost_usd) | summarize ['cost $'] = round(sum(cost),5) by bin(timestamp, 5m) | order by timestamp asc",
+        "size": 0,
+        "title": "Spend over time",
+        "queryType": 0,
+        "resourceType": "microsoft.insights/components",
+        "visualization": "timechart"
+      }
+    },
+    {
+      "type": 1,
+      "content": {
+        "json": "**Enforcement lives elsewhere.** This Workbook *observes*; the eval-gated auto-revert (the control-plane 'hands') is the Logic App / Azure Function driven by Foundry continuous-evaluation alerts. See file 05 section 7 and file 06."
+      }
+    }
+  ],
+  "fallbackResourceIds": ["<REPLACE with your Application Insights resource id>"]
+}

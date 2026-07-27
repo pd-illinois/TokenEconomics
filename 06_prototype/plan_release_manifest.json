@@ -1,0 +1,41 @@
+{
+  "schema_version": "1.0",
+  "release_gate": "TE-001.5",
+  "surface": "plan",
+  "entry_point": "plan_studio.py",
+  "static_entry": "plan.html",
+  "scope": "Modeled workload-invocation economics only",
+  "include": [
+    "plan_studio.py",
+    "plan.html",
+    "plan_requirements.txt",
+    "costgov/__init__.py",
+    "costgov/contracts.py",
+    "costgov/mcp_prediction.py",
+    "costgov/planning.py",
+    "costgov/reports.py"
+  ],
+  "exclude": [
+    ".env",
+    ".venv",
+    "studio.py",
+    "studio.html",
+    "studio_runs",
+    "studio_plans",
+    "studio_reports",
+    "studio_policy_changes",
+    "costgov/orchestrator.py",
+    "costgov/policy_store.py",
+    "costgov/policy_changes.py",
+    "costgov/gateway.py",
+    "costgov/evaluator.py",
+    "costgov/reconciliation.py",
+    "rag"
+  ],
+  "predictor_component": {
+    "path": "FutureTokenPredictor",
+    "include": ["pyproject.toml", "src/future_token_predictor", "data"],
+    "exclude": [".env", ".venv", ".weave", "tests", "scripts", "kanban.md", "mindmap.md"],
+    "test_command": "python scripts/run_tests.py --all --expect pass"
+  }
+}

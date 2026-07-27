@@ -1,0 +1,47 @@
+# MVPWeaver quality gate -- coding & architecture standards as EVIDENCE.
+#
+# checkpoint.py runs these checks (via scripts/quality.py) before it will mark a
+# block `done`. Each check becomes a REAL exit code: "follow best practices"
+# stops being an unverifiable promise and becomes a captured verdict the human
+# can see. Delete a check to drop it; delete the file to turn the gate off.
+#
+# Each check:
+#   name : shown in the gate output.
+#   lang : python | js | (omit == applies to any block).
+#   cmd  : a command template. {py} -> the project's interpreter (so the gate
+#          uses the tools you installed); {files} -> the block's OWN files
+#          (module + tests). A check that names {files} but gets none is SKIPPED
+#          -- per-file checks only run on the block in hand (a ratchet: new code
+#          is held to standard, legacy is cleaned when next touched). A check
+#          WITHOUT {files} is repo-wide and always runs.
+#
+# Python toolchain: ruff (lint + format + complexity), mypy (types), bandit
+# (security). Install them with:  pip install -r requirements-weave.txt
+checks:
+  # --- per-file: the block's new code must be clean ------------------------
+  - name: lint
+    lang: python
+    cmd: "{py} -m ruff check {files}"
+
+  - name: format
+    lang: python
+    cmd: "{py} -m ruff format --check {files}"
+
+  - name: typecheck
+    lang: python
+    cmd: "{py} -m mypy --ignore-missing-imports {files}"
+
+  - name: complexity
+    lang: python
+    cmd: "{py} -m ruff check --select C901 {files}"
+
+  - name: security
+    lang: python
+    cmd: "{py} -m bandit -ll -q {files}"
+
+  # --- repo-wide: the whole project must still hold its line ---------------
+  - name: coverage
+    cmd: "{py} -m pytest --cov=src/future_token_predictor --cov-fail-under=45 -q"
+
+  - name: architecture
+    cmd: "{py} scripts/check_imports.py"

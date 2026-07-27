@@ -1,0 +1,12 @@
+# For teams using the `pre-commit` framework (https://pre-commit.com).
+# Install once with:  pre-commit install
+# Then every `git commit` runs the MVPWeaver tamper-evidence gate.
+repos:
+  - repo: local
+    hooks:
+      - id: weave-verify
+        name: MVPWeaver tamper-evidence (verify.py)
+        entry: python scripts/verify.py
+        language: system
+        pass_filenames: false
+        always_run: true

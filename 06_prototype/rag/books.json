@@ -1,0 +1,10 @@
+{
+  "_comment": "5 public-domain Project Gutenberg books forming the RAG corpus. `id` is the Gutenberg ebook number; the plain-text URL is https://www.gutenberg.org/cache/epub/<id>/pg<id>.txt",
+  "books": [
+    {"id": 1342, "title": "Pride and Prejudice", "author": "Jane Austen"},
+    {"id": 84,   "title": "Frankenstein",        "author": "Mary Shelley"},
+    {"id": 345,  "title": "Dracula",             "author": "Bram Stoker"},
+    {"id": 1661, "title": "The Adventures of Sherlock Holmes", "author": "Arthur Conan Doyle"},
+    {"id": 11,   "title": "Alice's Adventures in Wonderland",  "author": "Lewis Carroll"}
+  ]
+}

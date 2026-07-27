@@ -1,0 +1,9 @@
+pyyaml>=6.0
+jsonschema>=4.0
+pytest>=8.0
+# Quality gate toolchain (.weave/quality.yaml) -- checkpoint.py runs these as
+# real exit codes before a block can reach `done`.
+ruff>=0.6
+mypy>=1.8
+bandit>=1.7
+pytest-cov>=5.0

@@ -1,0 +1,659 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <script>
+    (() => {
+      const param = new URLSearchParams(window.location.search).get("scoutTheme");
+      const theme =
+        param || (window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
+      document.documentElement.setAttribute("data-theme", theme);
+    })();
+  </script>
+  <title>TokenEconomics Studio</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --cp-bg: #f5f5f5;
+      --cp-bg-elevated: #fafafa;
+      --cp-surface: #ffffff;
+      --cp-surface-soft: #f0f0f0;
+      --cp-border: #d1d1d1;
+      --cp-border-strong: #616161;
+      --cp-text: #242424;
+      --cp-text-muted: #424242;
+      --cp-text-soft: #616161;
+      --cp-accent: #0f6cbd;
+      --cp-accent-hover: #115ea3;
+      --cp-accent-soft: rgba(15, 108, 189, 0.10);
+      --cp-accent-fg: #ffffff;
+      --cp-success: #16a34a;
+      --cp-danger: #dc2626;
+      --cp-warning: #f59e0b;
+      --cp-link: #0078d4;
+      --cp-shadow: 0 18px 48px rgba(0, 0, 0, 0.12);
+      --cp-overlay: rgba(255, 255, 255, 0.8);
+      --cp-panel: rgba(255, 255, 255, 0.86);
+      --cp-panel-strong: rgba(255, 255, 255, 0.96);
+      --cp-sheen: rgba(255, 255, 255, 0.55);
+      --cp-highlight: rgba(15, 108, 189, 0.12);
+    }
+    html[data-theme="dark"] {
+      color-scheme: dark;
+      --cp-bg: #1f1f1f;
+      --cp-bg-elevated: #242424;
+      --cp-surface: #292929;
+      --cp-surface-soft: #333333;
+      --cp-border: #474747;
+      --cp-border-strong: #adadad;
+      --cp-text: #ffffff;
+      --cp-text-muted: #d6d6d6;
+      --cp-text-soft: #adadad;
+      --cp-accent: #479ef5;
+      --cp-accent-hover: #62abf5;
+      --cp-accent-soft: rgba(71, 158, 245, 0.16);
+      --cp-accent-fg: #ffffff;
+      --cp-success: #4ade80;
+      --cp-danger: #f87171;
+      --cp-warning: #fbbf24;
+      --cp-link: #4da6ff;
+      --cp-shadow: 0 18px 48px rgba(0, 0, 0, 0.32);
+      --cp-overlay: rgba(41, 41, 41, 0.88);
+      --cp-panel: rgba(41, 41, 41, 0.72);
+      --cp-panel-strong: rgba(41, 41, 41, 0.96);
+      --cp-sheen: rgba(255, 255, 255, 0.04);
+      --cp-highlight: rgba(71, 158, 245, 0.16);
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; background: var(--cp-bg); color: var(--cp-text); font-family: "Segoe UI", Aptos, Calibri, -apple-system, BlinkMacSystemFont, sans-serif; }
+    button { font: inherit; }
+    input, textarea, select { font: inherit; }
+    [hidden] { display: none !important; }
+    :root {
+      --fl-font: "Segoe UI Variable Text", "Segoe UI", Aptos, Calibri, -apple-system, BlinkMacSystemFont, sans-serif;
+      --fl-font-display: "Segoe UI Variable Display", "Segoe UI", var(--fl-font);
+      --fl-radius: 0.625rem;
+      --fl-card-radius: 16px;
+      --fl-shadow-2: 0 0 2px var(--cp-border), 0 1px 2px var(--cp-border);
+      --fl-shadow-8: 0 4px 8px var(--cp-highlight), 0 0 2px var(--cp-border);
+      --fl-duration: 150ms;
+      --fl-curve: cubic-bezier(.33, 0, .67, 1);
+    }
+    .report-gate { min-height: 100vh; padding: clamp(24px, 6vw, 72px); background: var(--cp-bg); }
+    .report-gate-inner { width: min(980px, 100%); margin: 0 auto; }
+    .report-gate-head { max-width: 620px; margin-bottom: 34px; }
+    .report-gate-head h1 { font-family: var(--fl-font-display); font-size: clamp(30px, 5vw, 48px); margin-top: 18px; letter-spacing: -.02em; }
+    .report-workspace { display: grid; grid-template-columns: minmax(280px, .8fr) minmax(360px, 1.2fr); gap: 18px; align-items: start; }
+    .report-form { display: grid; gap: 12px; }
+    .report-form input, .report-context input { width: 100%; min-width: 0; border: 1px solid var(--cp-border-strong); border-radius: 5px; padding: 10px 11px; background: var(--cp-surface); color: var(--cp-text); }
+    .report-list { display: grid; gap: 8px; max-height: 440px; overflow: auto; }
+    .report-row { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 12px; align-items: center; padding: 12px 0; border-bottom: 1px solid var(--cp-border); }
+    .report-row strong, .report-row small { display: block; overflow-wrap: anywhere; }
+    .report-row small { color: var(--cp-text-muted); margin-top: 4px; }
+    .shell { min-height: 100vh; display: grid; grid-template-columns: 280px minmax(0, 1fr); }
+    aside { min-width: 0; border-right: 1px solid var(--cp-border); background: var(--cp-surface); padding: 24px 16px; }
+    .brand { padding: 4px 8px 24px; }
+    .brand-mark { width: 40px; height: 40px; border-radius: var(--fl-radius); position: relative; margin-bottom: 12px; background: var(--cp-accent); box-shadow: var(--fl-shadow-2); }
+    .brand-mark::before, .brand-mark::after { content: ""; position: absolute; background: var(--cp-accent-fg); opacity: .94; }
+    .brand-mark::before { width: 2px; inset-block: 6px; left: 19px; }
+    .brand-mark::after { height: 2px; inset-inline: 6px; top: 19px; }
+    .brand strong { display: block; font-size: 18px; }
+    .brand span { color: var(--cp-text-muted); font-size: 12px; }
+    nav { display: grid; gap: 4px; }
+    .tab { position: relative; border: 0; background: transparent; color: var(--cp-text-muted); text-align: left; padding: 11px 14px; border-radius: var(--fl-radius); cursor: pointer; transition: background var(--fl-duration) var(--fl-curve), color var(--fl-duration) var(--fl-curve); }
+    .tab:hover { background: var(--cp-surface-soft); color: var(--cp-text); }
+    .tab.active { background: var(--cp-accent-soft); color: var(--cp-accent); font-weight: 600; }
+    .tab.active::before { content: ""; position: absolute; left: 0; top: 50%; width: 3px; height: 20px; border-radius: 10px; background: var(--cp-accent); transform: translateY(-50%); }
+    main { min-width: 0; padding: 0 clamp(20px, 4vw, 56px) 48px; }
+    header { display: flex; justify-content: space-between; gap: 20px; align-items: center; margin: 0 calc(clamp(20px, 4vw, 56px) * -1) 28px; padding: 16px clamp(20px, 4vw, 56px); border-bottom: 1px solid var(--cp-border); background: var(--cp-surface); }
+    h1 { margin: 0 0 6px; font-size: 25px; letter-spacing: 0; }
+    .subtitle { color: var(--cp-text-muted); margin: 0; }
+    .status { display: inline-flex; align-items: center; gap: 8px; font-size: 13px; color: var(--cp-text-muted); }
+    .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--cp-success); }
+    .view { display: none; }
+    .view.active { display: block; animation: reveal 180ms ease-out; }
+    @keyframes reveal { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
+    .toolbar { display: flex; justify-content: space-between; gap: 12px; align-items: center; margin-bottom: 16px; }
+    h2 { margin: 0; font-size: 18px; letter-spacing: 0; }
+    .primary { border: 1px solid var(--cp-accent); background: var(--cp-accent); color: var(--cp-accent-fg); padding: 9px 14px; border-radius: var(--fl-radius); cursor: pointer; font-weight: 600; transition: background var(--fl-duration), box-shadow var(--fl-duration); }
+    .primary:hover { background: var(--cp-accent-hover); }
+    .primary:disabled { opacity: .55; cursor: wait; }
+    .secondary { border: 1px solid var(--cp-border-strong); background: var(--cp-surface); color: var(--cp-text); padding: 8px 12px; border-radius: var(--fl-radius); cursor: pointer; transition: background var(--fl-duration), border-color var(--fl-duration); }
+    .secondary:hover { border-color: var(--cp-accent); color: var(--cp-accent); }
+    .link-button { border: 0; padding: 0; background: transparent; color: var(--cp-link); cursor: pointer; text-align: left; }
+    .report-context { display: grid; grid-template-columns: minmax(220px, 1fr) minmax(250px, 1.4fr) auto auto; gap: 10px; align-items: end; padding: 16px; margin: -10px 0 24px; border: 1px solid var(--cp-border); border-radius: var(--fl-card-radius); background: var(--cp-surface); box-shadow: var(--fl-shadow-2); }
+    .report-context code { display: block; overflow-wrap: anywhere; font-size: 12px; padding: 10px 0; }
+    .report-save-status { min-height: 18px; color: var(--cp-text-muted); font-size: 12px; margin-top: 5px; }
+    .grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; }
+    .panel { background: var(--cp-surface); border: 1px solid var(--cp-border); border-radius: var(--fl-card-radius); padding: 18px; box-shadow: var(--fl-shadow-2); }
+    .panel.wide { grid-column: 1 / -1; }
+    .metric span { display: block; color: var(--cp-text-muted); font-size: 12px; margin-bottom: 8px; }
+    .metric > strong { font-size: 24px; font-variant-numeric: tabular-nums; }
+    .metric details { margin-top: 14px; }
+    details.calculation { border-top: 1px solid var(--cp-border); padding-top: 10px; }
+    details.calculation summary { color: var(--cp-link); cursor: pointer; font-size: 12px; font-weight: 600; }
+    .calculation-body { color: var(--cp-text-muted); font-size: 12px; line-height: 1.5; padding-top: 10px; }
+    .calculation-body p { margin: 0 0 8px; }
+    .calculation-body p:last-child { margin-bottom: 0; }
+    .formula { display: block; padding: 8px 10px; margin: 8px 0; background: var(--cp-surface-soft); border-left: 3px solid var(--cp-accent); color: var(--cp-text); white-space: normal; }
+    .calculation-table td, .calculation-table th { padding: 8px 6px; font-size: 12px; }
+    .provenance-note { padding: 10px 12px; border-left: 3px solid var(--cp-warning); background: var(--cp-surface-soft); color: var(--cp-text); }
+    table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    th, td { text-align: left; padding: 11px 10px; border-bottom: 1px solid var(--cp-border); }
+    th { color: var(--cp-text-muted); font-weight: 600; }
+    code { font-family: Consolas, "Courier New", Courier, monospace; color: var(--cp-text); }
+    .badge { display: inline-block; padding: 3px 7px; border: 1px solid var(--cp-border); border-radius: 5px; font-size: 12px; }
+    .success { color: var(--cp-success); }
+    .warning { color: var(--cp-warning); }
+    .danger { color: var(--cp-danger); }
+    .empty { color: var(--cp-text-muted); padding: 30px 0; text-align: center; }
+    .composer { display: grid; gap: 10px; margin-bottom: 16px; }
+    .composer textarea { width: 100%; min-height: 112px; resize: vertical; border: 1px solid var(--cp-border-strong); border-radius: var(--fl-radius); padding: 12px; background: var(--cp-surface); color: var(--cp-text); font: inherit; line-height: 1.45; }
+    .composer-actions { display: flex; justify-content: flex-end; }
+    .intake-grid { display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 10px; }
+    .field { display: grid; gap: 5px; color: var(--cp-text-muted); font-size: 12px; }
+    .field input, .field select { min-width: 0; border: 1px solid var(--cp-border); border-radius: 5px; padding: 9px 10px; background: var(--cp-surface); color: var(--cp-text); font: inherit; }
+    .model-details { display: flex; flex-wrap: wrap; gap: 6px 12px; min-height: 20px; color: var(--cp-text-muted); font-size: 12px; }
+    .model-details .policy-rejected { color: var(--cp-danger); font-weight: 600; }
+    .agent-model-editor { border: 1px solid var(--cp-border); border-radius: var(--fl-radius); padding: 12px; background: var(--cp-surface-soft); }
+    .agent-model-editor summary { color: var(--cp-link); cursor: pointer; font-weight: 600; }
+    .agent-model-list { display: grid; gap: 10px; margin: 12px 0; }
+    .agent-model-row { display: grid; grid-template-columns: 1fr 1.4fr 2fr .7fr auto; gap: 8px; align-items: end; padding: 10px; border: 1px solid var(--cp-border); border-radius: var(--fl-radius); background: var(--cp-surface); }
+    .result-stack { display: grid; gap: 16px; }
+    .section-title { margin: 0 0 12px; font-size: 14px; }
+    .assumptions { margin: 0; padding-left: 18px; color: var(--cp-text-muted); }
+    .flow { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; margin-bottom: 20px; }
+    .flow div { padding: 12px; background: var(--cp-surface-soft); border: 1px solid var(--cp-border); border-left: 3px solid var(--cp-accent); border-radius: var(--fl-radius); font-size: 12px; }
+    .segmented { display: inline-flex; gap: 2px; padding: 3px; margin-bottom: 16px; border: 1px solid var(--cp-border); border-radius: 6px; background: var(--cp-surface-soft); }
+    .segmented button { border: 0; border-radius: 4px; padding: 7px 11px; background: transparent; color: var(--cp-text-muted); cursor: pointer; }
+    .segmented button.active { background: var(--cp-surface); color: var(--cp-text); box-shadow: var(--fl-shadow-2); font-weight: 600; }
+    .govern-pane { display: none; }
+    .govern-pane.active { display: block; }
+    .policy-groups { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px 28px; }
+    .policy-group h3 { margin: 0 0 8px; font-size: 14px; }
+    .policy-group table td:first-child { color: var(--cp-text-muted); }
+    .policy-source { margin-top: 18px; padding-top: 14px; border-top: 1px solid var(--cp-border); }
+    .policy-form { display: grid; gap: 14px; margin-bottom: 16px; }
+    .policy-form textarea { width: 100%; min-height: 76px; resize: vertical; border: 1px solid var(--cp-border-strong); border-radius: 5px; padding: 10px; background: var(--cp-surface); color: var(--cp-text); }
+    .policy-form input, .policy-form select { width: 100%; min-width: 0; border: 1px solid var(--cp-border-strong); border-radius: 5px; padding: 9px 10px; background: var(--cp-surface); color: var(--cp-text); }
+    .policy-form-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+    .check-field { display: flex; align-items: center; gap: 8px; min-height: 38px; color: var(--cp-text); }
+    .check-field input { width: auto; }
+    .form-actions { display: flex; justify-content: flex-end; gap: 8px; }
+    .change-list { display: grid; gap: 10px; }
+    .change-summary { display: flex; justify-content: space-between; gap: 12px; align-items: flex-start; }
+    .change-summary small { display: block; color: var(--cp-text-muted); margin-top: 4px; }
+    .headroom { color: var(--cp-success); }
+    @media (max-width: 1200px) { .report-context { grid-template-columns: 1fr 1fr; } }
+    @media (max-width: 900px) { .shell { width: 100%; grid-template-columns: minmax(0, 1fr); } aside { border-right: 0; border-bottom: 1px solid var(--cp-border); padding: 14px; } .brand { padding-bottom: 12px; } .brand-mark { display: none; } nav { grid-template-columns: repeat(5, minmax(0, 1fr)); overflow-x: auto; } .tab { min-width: 0; overflow: hidden; text-overflow: ellipsis; text-align: center; white-space: nowrap; } .tab.active::before { display: none; } .grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } .policy-form-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+    @media (max-width: 680px) { .report-workspace { grid-template-columns: 1fr; } }
+    @media (max-width: 760px) { .agent-model-row { grid-template-columns: 1fr 1fr; } }
+    @media (max-width: 560px) { main { padding: 20px 14px; } header { display: block; } .status { margin-top: 12px; } .grid, .flow, .intake-grid, .report-context, .policy-groups, .policy-form-grid, .agent-model-row { grid-template-columns: 1fr; } .panel { overflow-x: auto; } .report-gate { padding: 24px 14px; } .segmented { display: grid; grid-template-columns: 1fr; width: 100%; } }
+  </style>
+</head>
+<body>
+  <section class="report-gate" id="report-gate">
+    <div class="report-gate-inner">
+      <div class="report-gate-head"><div class="brand-mark" aria-hidden="true"></div><h1>TokenEconomics Studio</h1><p class="subtitle">Create a report workspace or reopen a previous analysis.</p></div>
+      <div class="report-workspace">
+        <div class="panel report-form"><h2>New report</h2><label class="field">Report title<input id="new-report-title" value="AI economics assessment"></label><button class="primary" id="create-report-button">Create report</button></div>
+        <div class="panel"><div class="toolbar"><h2>Saved reports</h2><button class="secondary" id="refresh-reports-button">Refresh</button></div><div class="report-list" id="report-list"><div class="empty">Loading saved reports…</div></div></div>
+      </div>
+    </div>
+  </section>
+  <div class="shell" id="studio-shell" hidden>
+    <aside>
+      <div class="brand"><div class="brand-mark" aria-hidden="true"></div><strong>TokenEconomics Studio</strong><span>Predict, govern, learn.</span></div>
+      <nav aria-label="Studio views">
+        <button class="tab active" data-view="plan">Plan</button>
+        <button class="tab" data-view="govern">Govern</button>
+        <button class="tab" data-view="runs">Runs</button>
+        <button class="tab" data-view="observe">Observe</button>
+        <button class="tab" data-view="reconcile">Reconcile</button>
+      </nav>
+    </aside>
+    <main>
+      <header><div><h1 id="title">Plan</h1><p class="subtitle">AI unit economics: predict, govern, learn.</p></div><div class="status"><span class="dot"></span><span id="api-status">Local control service</span></div></header>
+      <div class="report-context"><label class="field">Active report ID<code id="active-report-id"></code></label><label class="field">Report title<input id="active-report-title"></label><button class="secondary" id="save-report-button">Save report</button><button class="secondary" id="switch-report-button">Switch report</button><div class="report-save-status" id="report-save-status"></div></div>
+      <section class="view active" id="plan">
+        <div class="toolbar"><div><h2>AI workload forecast</h2><p class="subtitle">Current scope: model-invocation economics. Policy-conditioned trajectory forecasting is planned.</p></div></div>
+        <div class="flow"><div>1. Forecast</div><div>2. Admit policy</div><div>3. Execute</div><div>4. Evaluate</div><div>5. Reconcile</div></div>
+        <div class="panel composer">
+          <label for="plan-prompt"><strong>Describe the solution you want to estimate</strong></label>
+          <textarea id="plan-prompt">Use FutureTokenPredictor to predict the tokens and AI cost for running a RAG solution for 1,000 users using Microsoft Foundry and Azure AI Search. It should use VNets and Private Endpoints.</textarea>
+          <div class="intake-grid">
+            <label class="field">Default / coordinator model<select id="plan-model" disabled><option>Loading priced models...</option></select></label>
+            <label class="field">Users<input id="plan-users" type="number" min="1" value="1000"></label>
+            <label class="field">Calls per user / day<input id="plan-calls" type="number" min="1" value="10"></label>
+          </div>
+          <div class="model-details" id="plan-model-details">Loading pricing and capability metadata from FutureTokenPredictor.</div>
+          <div id="plan-analysis" class="panel empty">Analyze the description to review inferred topology, modalities, tools, evidence, and unresolved questions before estimating.</div>
+          <details class="agent-model-editor">
+            <summary>Use a different model for each agent</summary>
+            <p class="subtitle">Optional. Each row is one logical agent. Turn weights allocate the modeled multi-agent token distribution; they are assumptions, not measured runtime usage.</p>
+            <div class="agent-model-list" id="agent-model-list"></div>
+            <button class="secondary" id="add-agent-model-button" type="button" disabled>Add agent model</button>
+          </details>
+          <div class="composer-actions"><button class="primary" id="plan-button" disabled>Analyze workload</button></div>
+        </div>
+        <div id="plan-content" class="result-stack"><div class="panel empty">Submit a workload to inspect token usage, model cost, assumptions, and prediction provenance.</div></div>
+      </section>
+      <section class="view" id="govern">
+        <div class="toolbar"><div><h2>Policy governance</h2><p class="subtitle">Current scope: authoritative Azure admission and change staging. Candidate optimization is planned.</p></div><button class="primary" id="propose-policy-button">Propose change</button></div>
+        <div class="segmented" role="tablist" aria-label="Govern work areas">
+          <button class="govern-tab active" data-govern-pane="decision">Decision</button>
+          <button class="govern-tab" data-govern-pane="policy">Effective policy</button>
+          <button class="govern-tab" data-govern-pane="changes">Change requests</button>
+        </div>
+        <div class="govern-pane active" id="govern-decision"><div id="govern-content" class="grid"><div class="panel wide empty">Complete a Plan and hand its immutable receipt to Govern.</div></div></div>
+        <div class="govern-pane" id="govern-policy"><div id="effective-policy-content" class="panel empty">Loading the authoritative Azure policy...</div></div>
+        <div class="govern-pane" id="govern-changes">
+          <form class="panel policy-form" id="policy-proposal-form" hidden>
+            <div><h3 class="section-title">Draft a policy change</h3><p class="subtitle">This creates a review artifact only. It cannot publish to Azure.</p></div>
+            <div class="policy-form-grid">
+              <label class="field">Proposed version<input id="proposal-version" required></label>
+              <label class="field">Maximum model cost / call (USD)<input id="proposal-cost-limit" type="number" min="0.000001" step="0.000001" required></label>
+              <label class="field">Per-tenant run budget (USD)<input id="proposal-run-budget" type="number" min="0.01" step="0.01" required></label>
+              <label class="field">Routing mode<select id="proposal-routing"><option value="cost">Cost</option><option value="balanced">Balanced</option><option value="quality">Quality</option></select></label>
+              <label class="field">Minimum quality<input id="proposal-quality" type="number" min="0" max="1" step="0.01" required></label>
+              <label class="field">Minimum segment samples<input id="proposal-samples" type="number" min="1" step="1" required></label>
+              <label class="check-field"><input id="proposal-pricing" type="checkbox"> Require verified pricing</label>
+              <label class="check-field"><input id="proposal-infrastructure" type="checkbox"> Require infrastructure estimate</label>
+            </div>
+            <label class="field">Business reason<textarea id="proposal-reason" required placeholder="What economic or risk outcome should this change achieve?"></textarea></label>
+            <div class="form-actions"><button class="secondary" type="button" id="cancel-proposal-button">Cancel</button><button class="primary" type="submit">Save draft</button></div>
+            <div id="proposal-status" class="report-save-status"></div>
+          </form>
+          <div id="policy-change-list" class="change-list"><div class="panel empty">No policy change requests.</div></div>
+        </div>
+      </section>
+      <section class="view" id="runs">
+        <div class="toolbar"><div><h2>Benchmark runs</h2><p class="subtitle">Current scope: policy-bound offline reference execution.</p></div><button class="primary" id="run-button">Start offline run</button></div>
+        <div class="panel"><div id="run-content" class="empty">No run loaded.</div></div>
+      </section>
+      <section class="view" id="observe">
+        <div class="toolbar"><div><h2>Observed economics</h2><p class="subtitle">Current scope: completed-request cost and segment quality. Accepted-task economics is planned.</p></div></div>
+        <div class="grid" id="metrics"><div class="panel wide empty">Complete a run to see measured cost, quality, cache, latency, and tokens.</div></div>
+      </section>
+      <section class="view" id="reconcile">
+        <div class="toolbar"><div><h2>Forecast feedback</h2><p class="subtitle">Current scope: completed-task calibration. Acceptance and distribution coverage are planned.</p></div></div>
+        <div class="panel"><div id="reconcile-content" class="empty">Complete a run to inspect per-segment calibration writes.</div></div>
+      </section>
+    </main>
+  </div>
+  <script>
+    const state = { report: null, plan: null, analysis: null, handoff: null, run: null, effectivePolicy: null, policyChanges: [], modelCatalog: [] };
+    const titles = { plan: "Plan", govern: "Govern", runs: "Runs", observe: "Observe", reconcile: "Reconcile" };
+    document.querySelectorAll(".tab").forEach(button => button.addEventListener("click", () => {
+      document.querySelectorAll(".tab,.view").forEach(item => item.classList.remove("active"));
+      button.classList.add("active");
+      document.getElementById(button.dataset.view).classList.add("active");
+      document.getElementById("title").textContent = titles[button.dataset.view];
+    }));
+    const number = value => new Intl.NumberFormat(undefined, { maximumFractionDigits: 1 }).format(value || 0);
+    const decimal = (value, digits = 6) => new Intl.NumberFormat(undefined, { maximumFractionDigits: digits }).format(value || 0);
+    const money = value => new Intl.NumberFormat(undefined, { style: "currency", currency: "USD", maximumFractionDigits: 4 }).format(value || 0);
+    const preciseMoney = value => new Intl.NumberFormat(undefined, { style: "currency", currency: "USD", minimumFractionDigits: 6, maximumFractionDigits: 9 }).format(value || 0);
+    const escapeHtml = value => String(value ?? "").replace(/[&<>"']/g, char => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#039;" }[char]));
+    const safeUrl = value => { try { const url = new URL(value); return ["http:", "https:"].includes(url.protocol) ? escapeHtml(url.href) : ""; } catch { return ""; } };
+    const calculation = body => `<details class="calculation"><summary>Show calculation</summary><div class="calculation-body">${body}</div></details>`;
+    const formatDate = value => value ? new Intl.DateTimeFormat(undefined, { dateStyle: "medium", timeStyle: "short" }).format(new Date(value)) : "";
+    const policyValue = value => typeof value === "boolean" ? (value ? "Required" : "Not required") : Array.isArray(value) ? value.join(", ") : String(value ?? "—");
+    function showGovernPane(name) {
+      document.querySelectorAll(".govern-tab,.govern-pane").forEach(item => item.classList.remove("active"));
+      document.querySelector(`.govern-tab[data-govern-pane="${name}"]`).classList.add("active");
+      document.getElementById(`govern-${name}`).classList.add("active");
+    }
+    document.querySelectorAll(".govern-tab").forEach(button => button.addEventListener("click", () => showGovernPane(button.dataset.governPane)));
+    async function loadGovernWorkspace() {
+      const [policyResponse, changesResponse] = await Promise.all([fetch("/api/policy"), fetch("/api/policy-change-requests")]);
+      const effective = await policyResponse.json();
+      const changes = await changesResponse.json();
+      state.policyChanges = changes.change_requests || [];
+      if (policyResponse.ok) { state.effectivePolicy = effective; renderEffectivePolicy(effective); renderSelectedModel(); }
+      else document.getElementById("effective-policy-content").innerHTML = `<div class="danger">${escapeHtml(effective.error || "Policy unavailable")}</div>`;
+      renderPolicyChanges();
+    }
+    async function loadModelCatalog() {
+      const select = document.getElementById("plan-model");
+      const response = await fetch("/api/models");
+      const catalog = await response.json();
+      if (!response.ok) {
+        select.innerHTML = `<option>Model catalog unavailable</option>`;
+        document.getElementById("plan-model-details").textContent = catalog.error || "FutureTokenPredictor model catalog is unavailable.";
+        return;
+      }
+      state.modelCatalog = catalog.offerings || [];
+      const grouped = state.modelCatalog.reduce((groups, offering) => {
+        if (!groups.has(offering.provider_name)) groups.set(offering.provider_name, []);
+        groups.get(offering.provider_name).push(offering);
+        return groups;
+      }, new Map());
+      select.innerHTML = Array.from(grouped, ([providerName, offerings]) => `<optgroup label="${escapeHtml(providerName)}">${offerings.map(offering => `<option value="${escapeHtml(offering.key)}" data-model="${escapeHtml(offering.model)}" data-provider="${escapeHtml(offering.provider)}"${offering.key === "azure_openai:gpt-4.1" ? " selected" : ""}>${escapeHtml(offering.model)}</option>`).join("")}</optgroup>`).join("");
+      select.disabled = false;
+      document.getElementById("add-agent-model-button").disabled = false;
+      document.getElementById("plan-button").disabled = false;
+      renderSelectedModel();
+    }
+    function modelOptions(selectedKey = "") {
+      return state.modelCatalog.map(offering => `<option value="${escapeHtml(offering.key)}" data-model="${escapeHtml(offering.model)}" data-provider="${escapeHtml(offering.provider)}"${offering.key === selectedKey ? " selected" : ""}>${escapeHtml(offering.provider_name)} · ${escapeHtml(offering.model)}</option>`).join("");
+    }
+    function addAgentModelRow(values = {}) {
+      const list = document.getElementById("agent-model-list");
+      const index = list.children.length + 1;
+      const row = document.createElement("div");
+      row.className = "agent-model-row";
+      row.innerHTML = `<label class="field">Agent ID<input class="agent-id" required value="${escapeHtml(values.agent_id || `agent-${index}`)}"></label><label class="field">Role<input class="agent-role" value="${escapeHtml(values.role || "")}" placeholder="Researcher"></label><label class="field">Model<select class="agent-model">${modelOptions(values.key || document.getElementById("plan-model").value)}</select></label><label class="field">Turn weight<input class="agent-weight" type="number" min="0.01" step="0.01" value="${escapeHtml(values.turn_weight || 1)}"></label><button class="secondary remove-agent-model" type="button" aria-label="Remove ${escapeHtml(values.agent_id || `agent-${index}`)}">Remove</button>`;
+      list.appendChild(row);
+    }
+    function collectAgentModels() {
+      return Array.from(document.querySelectorAll(".agent-model-row")).map(row => {
+        const option = row.querySelector(".agent-model").selectedOptions[0];
+        return {
+          agent_id: row.querySelector(".agent-id").value.trim(),
+          role: row.querySelector(".agent-role").value.trim(),
+          provider: option.dataset.provider,
+          model: option.dataset.model,
+          turn_weight: Number(row.querySelector(".agent-weight").value),
+        };
+      });
+    }
+    document.getElementById("add-agent-model-button").addEventListener("click", () => addAgentModelRow());
+    document.getElementById("agent-model-list").addEventListener("click", event => {
+      if (event.target.classList.contains("remove-agent-model")) event.target.closest(".agent-model-row").remove();
+    });
+    function renderSelectedModel() {
+      const select = document.getElementById("plan-model"), selected = select.selectedOptions[0];
+      const offering = state.modelCatalog.find(item => item.key === selected?.value);
+      if (!offering) return;
+      const capabilities = Object.entries(offering.capabilities).filter(([, enabled]) => enabled).map(([name]) => name);
+      const policy = state.effectivePolicy?.policy?.admission;
+      const policyStatus = !policy
+        ? `<span>Checking Govern policy...</span>`
+        : policy.allowed_providers.includes(offering.provider) && policy.allowed_models.includes(offering.model)
+          ? `<span class="success">Govern policy eligible</span>`
+          : `<span class="policy-rejected">Current Govern policy will reject this offering</span>`;
+      document.getElementById("plan-model-details").innerHTML = `<span><strong>${escapeHtml(offering.provider_name)}</strong></span><span>Input ${money(offering.pricing.input)} / 1M</span><span>Output ${money(offering.pricing.output)} / 1M</span><span>${number(offering.context_window)} context</span><span>${capabilities.length ? escapeHtml(capabilities.join(" · ")) : "text"}</span>${offering.capabilities.reasoning ? `<span>${escapeHtml(String(offering.reasoning_multiplier))}× reasoning estimate</span>` : ""}${policyStatus}`;
+    }
+    document.getElementById("plan-model").addEventListener("change", renderSelectedModel);
+    function renderWorkloadAnalysis(analysis) {
+      const topology = analysis.topology || {}, agentCount = analysis.agent_count || {};
+      const evidence = (topology.evidence || []).map(item => `<li><strong>${escapeHtml(item.rule)}:</strong> ${escapeHtml(item.text)}</li>`).join("");
+      const alternatives = (topology.alternatives || []).join(", ") || "None";
+      const clarifications = (analysis.clarifications || []).map(item => `<li>${escapeHtml(item)}</li>`).join("");
+      document.getElementById("plan-analysis").className = `panel ${topology.confidence === "low" || clarifications ? "warning" : ""}`;
+      document.getElementById("plan-analysis").innerHTML = `
+        <div class="toolbar"><div><h3 class="section-title">Review inferred workload profile</h3><p class="subtitle">Analysis ${escapeHtml(analysis.schema_version)} · rules ${escapeHtml(analysis.rule_set_version)} · confidence ${escapeHtml(topology.confidence)}</p></div><span class="badge">Modeled intake</span></div>
+        <div class="intake-grid">
+          <label class="field">Topology<select id="analysis-topology">${["single_call", "rag_pipeline", "react_agent", "workflow", "multi_agent", "code_exec"].map(value => `<option value="${value}"${value === topology.selected ? " selected" : ""}>${escapeHtml(value.replaceAll("_", " "))}</option>`).join("")}</select></label>
+          <label class="field">Agent count<input id="analysis-agent-count" type="number" min="1" value="${number(agentCount.value || 1)}"></label>
+          <label class="field">Modalities, comma separated<input id="analysis-modalities" value="${escapeHtml((analysis.modalities || []).join(", "))}"></label>
+          <label class="field">Tools, comma separated<input id="analysis-tools" value="${escapeHtml((analysis.tools || []).join(", "))}"></label>
+        </div>
+        <p><strong>Alternatives:</strong> ${escapeHtml(alternatives)} · <strong>Agent-count source:</strong> ${escapeHtml(agentCount.source || "unknown")}</p>
+        <details><summary>Why this profile was inferred</summary><ul class="assumptions">${evidence || "<li>No positive topology evidence was identified.</li>"}</ul></details>
+        ${clarifications ? `<div class="warning"><strong>Resolve before estimating:</strong><ul class="assumptions">${clarifications}</ul></div>` : ""}
+        <p class="provenance-note">Reviewing these fields confirms modeled workload-invocation assumptions. It does not validate runtime behavior, quality, complete trajectory cost, or tail-risk calibration.</p>`;
+    }
+    function collectConfirmedProfile() {
+      return {
+        agent_pattern: document.getElementById("analysis-topology").value,
+        multi_agent_count: Number(document.getElementById("analysis-agent-count").value),
+        modalities: document.getElementById("analysis-modalities").value.split(",").map(value => value.trim()).filter(Boolean),
+        tools: document.getElementById("analysis-tools").value.split(",").map(value => value.trim()).filter(Boolean),
+      };
+    }
+    document.getElementById("plan-prompt").addEventListener("input", () => {
+      state.analysis = null;
+      document.getElementById("plan-button").textContent = "Analyze workload";
+      document.getElementById("plan-analysis").className = "panel empty";
+      document.getElementById("plan-analysis").textContent = "Description changed. Analyze again before estimating.";
+    });
+    function renderEffectivePolicy(effective) {
+      const policy = effective.policy, admission = policy.admission, execution = policy.execution, provenance = effective.provenance;
+      const group = (title, rows) => `<section class="policy-group"><h3>${escapeHtml(title)}</h3><table><tbody>${rows.map(([label, value]) => `<tr><td>${escapeHtml(label)}</td><td><strong>${escapeHtml(policyValue(value))}</strong></td></tr>`).join("")}</tbody></table></section>`;
+      document.getElementById("effective-policy-content").className = "panel";
+      document.getElementById("effective-policy-content").innerHTML = `<div class="toolbar"><div><h3 class="section-title">${escapeHtml(policy.policy_id)}</h3><span class="badge success">${escapeHtml(policy.status)}</span> <code>${escapeHtml(policy.version)}</code></div><span class="badge">read only</span></div><div class="policy-groups">${group("Spend limits", [["Maximum model cost / call", money(admission.max_model_cost_per_call_usd)], ["Per-tenant run budget", money(execution.budget.per_tenant_usd_per_run)], ["Hard-cap action", execution.budget.hard_cap_action]])}${group("Approved supply", [["Providers", admission.allowed_providers], ["Models", admission.allowed_models], ["Verified pricing", admission.require_pricing_verified], ["Infrastructure estimate", admission.require_infrastructure_estimate]])}${group("Optimization", [["Routing mode", execution.routing_mode], ["Semantic cache", execution.semantic_cache.enabled ? "Enabled" : "Disabled"], ["Cache score threshold", execution.semantic_cache.score_threshold]])}${group("Quality and automation", [["Minimum quality", execution.evaluation.min_quality], ["Minimum segment samples", execution.evaluation.min_segment_samples], ["Consecutive breaches", execution.evaluation.consecutive_breaches], ["Mutation mode", policy.mutation.mode]])}</div><div class="policy-source"><table><tbody><tr><td>Azure source</td><td><code>${escapeHtml(provenance.endpoint)}</code></td></tr><tr><td>Key / label</td><td><code>${escapeHtml(provenance.key)} / ${escapeHtml(provenance.label)}</code></td></tr><tr><td>ETag</td><td><code>${escapeHtml(provenance.etag)}</code></td></tr><tr><td>Policy SHA-256</td><td><code>${escapeHtml(effective.content_hash)}</code></td></tr><tr><td>Publication</td><td>External review and deployment identity required</td></tr></tbody></table></div>`;
+    }
+    function renderPolicyChanges() {
+      const target = document.getElementById("policy-change-list");
+      if (!state.policyChanges.length) { target.innerHTML = `<div class="panel empty">No drafts yet. Propose a policy change to begin review.</div>`; return; }
+      target.innerHTML = state.policyChanges.map(change => `<article class="panel"><div class="change-summary"><div><strong>${escapeHtml(change.change_id)}</strong><small>${escapeHtml(change.base_policy.version)} → ${escapeHtml(change.proposed_version)} · ${escapeHtml(formatDate(change.created_at))}</small></div><span class="badge warning">${escapeHtml(change.status)}</span></div><p>${escapeHtml(change.reason)}</p><table><thead><tr><th>Control</th><th>Current</th><th>Proposed</th></tr></thead><tbody>${change.diff.map(item => `<tr><td>${escapeHtml(item.path)}</td><td>${escapeHtml(policyValue(item.current))}</td><td><strong>${escapeHtml(policyValue(item.proposed))}</strong></td></tr>`).join("")}</tbody></table><p class="subtitle">Review required. This draft has no Azure write permission.</p></article>`).join("");
+    }
+    function nextPolicyVersion(version) {
+      const parts = String(version).split(".");
+      const last = Number(parts[parts.length - 1]);
+      parts[parts.length - 1] = Number.isFinite(last) ? String(last + 1) : "2";
+      return parts.join(".");
+    }
+    function openProposalForm() {
+      if (!state.effectivePolicy) return;
+      const policy = state.effectivePolicy.policy;
+      document.getElementById("proposal-version").value = nextPolicyVersion(policy.version);
+      document.getElementById("proposal-cost-limit").value = policy.admission.max_model_cost_per_call_usd;
+      document.getElementById("proposal-run-budget").value = policy.execution.budget.per_tenant_usd_per_run;
+      document.getElementById("proposal-routing").value = policy.execution.routing_mode;
+      document.getElementById("proposal-quality").value = policy.execution.evaluation.min_quality;
+      document.getElementById("proposal-samples").value = policy.execution.evaluation.min_segment_samples;
+      document.getElementById("proposal-pricing").checked = policy.admission.require_pricing_verified;
+      document.getElementById("proposal-infrastructure").checked = policy.admission.require_infrastructure_estimate;
+      document.getElementById("proposal-reason").value = "";
+      document.getElementById("proposal-status").textContent = "";
+      document.getElementById("policy-proposal-form").hidden = false;
+      showGovernPane("changes");
+    }
+    document.getElementById("propose-policy-button").addEventListener("click", openProposalForm);
+    document.getElementById("cancel-proposal-button").addEventListener("click", () => { document.getElementById("policy-proposal-form").hidden = true; });
+    document.getElementById("policy-proposal-form").addEventListener("submit", async event => {
+      event.preventDefault();
+      const submit = event.submitter; submit.disabled = true;
+      const payload = { proposed_version: document.getElementById("proposal-version").value, reason: document.getElementById("proposal-reason").value, changes: { "admission.max_model_cost_per_call_usd": Number(document.getElementById("proposal-cost-limit").value), "admission.require_pricing_verified": document.getElementById("proposal-pricing").checked, "admission.require_infrastructure_estimate": document.getElementById("proposal-infrastructure").checked, "execution.routing_mode": document.getElementById("proposal-routing").value, "execution.budget.per_tenant_usd_per_run": Number(document.getElementById("proposal-run-budget").value), "execution.evaluation.min_quality": Number(document.getElementById("proposal-quality").value), "execution.evaluation.min_segment_samples": Number(document.getElementById("proposal-samples").value) } };
+      const response = await fetch("/api/policy-change-requests", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) });
+      const result = await response.json();
+      if (response.ok) { state.policyChanges.unshift(result); renderPolicyChanges(); document.getElementById("policy-proposal-form").hidden = true; }
+      else document.getElementById("proposal-status").textContent = result.error || "Draft could not be saved";
+      submit.disabled = false;
+    });
+    async function loadReports() {
+      const response = await fetch("/api/reports");
+      const payload = await response.json();
+      const reports = payload.reports || [];
+      document.getElementById("report-list").innerHTML = reports.length ? reports.map(report => `<div class="report-row"><div><strong>${escapeHtml(report.title)}</strong><small><code>${escapeHtml(report.report_id)}</code> · updated ${escapeHtml(formatDate(report.updated_at))}</small><small>${number(report.artifacts?.plans?.length)} plan(s), ${number(report.artifacts?.runs?.length)} run(s)</small></div><button class="secondary open-report-button" data-report-id="${escapeHtml(report.report_id)}">Open</button></div>`).join("") : `<div class="empty">No reports yet. Create the first workspace.</div>`;
+      document.querySelectorAll(".open-report-button").forEach(button => button.addEventListener("click", () => openReport(button.dataset.reportId)));
+    }
+    document.getElementById("refresh-reports-button").addEventListener("click", loadReports);
+    document.getElementById("create-report-button").addEventListener("click", async event => {
+      event.target.disabled = true;
+      try {
+        const response = await fetch("/api/reports", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ title: document.getElementById("new-report-title").value }) });
+        const report = await response.json();
+        if (!response.ok) throw new Error(report.error || "Report creation failed");
+        await openReport(report.report_id);
+      } finally { event.target.disabled = false; }
+    });
+    async function openReport(reportId) {
+      const response = await fetch(`/api/reports/${encodeURIComponent(reportId)}`);
+      const report = await response.json();
+      if (!response.ok) throw new Error(report.error || "Report could not be opened");
+      state.report = report; state.plan = null; state.handoff = null; state.run = null;
+      document.getElementById("active-report-id").textContent = report.report_id;
+      document.getElementById("active-report-title").value = report.title;
+      document.getElementById("report-save-status").textContent = `Opened ${formatDate(report.updated_at)}`;
+      document.getElementById("report-gate").hidden = true;
+      document.getElementById("studio-shell").hidden = false;
+      document.querySelector('.tab[data-view="plan"]').click();
+      renderReportArtifacts(report);
+      await Promise.all([loadGovernWorkspace(), loadModelCatalog()]);
+    }
+    document.getElementById("save-report-button").addEventListener("click", async event => {
+      event.target.disabled = true;
+      const response = await fetch(`/api/reports/${encodeURIComponent(state.report.report_id)}/save`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ title: document.getElementById("active-report-title").value }) });
+      const report = await response.json();
+      if (response.ok) { state.report = report; document.getElementById("report-save-status").textContent = `Saved ${formatDate(report.updated_at)}`; }
+      else document.getElementById("report-save-status").textContent = report.error || "Save failed";
+      event.target.disabled = false;
+    });
+    document.getElementById("switch-report-button").addEventListener("click", async () => {
+      document.getElementById("studio-shell").hidden = true;
+      document.getElementById("report-gate").hidden = false;
+      await loadReports();
+    });
+    function renderReportArtifacts(report) {
+      const plans = report.artifacts?.plans || [], runs = report.artifacts?.runs || [], handoffs = report.artifacts?.govern_handoffs || [];
+      const planRows = plans.map(plan => `<tr><td><button class="link-button open-plan-button" data-plan-id="${escapeHtml(plan.id)}">${escapeHtml(plan.id)}</button></td><td>${escapeHtml(plan.status)}</td><td>${escapeHtml(plan.prediction_id ?? "—")}</td></tr>`).join("");
+      document.getElementById("plan-content").innerHTML = plans.length ? `<div class="panel"><div class="toolbar"><h3 class="section-title">Forecasts in this report</h3><span class="badge">${number(plans.length)} plan(s)</span></div><table><thead><tr><th>Plan ID</th><th>Status</th><th>Prediction ID</th></tr></thead><tbody>${planRows}</tbody></table></div>` : `<div class="panel empty">This report has no forecasts yet. Submit the workload above to create one.</div>`;
+      document.querySelectorAll(".open-plan-button").forEach(button => button.addEventListener("click", () => openPlan(button.dataset.planId)));
+      const runRows = runs.map(run => `<tr><td><button class="link-button open-run-button" data-run-id="${escapeHtml(run.id)}">${escapeHtml(run.id)}</button></td><td>${escapeHtml(run.status)}</td></tr>`).join("");
+      document.getElementById("run-content").innerHTML = runs.length ? `<table><thead><tr><th>Run ID</th><th>Status</th></tr></thead><tbody>${runRows}</tbody></table>` : `<div class="empty">No runs in this report.</div>`;
+      document.querySelectorAll(".open-run-button").forEach(button => button.addEventListener("click", () => loadRun(button.dataset.runId)));
+      if (handoffs.length) renderGovernHandoff(handoffs[handoffs.length - 1]);
+      else document.getElementById("govern-content").innerHTML = `<div class="panel wide empty">Complete a Plan and hand its immutable receipt to Govern.</div>`;
+    }
+    async function openPlan(planId) {
+      const response = await fetch(`/api/plans/${encodeURIComponent(planId)}/receipt`);
+      if (response.ok) {
+        const receipt = await response.json();
+        state.plan = { status: "complete", report_id: receipt.report_id, plan_id: receipt.plan_id, receipt_id: receipt.receipt_id, receipt_hash: receipt.content_hash, created_at: receipt.created_at, description: receipt.description, intake: receipt.intake, prediction: receipt.prediction, infrastructure: receipt.infrastructure };
+        renderPlan(state.plan);
+        return;
+      }
+      const sessionResponse = await fetch(`/api/plans/${encodeURIComponent(planId)}`);
+      const session = await sessionResponse.json();
+      state.plan = session;
+      if (session.status === "needs_clarification") renderClarifications(session);
+    }
+    document.getElementById("plan-button").addEventListener("click", async event => {
+      event.target.disabled = true;
+      try {
+        const description = document.getElementById("plan-prompt").value;
+        if (!state.analysis) {
+          document.getElementById("plan-analysis").className = "panel empty";
+          document.getElementById("plan-analysis").textContent = "Analyzing with the local FutureTokenPredictor MCP server...";
+          const analysisResponse = await fetch("/api/analyze", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ description }) });
+          const analysis = await analysisResponse.json();
+          if (!analysisResponse.ok) throw new Error(analysis.error || "Workload analysis failed");
+          state.analysis = analysis;
+          renderWorkloadAnalysis(analysis);
+          event.target.textContent = "Confirm profile and estimate";
+          return;
+        }
+        document.getElementById("plan-content").innerHTML = `<div class="panel empty">Starting the local FutureTokenPredictor MCP server...</div>`;
+        const modelOption = document.getElementById("plan-model").selectedOptions[0];
+        const parameters = { model: modelOption.dataset.model, provider: modelOption.dataset.provider, users: Number(document.getElementById("plan-users").value), calls_per_user_per_day: Number(document.getElementById("plan-calls").value), analysis_confirmed: true, confirmed_profile: collectConfirmedProfile() };
+        const agentModels = collectAgentModels();
+        if (agentModels.length) parameters.agent_models = agentModels;
+        const request = { report_id: state.report.report_id, description, parameters };
+        if (state.plan?.status === "needs_clarification") request.plan_id = state.plan.plan_id;
+        const response = await fetch("/api/plan", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(request) });
+        state.plan = await response.json();
+        if (!response.ok) throw new Error(state.plan.error || "Prediction failed");
+        if (state.plan.status === "needs_clarification") { renderClarifications(state.plan); return; }
+        renderPlan(state.plan);
+      } catch (error) {
+        document.getElementById("plan-content").innerHTML = `<div class="panel danger">${escapeHtml(error.message)}</div>`;
+      } finally { event.target.disabled = false; }
+    });
+    function renderClarifications(plan) {
+      const questions = (plan.clarifications || []).map(item => `<li><strong>${escapeHtml(item.field)}:</strong> ${escapeHtml(item.question)}</li>`).join("");
+      document.getElementById("plan-content").innerHTML = `<div class="panel warning"><h3 class="section-title">More information needed</h3><ul class="assumptions">${questions}</ul><p>Plan session <code>${escapeHtml(plan.plan_id)}</code> is saved. Fill the missing field and estimate again.</p></div>`;
+    }
+    function renderPlan(plan) {
+      const p = plan.prediction, tokens = p.tokens_per_call, bounds = p.bound_provenance, intake = plan.intake;
+      const trace = p.calculation_trace || {}, tokenTrace = trace.tokens || {}, costTrace = trace.cost_per_call || {}, toolTrace = trace.tool_costs || {}, scale = trace.scale || {}, method = trace.method || {}, boundTrace = trace.bounds || bounds;
+      const tokenRows = Object.entries(tokens).filter(([key, value]) => key !== "total" && value > 0).map(([key, value]) => `<tr><td>${escapeHtml(key.replaceAll("_", " "))}</td><td>${number(value)}</td></tr>`).join("");
+      const defaults = p.missing_parameters?.length ? p.missing_parameters.map(item => `<li>Missing input: ${escapeHtml(item)}</li>`).join("") : "";
+      const archetypeDefaults = Object.entries(tokenTrace.archetype_defaults || {}).map(([key, value]) => `<tr><td>${escapeHtml(key.replaceAll("_", " "))}</td><td>${number(value)}</td></tr>`).join("");
+      const tier1Rows = Object.entries(tokenTrace.tier1_baseline || {}).map(([key, value]) => `<tr><td>${escapeHtml(key.replaceAll("_", " "))}</td><td>${number(value)}</td></tr>`).join("");
+      const costRows = (costTrace.components || []).map(item => `<tr><td>${escapeHtml(item.component)}</td><td>${number(item.tokens)}</td><td>${money(item.rate_per_million)} / 1M</td><td>${preciseMoney(item.cost_usd)}</td></tr>`).join("");
+      const toolRows = (toolTrace.components_per_invocation || []).filter(item => item.quantity > 0).map(item => `<tr><td>${escapeHtml(item.component)}</td><td>${number(item.quantity)}</td><td>${preciseMoney(item.cost_usd)}</td></tr>`).join("");
+      const sampleStatement = tokenTrace.sample_statement
+        ? `<p><strong>Example text counted:</strong> “${escapeHtml(tokenTrace.sample_statement)}”</p>`
+        : `<p class="provenance-note"><strong>No example statement was tokenized.</strong> ${escapeHtml(tokenTrace.approach)}</p>`;
+      const methodEvidence = method.selected === "tier3_llm_assisted" ? `
+        <p><strong>Estimator:</strong> ${escapeHtml(method.estimator_model)} at ${decimal((method.confidence || 0) * 100, 1)}% confidence; ${number(method.estimated_steps)} model step(s).</p>
+        <p><strong>Raw estimate:</strong> ${number(method.estimated_input_tokens)} input + ${number(method.estimated_output_tokens)} output + ${number(method.estimated_reasoning_tokens)} reasoning tokens.</p>
+        <code class="formula">${escapeHtml(method.blend_formula)}</code>
+        <p><strong>Estimator rationale:</strong> ${escapeHtml(method.estimator_reasoning)}</p>` : "";
+      const tokenCalculation = `${sampleStatement}<p><strong>Workload statement:</strong> ${escapeHtml(tokenTrace.workload_statement)}</p><p><strong>Tokenizer provenance:</strong> ${escapeHtml(tokenTrace.tokenizer)}; applied to this estimate: ${tokenTrace.tokenizer_applied ? "yes" : "no"}.</p><p><strong>Tier 1:</strong> ${escapeHtml(tokenTrace.archetype)} / ${escapeHtml(tokenTrace.complexity)} archetype defaults.</p><table class="calculation-table"><tbody>${archetypeDefaults}</tbody></table>${tokenTrace.document_formula ? `<code class="formula">Document input = ${escapeHtml(tokenTrace.document_formula)}</code>` : ""}${methodEvidence}<code class="formula">Final tokens = ${escapeHtml(tokenTrace.final_formula)} = ${number(tokens.total)}</code>`;
+      const priceCalculation = `<p><strong>Catalog pricing unit:</strong> ${escapeHtml(costTrace.pricing_unit)}</p><table class="calculation-table"><thead><tr><th>Component</th><th>Tokens</th><th>Rate</th><th>Cost</th></tr></thead><tbody>${costRows}</tbody></table><code class="formula">${escapeHtml(costTrace.formula)} = ${preciseMoney(costTrace.result_usd)}</code>`;
+      const cache = scale.cache_assumptions || {};
+      const dailyCalculation = `${priceCalculation}<code class="formula">Daily calls = ${number(scale.users)} users × ${number(scale.calls_per_user_per_day)} calls = ${number(scale.daily_calls)}</code><p><strong>Cache estimate:</strong> ${decimal(cache.system_prompt_share_of_text_input * 100, 1)}% system-prompt share, ${decimal(cache.cache_hit_rate_after_first_call * 100, 1)}% hit rate after each user’s first call, ${number(cache.cached_calls_per_day)} cached calls/day.</p><code class="formula">Cache repricing = ${money(cache.input_rate_per_million)} / 1M input → ${money(cache.cached_input_rate_per_million)} / 1M cached input; savings = ${money(cache.daily_cache_savings_usd)} / day</code><code class="formula">Daily = ${preciseMoney(costTrace.result_usd)} × ${number(scale.daily_calls)} × ${decimal(cache.cost_discount_factor, 6)} = ${money(scale.daily_result_usd)}</code><p>${escapeHtml(cache.note)}</p>`;
+      const monthlyCalculation = `${dailyCalculation}<code class="formula">Monthly = ${money(scale.daily_result_usd)} × 30 days = ${money(scale.monthly_result_usd)}</code>`;
+      const annualCalculation = `${dailyCalculation}<code class="formula">Annual = ${money(scale.daily_result_usd)} × 365 days = ${money(scale.annual_result_usd)}</code>`;
+      const toolCalculation = `<p class="provenance-note"><strong>Excluded from model-cost figures.</strong> These are separately billed tool charges.</p><table class="calculation-table"><thead><tr><th>Tool</th><th>Uses / invocation</th><th>Cost / invocation</th></tr></thead><tbody>${toolRows}</tbody></table><code class="formula">Per invocation tools = ${preciseMoney(toolTrace.per_invocation_usd)}</code><code class="formula">Daily tools = ${preciseMoney(toolTrace.per_invocation_usd)} × ${number(scale.daily_calls)} calls + ${preciseMoney(toolTrace.storage_usd_per_day)} storage = ${money(toolTrace.daily_result_usd)}</code><code class="formula">Monthly tools = ${money(toolTrace.daily_result_usd)} × 30 days = ${money(toolTrace.monthly_result_usd)}</code>`;
+      const methodCalculation = `<p><strong>Selected:</strong> ${escapeHtml(method.selected)}</p><p>${escapeHtml(method.reason)}</p>${methodEvidence}<p><strong>Bounds:</strong> ${escapeHtml(boundTrace.formula)}</p>`;
+      const modelingAssumptions = `${defaults}<li>${escapeHtml(tokenTrace.archetype)} at ${escapeHtml(tokenTrace.complexity)} complexity supplies the baseline token profile.</li><li>No fabricated sample prompt was tokenized; ${escapeHtml(tokenTrace.tokenizer)} is tokenizer provenance only.</li><li>Retrieved document context: ${escapeHtml(tokenTrace.document_formula || "none")}.</li><li>Cache model: ${decimal(cache.system_prompt_share_of_text_input * 100, 1)}% system-prompt share and ${decimal(cache.cache_hit_rate_after_first_call * 100, 1)}% hit rate after the first call per user.</li><li>Model costs exclude ${money(toolTrace.monthly_result_usd)} / month in separately estimated tool charges.</li><li>Monthly means 30 days; annual means 365 days.</li>`;
+      const agentModels = p.agent_model_assignments || [];
+      const analysis = intake.analysis || {};
+      const confirmedProfile = intake.confirmed_profile || {};
+      const analysisPanel = analysis.schema_version ? `<div class="panel"><h3 class="section-title">Confirmed workload analysis</h3><table><tbody><tr><td>Analysis schema</td><td>${escapeHtml(analysis.schema_version)}</td></tr><tr><td>Rule set</td><td>${escapeHtml(analysis.rule_set_version)}</td></tr><tr><td>Description hash</td><td><code>${escapeHtml(analysis.description_hash)}</code></td></tr><tr><td>Inferred topology</td><td>${escapeHtml(analysis.topology?.selected)}</td></tr><tr><td>Confirmed topology</td><td>${escapeHtml(confirmedProfile.agent_pattern)}</td></tr><tr><td>Confirmed agent count</td><td>${number(confirmedProfile.multi_agent_count)}</td></tr><tr><td>Confirmed modalities</td><td>${escapeHtml((confirmedProfile.modalities || []).join(", "))}</td></tr><tr><td>Confirmed tools</td><td>${escapeHtml((confirmedProfile.tools || []).join(", ") || "None")}</td></tr></tbody></table><p class="provenance-note">This is versioned modeled intake evidence, not observed execution evidence.</p></div>` : "";
+      const agentModelPanel = agentModels.length ? `<div class="panel"><h3 class="section-title">Per-agent model allocation</h3><table><thead><tr><th>Agent</th><th>Role</th><th>Provider / model</th><th>Turn share</th><th>Model cost / invocation</th><th>Pricing</th></tr></thead><tbody>${agentModels.map(item => `<tr><td><code>${escapeHtml(item.agent_id)}</code></td><td>${escapeHtml(item.role || "—")}</td><td>${escapeHtml(item.provider)} / ${escapeHtml(item.model)}</td><td>${decimal(item.allocation_share * 100, 1)}%</td><td>${preciseMoney(item.cost_per_invocation_usd)}</td><td>${item.pricing_verified ? "Verified" : "Unverified"}</td></tr>`).join("")}</tbody></table><p class="provenance-note">${escapeHtml(trace.agent_models?.assumption || "Per-agent costs use modeled token allocation, not observed runtime usage.")}</p></div>` : "";
+      const pricingUrl = safeUrl(p.sources?.pricing_url), catalogUrl = safeUrl(p.sources?.model_catalog_url);
+      document.getElementById("plan-content").innerHTML = `
+        <div class="grid">
+          <div class="panel metric"><span>Tokens per workload invocation</span><strong>${number(tokens.total)}</strong>${calculation(tokenCalculation)}</div>
+          <div class="panel metric"><span>Monthly model cost</span><strong>${money(p.monthly_cost.mean)}</strong>${calculation(monthlyCalculation)}</div>
+          <div class="panel metric"><span>Annual model cost</span><strong>${money(p.annual_cost.mean)}</strong>${calculation(annualCalculation)}</div>
+          <div class="panel metric"><span>Prediction method</span><strong>${escapeHtml(p.prediction_method)}</strong>${calculation(methodCalculation)}</div>
+        </div>
+        <div class="panel"><h3 class="section-title">Token estimate</h3><table><thead><tr><th>Modality</th><th>Tokens per invocation</th></tr></thead><tbody>${tokenRows}<tr><td><strong>Total</strong></td><td><strong>${number(tokens.total)}</strong></td></tr></tbody></table><p>P5 / P50 / P95: <strong>${number(p.tokens_p5)} / ${number(p.tokens_p50)} / ${number(p.tokens_p95)}</strong></p>${calculation(`${tokenCalculation}<h4>Tier 1 baseline before calibration or Tier 3</h4><table class="calculation-table"><tbody>${tier1Rows}</tbody></table><p><strong>Range method:</strong> ${escapeHtml(boundTrace.formula)}</p>`)}</div>
+        <div class="panel"><h3 class="section-title">Model cost forecast</h3><table><thead><tr><th>Period</th><th>Low</th><th>Mean</th><th>High</th><th>Modeled high</th></tr></thead><tbody>${[["Per invocation", p.cost_per_call], ["Daily", p.daily_cost], ["Monthly", p.monthly_cost], ["Annual", p.annual_cost]].map(([label, value]) => `<tr><td>${label}</td><td>${money(value.range_low)}</td><td>${money(value.mean)}</td><td>${money(value.range_high)}</td><td>${money(value.modeled_high)}</td></tr>`).join("")}</tbody></table>${calculation(`${monthlyCalculation}${annualCalculation}`)}</div>
+        ${analysisPanel}
+        ${agentModelPanel}
+        <div class="panel"><h3 class="section-title">Non-model tool charges</h3><table><tbody><tr><td>Per invocation</td><td>${preciseMoney(toolTrace.per_invocation_usd)}</td></tr><tr><td>Daily</td><td>${money(toolTrace.daily_result_usd)}</td></tr><tr><td>Monthly</td><td>${money(toolTrace.monthly_result_usd)}</td></tr></tbody></table>${calculation(toolCalculation)}</div>
+        <div class="grid"><div class="panel"><h3 class="section-title">Workload and provenance</h3><table><tbody><tr><td>${agentModels.length ? "Default / coordinator model" : "Model"}</td><td>${escapeHtml(p.model)}</td></tr><tr><td>Provider</td><td>${escapeHtml(p.provider)}</td></tr><tr><td>Archetype</td><td>${escapeHtml(p.archetype)}</td></tr><tr><td>Users</td><td>${number(intake.users)}</td></tr><tr><td>Calls / user / day</td><td>${number(intake.calls_per_user_per_day)}</td></tr><tr><td>Prediction ID</td><td><code>${escapeHtml(p.prediction_id)}</code></td></tr><tr><td>Plan receipt</td><td><code>${escapeHtml(plan.receipt_id)}</code></td></tr><tr><td>Receipt hash</td><td><code>${escapeHtml(plan.receipt_hash?.slice(0, 16))}…</code></td></tr><tr><td>Bounds</td><td>${escapeHtml(bounds.method)} · ${number(bounds.samples)} samples</td></tr><tr><td>Pricing verified</td><td>${p.pricing_verified ? "Yes" : "No"}</td></tr>${pricingUrl ? `<tr><td>Pricing source</td><td><a href="${pricingUrl}" target="_blank" rel="noreferrer">Provider pricing</a></td></tr>` : ""}${catalogUrl ? `<tr><td>Model catalog</td><td><a href="${catalogUrl}" target="_blank" rel="noreferrer">Model reference</a></td></tr>` : ""}</tbody></table></div><div class="panel"><h3 class="section-title">Modeling assumptions</h3><ul class="assumptions">${modelingAssumptions}</ul></div><div class="panel wide warning"><strong>Azure infrastructure:</strong> Not included in any figure above. ${escapeHtml(plan.infrastructure.message)}</div><div class="panel wide"><div class="toolbar"><div><h3 class="section-title">Ready for policy admission</h3><span class="subtitle">Govern receives this exact receipt snapshot; it does not parse the narrative.</span></div><button class="primary" id="govern-handoff-button">Send to Govern</button></div></div></div>`;
+      document.getElementById("govern-handoff-button").addEventListener("click", handoffToGovern);
+    }
+    async function handoffToGovern(event) {
+      event.target.disabled = true;
+      try {
+        const response = await fetch(`/api/plans/${encodeURIComponent(state.plan.plan_id)}/govern-handoff`, { method: "POST" });
+        const handoff = await response.json();
+        if (!response.ok) throw new Error(handoff.error || "Govern handoff failed");
+        renderGovernHandoff(handoff);
+        document.querySelector('.tab[data-view="govern"]').click();
+      } catch (error) {
+        document.getElementById("govern-content").innerHTML = `<div class="panel danger">${escapeHtml(error.message)}</div>`;
+      } finally { event.target.disabled = false; }
+    }
+    function renderGovernHandoff(handoff) {
+      state.handoff = handoff;
+      const policy = handoff.policy || {}, provenance = policy.provenance || {}, mutation = handoff.mutation || {};
+      const economics = handoff.economics || {}, costPerCall = economics.cost_per_call || {}, monthly = economics.monthly_cost || {}, annual = economics.annual_cost || {};
+      const costCheck = (handoff.checks || []).find(check => check.name === "model_cost_per_call");
+      const unitHeadroom = costCheck && Number.isFinite(costCheck.expected - costCheck.actual) ? costCheck.expected - costCheck.actual : null;
+      const checks = (handoff.checks || []).map(check => `<tr><td>${escapeHtml(check.name.replaceAll("_", " "))}</td><td><span class="badge ${check.passed ? "success" : "danger"}">${check.passed ? "passed" : "failed"}</span></td><td>${escapeHtml(JSON.stringify(check.actual))}</td><td>${escapeHtml(JSON.stringify(check.expected))}</td></tr>`).join("");
+      document.getElementById("govern-content").innerHTML = `<div class="panel metric"><span>Admission decision</span><strong>${escapeHtml(handoff.status)}</strong></div><div class="panel metric"><span>Monthly model exposure</span><strong>${monthly.mean == null ? "—" : money(monthly.mean)}</strong></div><div class="panel metric"><span>Annual model exposure</span><strong>${annual.mean == null ? "—" : money(annual.mean)}</strong></div><div class="panel metric"><span>Unit-cost headroom</span><strong class="${unitHeadroom != null && unitHeadroom >= 0 ? "headroom" : "danger"}">${unitHeadroom == null ? "—" : preciseMoney(unitHeadroom)}</strong></div><div class="panel wide"><h3 class="section-title">Effective decision binding</h3><table><tbody><tr><td>Policy</td><td><strong>${escapeHtml(policy.policy_id || "unavailable")}</strong> · ${escapeHtml(policy.version || "unavailable")}</td></tr><tr><td>Cost per call</td><td>${costPerCall.mean == null ? "—" : preciseMoney(costPerCall.mean)}</td></tr><tr><td>Mutation mode</td><td>${escapeHtml(mutation.mode || "not configured")}</td></tr><tr><td>Evaluated</td><td>${escapeHtml(formatDate(handoff.evaluated_at))}</td></tr></tbody></table></div><div class="panel wide"><h3 class="section-title">Authoritative policy provenance</h3><table><tbody><tr><td>Source</td><td>${escapeHtml(provenance.source || "unavailable")}</td></tr><tr><td>Endpoint</td><td><code>${escapeHtml(provenance.endpoint || "unavailable")}</code></td></tr><tr><td>Key / label</td><td><code>${escapeHtml(provenance.key || "unavailable")} / ${escapeHtml(provenance.label || "unavailable")}</code></td></tr><tr><td>ETag</td><td><code>${escapeHtml(provenance.etag || "unavailable")}</code></td></tr><tr><td>Policy SHA-256</td><td><code>${escapeHtml(policy.content_hash || "unavailable")}</code></td></tr></tbody></table></div>${checks ? `<div class="panel wide"><h3 class="section-title">Admission checks</h3><table><thead><tr><th>Check</th><th>Result</th><th>Actual</th><th>Policy requirement</th></tr></thead><tbody>${checks}</tbody></table></div>` : ""}<div class="panel wide"><h3 class="section-title">Immutable admission input</h3><table><tbody><tr><td>Report</td><td><code>${escapeHtml(handoff.report_id || state.report.report_id)}</code></td></tr><tr><td>Plan</td><td><code>${escapeHtml(handoff.plan_id)}</code></td></tr><tr><td>Receipt</td><td><code>${escapeHtml(handoff.receipt_id)}</code></td></tr>${handoff.receipt_hash ? `<tr><td>SHA-256</td><td><code>${escapeHtml(handoff.receipt_hash)}</code></td></tr>` : ""}</tbody></table><p>Execution is allowed only for an admitted receipt and remains pinned to this policy revision.</p></div>`;
+    }
+    document.getElementById("run-button").addEventListener("click", async event => {
+      event.target.disabled = true;
+      if (!state.handoff || state.handoff.status !== "admitted") { document.getElementById("run-content").innerHTML = `<div class="danger">An admitted Plan is required before execution.</div>`; event.target.disabled = false; return; }
+      const response = await fetch("/api/runs", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ report_id: state.report.report_id, plan_id: state.handoff.plan_id }) });
+      const run = await response.json();
+      if (!response.ok) { document.getElementById("run-content").innerHTML = `<div class="danger">${escapeHtml(run.error || "Run failed")}</div>`; event.target.disabled = false; return; }
+      document.getElementById("run-content").innerHTML = `<span class="badge warning">${run.status}</span> <code>${run.run_id}</code>`;
+      poll(run.run_id, event.target);
+    });
+    async function poll(runId, button) {
+      const response = await fetch(`/api/runs/${runId}`);
+      const run = await response.json();
+      if (run.status === "completed") { state.run = run.result; renderRun(); button.disabled = false; return; }
+      if (run.status === "failed") { document.getElementById("run-content").textContent = run.error; button.disabled = false; return; }
+      setTimeout(() => poll(runId, button), 600);
+    }
+    async function loadRun(runId) {
+      const response = await fetch(`/api/runs/${encodeURIComponent(runId)}`);
+      const run = await response.json();
+      if (run.status === "completed") { state.run = run.result; renderRun(); document.querySelector('.tab[data-view="runs"]').click(); }
+    }
+    function renderRun() {
+      const run = state.run, observed = run.observed;
+      document.getElementById("run-content").innerHTML = `<span class="badge success">completed</span> <code>${run.run_id}</code><p>${observed.requests} governed requests using policy <strong>${run.policy.version}</strong>.</p>`;
+      document.getElementById("metrics").innerHTML = `<div class="panel metric"><span>Observed cost</span><strong>${money(observed.cost_usd)}</strong></div><div class="panel metric"><span>Quality</span><strong>${number(observed.quality)}</strong></div><div class="panel metric"><span>Cache hits</span><strong>${number(observed.cache_hits)}</strong></div><div class="panel metric"><span>Average latency</span><strong>${number(observed.avg_latency_ms)} ms</strong></div><div class="panel metric"><span>Input tokens</span><strong>${number(observed.input_tokens)}</strong></div><div class="panel metric"><span>Output tokens</span><strong>${number(observed.output_tokens)}</strong></div><div class="panel wide"><strong>Worst-segment quality</strong><table><tbody>${Object.entries(observed.quality_by_segment).map(([key, value]) => `<tr><td>${key}</td><td>${number(value)}</td></tr>`).join("")}</tbody></table></div>`;
+      document.getElementById("reconcile-content").innerHTML = `<table><thead><tr><th>Prediction</th><th>Status</th><th>Completed tasks</th><th>Actual tokens/task</th><th>Error</th></tr></thead><tbody>${run.reconciliation.map(item => `<tr><td><code>${item.prediction_id}</code></td><td class="success">${item.status}</td><td>${item.completed_tasks}</td><td>${number(item.actual_tokens_per_task)}</td><td>${number(item.forecast_error_pct)}%</td></tr>`).join("")}</tbody></table>`;
+    }
+    loadReports();
+  </script>
+</body>
+</html>

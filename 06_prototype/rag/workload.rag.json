@@ -1,0 +1,11 @@
+{
+  "_comment": "RAG live workload over the 5-book corpus. Same schema as ../workload.json. 'repeats' + 'paraphrases' create near-duplicate phrasings so the semantic cache is exercised on the easy/repetitive traffic; the hard synthesis queries are rarer and high-stakes (the tier where eval-gated governance pays off).",
+  "requests": [
+    {"tenant": "readers", "difficulty": "easy", "question": "who does elizabeth bennet ultimately marry in pride and prejudice", "repeats": 30, "paraphrases": ["who does lizzy bennet end up marrying", "in pride and prejudice who marries elizabeth", "elizabeth bennet husband name"]},
+    {"tenant": "readers", "difficulty": "easy", "question": "what common plant is used to ward off dracula", "repeats": 25, "paraphrases": ["what plant keeps dracula away", "how do characters repel dracula", "what wards off the vampire in dracula"]},
+    {"tenant": "students", "difficulty": "easy", "question": "who is sherlock holmes's friend and chronicler", "repeats": 22, "paraphrases": ["who narrates the sherlock holmes stories", "who is holmes's assistant", "name of holmes's companion doctor"]},
+    {"tenant": "students", "difficulty": "easy", "question": "what animal does alice follow at the start of the story", "repeats": 20, "paraphrases": ["what does alice chase into wonderland", "which creature leads alice down the hole"]},
+    {"tenant": "students", "difficulty": "hard", "question": "explain the frame narrative of frankenstein: who is recording victor's story and how is it conveyed to the reader", "repeats": 6, "paraphrases": ["how is frankenstein's story framed and who writes it down", "who tells victor's story to the reader in frankenstein"]},
+    {"tenant": "readers", "difficulty": "hard", "question": "compare how frankenstein's creature and count dracula are both portrayed as outsiders who provoke fear and isolation", "repeats": 5, "paraphrases": ["how are the creature and dracula alike as feared outsiders", "contrast the isolation of frankenstein's monster and dracula"]}
+  ]
+}

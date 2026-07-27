@@ -1,0 +1,30 @@
+{
+  "_comment": "The config store — the single source of truth for the cost 'knobs'. The control plane writes here; the data plane reads here. Changing behavior needs NO code deploy (mirrors file 06 §1).",
+  "tier": 2,
+  "routing": {
+    "mode": "balanced",
+    "_modes": "balanced | cost | quality — mirrors Azure AI Foundry Model Router deploy-time modes",
+    "cost_quality_band": 0.06
+  },
+  "semantic_cache": {
+    "enabled": true,
+    "score_threshold": 0.83,
+    "_note": "similarity >= threshold => cache hit. Higher threshold = stricter = safer (fewer wrong-answer hits). Mirrors APIM llm-semantic-cache score-threshold."
+  },
+  "context": {
+    "prune": true,
+    "max_context_items": 6
+  },
+  "budgets": {
+    "per_tenant_usd_per_run": 5.0,
+    "hard_cap_action": "degrade",
+    "_actions": "degrade (graceful, drop to cheaper model) | reject (hard 429-style)"
+  },
+  "evaluation": {
+    "sample_rate": 0.25,
+    "min_quality": 0.80,
+    "min_segment_samples": 2,
+    "consecutive_breaches": 1,
+    "_note": "continuous eval samples this fraction of live traffic; if sampled quality < min_quality the decision binding reacts"
+  }
+}

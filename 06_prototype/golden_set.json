@@ -1,0 +1,10 @@
+{
+  "_comment": "Golden set for the eval engine. Each entry: a canonical question, its difficulty, and reference facts a good answer must contain. The evaluator scores answers against 'must_include'. Mirrors file 06: golden-set defined at DESIGN time, not bolted on later.",
+  "cases": [
+    {"id": "g1", "difficulty": "easy", "question": "what are your opening hours", "must_include": ["9", "5", "monday", "friday"]},
+    {"id": "g2", "difficulty": "easy", "question": "how do i reset my password", "must_include": ["settings", "security", "reset"]},
+    {"id": "g3", "difficulty": "easy", "question": "where is my order", "must_include": ["track", "orders", "email"]},
+    {"id": "g4", "difficulty": "hard", "question": "i was double charged and need a refund to a closed card", "must_include": ["refund", "original", "bank", "5", "days", "closed"]},
+    {"id": "g5", "difficulty": "hard", "question": "explain how your data retention policy affects gdpr deletion requests", "must_include": ["30", "days", "delete", "backup", "gdpr", "request"]}
+  ]
+}

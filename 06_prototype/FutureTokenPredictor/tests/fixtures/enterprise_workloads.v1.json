@@ -1,0 +1,212 @@
+{
+  "schema_version": "1.0",
+  "corpus_id": "enterprise-workload-semantics",
+  "corpus_version": "2026-07-24.1",
+  "scope": "reviewed modeled workload-invocation classification contract",
+  "cases": [
+    {
+      "id": "A01", "category": "agent", "title": "Automated Competitor Analysis",
+      "description": "Automated Competitor Analysis: An LLM-powered agent takes a prompt to analyze a competitor, uses web search and data retrieval tools to collect information on products, pricing, partnerships, and announcements, then synthesizes a comprehensive competitive intelligence report with recommendations.",
+      "expected_topology": "react_agent", "minimum_modalities": ["text"], "minimum_tools": ["web_search", "file_search"],
+      "agent_count": {"minimum": 1, "source": "defaulted"}, "rationale": "One agent iteratively gathers external evidence with tools before synthesizing recommendations."
+    },
+    {
+      "id": "A02", "category": "agent", "title": "End-to-End Invoice Processing",
+      "description": "End-to-End Invoice Processing: An agent ingests invoices and purchase orders in any format, extracts key information using multimodal models, validates details against ERP and inventory systems, creates transactions automatically, and routes exceptions for human review.",
+      "expected_topology": "workflow", "minimum_modalities": ["text", "document", "image_input"], "minimum_tools": ["custom_function"],
+      "agent_count": {"minimum": 1, "source": "defaulted"}, "rationale": "Bounded ingest, extraction, validation, transaction, and exception-review stages form an ordered workflow."
+    },
+    {
+      "id": "A03", "category": "agent", "title": "Context-Aware Customer Support Resolution",
+      "description": "Context-Aware Customer Support Resolution: A support agent reviews customer history, order data, product documentation, and previous tickets, executes approved actions such as refunds or shipment updates, and resolves cases with minimal human involvement.",
+      "expected_topology": "react_agent", "minimum_modalities": ["text", "document"], "minimum_tools": ["custom_function"],
+      "agent_count": {"minimum": 1, "source": "defaulted"}, "rationale": "One agent selects and executes case-dependent actions with minimal human step selection."
+    },
+    {
+      "id": "A04", "category": "agent", "title": "Autonomous Bug Resolution",
+      "description": "Autonomous Bug Resolution: A software engineering agent monitors CI/CD pipelines and production telemetry, identifies the likely root cause of failures, generates code fixes, runs tests, validates results, and submits a pull request for review.",
+      "expected_topology": "react_agent", "minimum_modalities": ["text"], "minimum_tools": ["code_interpreter", "custom_function"],
+      "agent_count": {"minimum": 1, "source": "defaulted"}, "rationale": "An autonomous engineering loop observes, diagnoses, acts, tests, and validates."
+    },
+    {
+      "id": "A05", "category": "agent", "title": "Automated Lead Enrichment",
+      "description": "Automated Lead Enrichment: A sales agent researches inbound prospects across public and enterprise data sources, identifies decision makers, evaluates account fit, enriches CRM records, and drafts personalized outreach recommendations.",
+      "expected_topology": "react_agent", "minimum_modalities": ["text"], "minimum_tools": ["web_search", "custom_function"],
+      "agent_count": {"minimum": 1, "source": "defaulted"}, "rationale": "One research agent gathers evidence, evaluates fit, updates CRM, and drafts recommendations."
+    },
+    {
+      "id": "A06", "category": "agent", "title": "Clinical Notes Generation",
+      "description": "Clinical Notes Generation: A healthcare agent listens to physician-patient conversations, generates structured clinical documentation, captures medical observations, and drafts records for provider validation.",
+      "expected_topology": "workflow", "minimum_modalities": ["text", "audio_input", "document"], "minimum_tools": [],
+      "agent_count": {"minimum": 1, "source": "defaulted"}, "rationale": "Audio intake, structured documentation, observation capture, and provider validation are bounded stages."
+    },
+    {
+      "id": "A07", "category": "agent", "title": "Contract Review and Risk Assessment",
+      "description": "Contract Review and Risk Assessment: A legal agent analyzes contracts against organizational policies, highlights risky clauses, identifies deviations from standard terms, and generates recommended redlines.",
+      "expected_topology": "workflow", "minimum_modalities": ["text", "document"], "minimum_tools": ["file_search"],
+      "agent_count": {"minimum": 1, "source": "defaulted"}, "rationale": "Contract comparison, risk extraction, deviation analysis, and redline generation are bounded processing stages."
+    },
+    {
+      "id": "A08", "category": "agent", "title": "Threat Investigation and Triage",
+      "description": "Threat Investigation and Triage: A cybersecurity agent reviews security alerts, correlates telemetry across multiple tools, determines attack severity, and recommends or executes predefined response actions.",
+      "expected_topology": "react_agent", "minimum_modalities": ["text"], "minimum_tools": ["custom_function"],
+      "agent_count": {"minimum": 1, "source": "defaulted"}, "rationale": "One agent observes, correlates, decides severity, and conditionally acts across tools."
+    },
+    {
+      "id": "A09", "category": "agent", "title": "Executive Briefing Preparation",
+      "description": "Executive Briefing Preparation: An executive assistant agent gathers meeting notes, emails, CRM records, operational reports, and news updates to create concise executive briefings with actions and risks.",
+      "expected_topology": "react_agent", "minimum_modalities": ["text", "document"], "minimum_tools": ["web_search", "custom_function"],
+      "agent_count": {"minimum": 1, "source": "defaulted"}, "rationale": "One agent selects evidence from several systems and synthesizes actions and risks."
+    },
+    {
+      "id": "A10", "category": "agent", "title": "Expense and Time Tracking Automation",
+      "description": "Expense and Time Tracking Automation: An agent reviews calendars, meetings, emails, and development activity to draft timesheets, categorize expenses, and prepare submissions for employee approval.",
+      "expected_topology": "workflow", "minimum_modalities": ["text", "document"], "minimum_tools": ["custom_function"],
+      "agent_count": {"minimum": 1, "source": "defaulted"}, "rationale": "Source review, drafting, categorization, submission, and employee approval are bounded stages."
+    },
+    {
+      "id": "M01", "category": "multi_agent", "title": "Product Launch Orchestration",
+      "description": "Product Launch Orchestration: Research agents analyze market trends, content agents create campaign materials, legal agents review messaging, sales agents prepare account strategies, and coordination agents manage launch readiness across functions.",
+      "expected_topology": "multi_agent", "minimum_modalities": ["text", "document"], "minimum_tools": ["custom_function"],
+      "agent_count": {"minimum": 5, "source": "inferred_roles"}, "rationale": "Five named specialist agent roles collaborate on launch readiness."
+    },
+    {
+      "id": "M02", "category": "multi_agent", "title": "Software Development Factory",
+      "description": "Software Development Factory: Planning agents generate requirements, coding agents write code, testing agents create and execute tests, security agents review vulnerabilities, and release agents prepare deployment packages.",
+      "expected_topology": "multi_agent", "minimum_modalities": ["text"], "minimum_tools": ["code_interpreter", "custom_function"],
+      "agent_count": {"minimum": 5, "source": "inferred_roles"}, "rationale": "Five distinct software-delivery agent roles hand work across a factory."
+    },
+    {
+      "id": "M03", "category": "multi_agent", "title": "Customer Escalation Resolution Network",
+      "description": "Customer Escalation Resolution Network: Support agents gather case details, product agents analyze technical issues, billing agents review transaction history, and case management agents coordinate resolution and customer communications.",
+      "expected_topology": "multi_agent", "minimum_modalities": ["text", "document"], "minimum_tools": ["custom_function"],
+      "agent_count": {"minimum": 4, "source": "inferred_roles"}, "rationale": "Four named agent roles coordinate a customer escalation."
+    },
+    {
+      "id": "M04", "category": "multi_agent", "title": "Enterprise Research and Report Generation",
+      "description": "Enterprise Research and Report Generation: Research agents gather information from internal and external sources, analyst agents synthesize findings, writer agents draft reports, and reviewer agents validate quality and compliance.",
+      "expected_topology": "multi_agent", "minimum_modalities": ["text", "document"], "minimum_tools": ["web_search", "file_search"],
+      "agent_count": {"minimum": 4, "source": "inferred_roles"}, "rationale": "Research, analysis, writing, and review are assigned to four collaborating agent roles."
+    },
+    {
+      "id": "M05", "category": "multi_agent", "title": "Loan Processing Workflow",
+      "description": "Loan Processing Workflow: Document processing agents extract information from applications, risk agents perform credit evaluations, compliance agents check regulations, and approval agents prepare lending recommendations.",
+      "expected_topology": "multi_agent", "minimum_modalities": ["text", "document"], "minimum_tools": ["custom_function"],
+      "agent_count": {"minimum": 4, "source": "inferred_roles"}, "rationale": "Four named specialist agent roles collaborate despite workflow wording."
+    },
+    {
+      "id": "M06", "category": "multi_agent", "title": "Supply Chain Disruption Management",
+      "description": "Supply Chain Disruption Management: Monitoring agents detect disruptions, sourcing agents identify alternative suppliers, logistics agents optimize transportation routes, and planning agents update fulfillment schedules.",
+      "expected_topology": "multi_agent", "minimum_modalities": ["text"], "minimum_tools": ["custom_function"],
+      "agent_count": {"minimum": 4, "source": "inferred_roles"}, "rationale": "Four supply-chain agent roles coordinate detection and response."
+    },
+    {
+      "id": "M07", "category": "multi_agent", "title": "Cybersecurity Threat Hunting",
+      "description": "Cybersecurity Threat Hunting: Detection agents monitor activity, investigation agents analyze attack paths, intelligence agents compare indicators against threat feeds, and remediation agents isolate affected systems.",
+      "expected_topology": "multi_agent", "minimum_modalities": ["text"], "minimum_tools": ["web_search", "custom_function"],
+      "agent_count": {"minimum": 4, "source": "inferred_roles"}, "rationale": "Four named security agent roles collaborate on hunting and remediation."
+    },
+    {
+      "id": "M08", "category": "multi_agent", "title": "Project Management Office Automation",
+      "description": "Project Management Office Automation: Planning agents maintain schedules, risk agents identify delivery concerns, reporting agents generate executive dashboards, and resource management agents recommend staffing adjustments.",
+      "expected_topology": "multi_agent", "minimum_modalities": ["text"], "minimum_tools": ["custom_function"],
+      "agent_count": {"minimum": 4, "source": "inferred_roles"}, "rationale": "Four PMO agent roles maintain distinct responsibilities and coordinate recommendations."
+    },
+    {
+      "id": "M09", "category": "multi_agent", "title": "Healthcare Care Coordination",
+      "description": "Healthcare Care Coordination: Intake agents collect patient information, scheduling agents coordinate appointments, care management agents track treatment plans, and communication agents engage patients and providers.",
+      "expected_topology": "multi_agent", "minimum_modalities": ["text", "document"], "minimum_tools": ["custom_function"],
+      "agent_count": {"minimum": 4, "source": "inferred_roles"}, "rationale": "Four care-delivery agent roles coordinate patient and provider work."
+    },
+    {
+      "id": "M10", "category": "multi_agent", "title": "Agentic Document Processing Pipeline",
+      "description": "Agentic Document Processing Pipeline: Extraction agents read documents, classification agents categorize content, validation agents verify accuracy, and workflow agents route completed transactions to downstream systems.",
+      "expected_topology": "multi_agent", "minimum_modalities": ["text", "document"], "minimum_tools": ["custom_function"],
+      "agent_count": {"minimum": 4, "source": "inferred_roles"}, "rationale": "Four named agent roles collaborate inside the document pipeline."
+    },
+    {
+      "id": "O01", "category": "autonomous_operations", "title": "Self-Healing Cloud Infrastructure",
+      "description": "Self-Healing Cloud Infrastructure: Autonomous operations agents continuously monitor cloud environments, detect configuration drift or service degradation, execute corrective actions, validate system health, and document changes without human intervention.",
+      "expected_topology": "react_agent", "minimum_modalities": ["text"], "minimum_tools": ["custom_function"],
+      "agent_count": {"minimum": 1, "source": "defaulted"}, "rationale": "An autonomous observe-act-validate loop self-heals infrastructure without human intervention."
+    },
+    {
+      "id": "O02", "category": "autonomous_operations", "title": "Autonomous Security Operations Center (SOC)",
+      "description": "Autonomous Security Operations Center (SOC): Security agents continuously monitor telemetry, investigate suspicious activities, isolate compromised assets, block malicious activity, and verify remediation actions in real time.",
+      "expected_topology": "react_agent", "minimum_modalities": ["text"], "minimum_tools": ["custom_function"],
+      "agent_count": {"minimum": 1, "source": "defaulted"}, "rationale": "Continuous monitoring, action, and remediation verification form an autonomous loop."
+    },
+    {
+      "id": "O03", "category": "autonomous_operations", "title": "Autonomous Data Pipeline Management",
+      "description": "Autonomous Data Pipeline Management: Data agents monitor pipeline performance, detect failures and data quality issues, reroute workloads, optimize execution plans, and restore operations automatically.",
+      "expected_topology": "react_agent", "minimum_modalities": ["text"], "minimum_tools": ["custom_function"],
+      "agent_count": {"minimum": 1, "source": "defaulted"}, "rationale": "The system observes pipeline state, adapts execution, and restores operations automatically."
+    },
+    {
+      "id": "O04", "category": "autonomous_operations", "title": "Continuous Compliance Monitoring and Remediation",
+      "description": "Continuous Compliance Monitoring and Remediation: Compliance agents continuously evaluate infrastructure, applications, and business processes against policies, automatically remediate violations, and generate audit evidence.",
+      "expected_topology": "react_agent", "minimum_modalities": ["text", "document"], "minimum_tools": ["custom_function"],
+      "agent_count": {"minimum": 1, "source": "defaulted"}, "rationale": "Continuous policy evaluation triggers automatic remediation and evidence generation."
+    },
+    {
+      "id": "O05", "category": "autonomous_operations", "title": "Autonomous Network Operations",
+      "description": "Autonomous Network Operations: Network agents monitor performance and availability, identify outages or latency issues, reroute traffic, optimize configurations, and restore service levels automatically.",
+      "expected_topology": "react_agent", "minimum_modalities": ["text"], "minimum_tools": ["custom_function"],
+      "agent_count": {"minimum": 1, "source": "defaulted"}, "rationale": "Network state drives automatic routing, configuration, and restoration actions."
+    },
+    {
+      "id": "O06", "category": "autonomous_operations", "title": "Predictive Maintenance and Asset Optimization",
+      "description": "Predictive Maintenance and Asset Optimization: Operations agents continuously analyze telemetry from equipment, predict failures, schedule maintenance, order replacement parts, and optimize asset utilization.",
+      "expected_topology": "react_agent", "minimum_modalities": ["text"], "minimum_tools": ["custom_function"],
+      "agent_count": {"minimum": 1, "source": "defaulted"}, "rationale": "Continuous telemetry analysis drives predictions and operational actions."
+    },
+    {
+      "id": "O07", "category": "autonomous_operations", "title": "Supply Chain Control Tower",
+      "description": "Supply Chain Control Tower: Autonomous agents monitor inventory, supplier performance, transportation networks, and demand forecasts, then dynamically adjust procurement and logistics decisions.",
+      "expected_topology": "react_agent", "minimum_modalities": ["text"], "minimum_tools": ["custom_function"],
+      "agent_count": {"minimum": 1, "source": "defaulted"}, "rationale": "An autonomous control loop monitors supply state and dynamically adjusts decisions."
+    },
+    {
+      "id": "O08", "category": "autonomous_operations", "title": "FinOps Cost Optimization Platform",
+      "description": "FinOps Cost Optimization Platform: Financial operations agents continuously monitor cloud spending, identify waste, shut down unused resources, right-size infrastructure, and optimize resource allocation.",
+      "expected_topology": "react_agent", "minimum_modalities": ["text"], "minimum_tools": ["custom_function"],
+      "agent_count": {"minimum": 1, "source": "defaulted"}, "rationale": "Continuous spend observation drives resource mutations and optimization actions."
+    },
+    {
+      "id": "O09", "category": "autonomous_operations", "title": "Autonomous Manufacturing Operations",
+      "description": "Autonomous Manufacturing Operations: Manufacturing agents monitor production lines, optimize scheduling, detect quality issues, adjust machine settings, and coordinate maintenance activities to maximize yield.",
+      "expected_topology": "react_agent", "minimum_modalities": ["text"], "minimum_tools": ["custom_function"],
+      "agent_count": {"minimum": 1, "source": "defaulted"}, "rationale": "An autonomous production loop observes quality and adjusts machines and schedules."
+    },
+    {
+      "id": "O10", "category": "autonomous_operations", "title": "Real-Time Fraud Prevention System",
+      "description": "Real-Time Fraud Prevention System: Fraud detection agents analyze transaction streams, evaluate risk signals, suspend suspicious activities, initiate customer verification workflows, and continuously adapt detection strategies.",
+      "expected_topology": "react_agent", "minimum_modalities": ["text"], "minimum_tools": ["custom_function"],
+      "agent_count": {"minimum": 1, "source": "defaulted"}, "rationale": "Continuous adaptation and conditional suspension make this an autonomous loop despite workflow wording."
+    },
+    {
+      "id": "O11", "category": "autonomous_operations", "title": "Enterprise Operations Command Center",
+      "description": "Enterprise Operations Command Center: A network of autonomous agents monitors business processes, customer experience, infrastructure, security, financial performance, and workforce operations, coordinating actions across systems to maintain predefined business outcomes.",
+      "expected_topology": "multi_agent", "minimum_modalities": ["text"], "minimum_tools": ["custom_function"],
+      "agent_count": {"minimum": 2, "source": "inferred_roles"}, "rationale": "An explicit network of autonomous agents coordinates actions across business domains."
+    },
+    {
+      "id": "O12", "category": "autonomous_operations", "title": "Autonomous Revenue Operations",
+      "description": "Autonomous Revenue Operations: Agents continuously manage lead qualification, pipeline progression, forecasting, pricing compliance, renewal management, and revenue leakage prevention while coordinating with CRM and ERP systems.",
+      "expected_topology": "react_agent", "minimum_modalities": ["text"], "minimum_tools": ["custom_function"],
+      "agent_count": {"minimum": 1, "source": "defaulted"}, "rationale": "A continuous autonomous revenue loop coordinates with systems rather than distinct logical agents."
+    },
+    {
+      "id": "O13", "category": "autonomous_operations", "title": "Agent-to-Agent Enterprise Knowledge Network",
+      "description": "Agent-to-Agent Enterprise Knowledge Network: Specialized agents across HR, Finance, IT, Sales, Operations, and Customer Support collaborate continuously to answer questions, execute actions, share context, and optimize enterprise-wide decision making.",
+      "expected_topology": "multi_agent", "minimum_modalities": ["text", "document"], "minimum_tools": ["file_search", "custom_function"],
+      "agent_count": {"minimum": 6, "source": "inferred_roles"}, "rationale": "Agent-to-agent wording and six named domains establish a collaborative agent network."
+    },
+    {
+      "id": "O14", "category": "autonomous_operations", "title": "Autonomous Transformation Office",
+      "description": "Autonomous Transformation Office: Strategic planning, execution, risk, communications, financial tracking, and reporting agents coordinate large-scale transformation programs while continuously adjusting plans to achieve target outcomes.",
+      "expected_topology": "multi_agent", "minimum_modalities": ["text", "document"], "minimum_tools": ["custom_function"],
+      "agent_count": {"minimum": 6, "source": "inferred_roles"}, "rationale": "Six functional agent roles coordinate and continuously adjust a transformation program."
+    }
+  ]
+}

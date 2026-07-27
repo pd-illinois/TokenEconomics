@@ -1,0 +1,16 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentParameters.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "location": { "value": "eastus2" },
+    "accountName": { "value": "tokengov-aoai" },
+    "principalId": { "value": "<REPLACE: az ad signed-in-user show --query id -o tsv>" },
+    "policyReaderPrincipalId": { "value": "<REPLACE: Studio managed identity or signed-in user object ID>" },
+    "policyReaderPrincipalType": { "value": "User" },
+    "policyAdministratorPrincipalId": { "value": "<REPLACE: policy administrator object ID>" },
+    "policyAdministratorPrincipalType": { "value": "User" },
+    "policyLabel": { "value": "production" },
+    "deployAppConfig": { "value": true },
+    "deployAppInsights": { "value": true }
+  }
+}

@@ -1,0 +1,16 @@
+.env
+*.db
+__pycache__/
+*.pyc
+*.egg-info/
+dist/
+build/
+.venv/
+
+# --- MVPWeaver (managed) ---
+.pytest_cache/
+.uv/
+.coverage
+.coverage.*
+.mypy_cache/
+.ruff_cache/

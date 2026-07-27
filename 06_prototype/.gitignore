@@ -1,0 +1,7 @@
+__pycache__/
+*.pyc
+telemetry_out.jsonl
+telemetry_live.jsonl
+dashboard_data.json
+dashboard.html
+.env

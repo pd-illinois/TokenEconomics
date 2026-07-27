@@ -1,0 +1,12 @@
+# Live Azure wiring — only needed for `python demo.py --live`.
+# The simulated demo (`python demo.py`) needs NONE of these.
+
+openai>=1.40.0                 # Azure OpenAI / Foundry chat completions
+azure-identity>=1.17.0         # DefaultAzureCredential (Entra ID / az login)
+python-dotenv>=1.0.0           # load .env
+
+# Optional — activate only if you wire these services (safe to omit otherwise):
+azure-appconfiguration>=1.5.0          # config store hydration (App Configuration)
+azure-monitor-opentelemetry>=1.6.0     # telemetry export to Application Insights
+azure-ai-evaluation>=1.0.0             # managed Foundry cloud evaluation (alt to inline judge)
+azure-search-documents>=11.6.0         # RAG indexing + hybrid/vector/semantic retrieval

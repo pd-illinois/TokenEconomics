@@ -1,0 +1,16 @@
+#!/usr/bin/env bash
+# MVPWeaver tamper-evidence gate.
+#
+# Install it from the repo root with:
+#     ln -sf ../../scripts/hooks/pre-commit .git/hooks/pre-commit
+# (or copy it: cp scripts/hooks/pre-commit .git/hooks/pre-commit && chmod +x .git/hooks/pre-commit)
+#
+# It refuses the commit if kanban.md / mindmap.md were hand-edited, or if any
+# block carries a 'done'/'baseline' status it did not earn. This is what makes a
+# doctored board fail at commit time instead of sneaking into history.
+set -euo pipefail
+
+ROOT="$(git rev-parse --show-toplevel)"
+PY="${PYTHON:-python3}"
+
+"$PY" "$ROOT/scripts/verify.py"

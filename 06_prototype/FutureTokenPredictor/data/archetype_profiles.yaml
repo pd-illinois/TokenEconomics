@@ -1,0 +1,335 @@
+# Universal Workflow Archetype Profiles
+# Defines token usage distributions for each agent pattern across any framework.
+# Used by the prediction engine to estimate per-call token budgets.
+
+archetypes:
+  SingleCall_TextOnly:
+    description: "Single LLM call, text only, no tools"
+    agent_pattern: single_call
+    modalities: [text]
+    tools: []
+    token_profiles:
+      low:
+        system_prompt: 300
+        user_input: 100
+        output_mean: 200
+        output_std: 80
+        turns: 1
+      medium:
+        system_prompt: 600
+        user_input: 300
+        output_mean: 600
+        output_std: 200
+        turns: 1
+      high:
+        system_prompt: 1200
+        user_input: 800
+        output_mean: 2000
+        output_std: 600
+        turns: 1
+
+  SingleCall_Vision:
+    description: "Single call with image inputs (vision models)"
+    agent_pattern: single_call
+    modalities: [text, image_input]
+    tools: []
+    token_profiles:
+      low:
+        system_prompt: 400
+        user_input: 150
+        output_mean: 300
+        output_std: 100
+        images_per_call: 1
+        avg_image_width: 512
+        avg_image_height: 512
+        turns: 1
+      medium:
+        system_prompt: 600
+        user_input: 300
+        output_mean: 800
+        output_std: 300
+        images_per_call: 2
+        avg_image_width: 1024
+        avg_image_height: 1024
+        turns: 1
+      high:
+        system_prompt: 1000
+        user_input: 500
+        output_mean: 2000
+        output_std: 700
+        images_per_call: 5
+        avg_image_width: 2048
+        avg_image_height: 1536
+        turns: 1
+
+  SingleCall_ImageGen:
+    description: "Single call generating images"
+    agent_pattern: single_call
+    modalities: [text, image_output]
+    tools: []
+    token_profiles:
+      low:
+        system_prompt: 400
+        user_input: 100
+        output_mean: 200
+        output_std: 50
+        images_generated: 1
+        output_resolution: "1024x1024"
+        turns: 1
+      medium:
+        system_prompt: 600
+        user_input: 300
+        output_mean: 400
+        output_std: 150
+        images_generated: 2
+        output_resolution: "1024x1024"
+        turns: 1
+      high:
+        system_prompt: 800
+        user_input: 600
+        output_mean: 800
+        output_std: 300
+        images_generated: 4
+        output_resolution: "1536x1536"
+        turns: 1
+
+  SingleCall_Audio:
+    description: "Single call with audio input/output"
+    agent_pattern: single_call
+    modalities: [text, audio_input, audio_output]
+    tools: []
+    token_profiles:
+      low:
+        system_prompt: 400
+        user_input: 100
+        output_mean: 200
+        output_std: 80
+        audio_input_seconds: 10
+        audio_output_seconds: 5
+        turns: 1
+      medium:
+        system_prompt: 600
+        user_input: 200
+        output_mean: 500
+        output_std: 200
+        audio_input_seconds: 30
+        audio_output_seconds: 15
+        turns: 1
+      high:
+        system_prompt: 800
+        user_input: 400
+        output_mean: 1000
+        output_std: 400
+        audio_input_seconds: 120
+        audio_output_seconds: 60
+        turns: 1
+
+  RAG_Pipeline:
+    description: "Retrieval-augmented generation with document search"
+    agent_pattern: rag_pipeline
+    modalities: [text, document]
+    tools: [file_search, rag]
+    token_profiles:
+      low:
+        system_prompt: 500
+        user_input: 200
+        output_mean: 500
+        output_std: 150
+        file_search_calls: 1
+        chunks_per_search: 3
+        turns: 1
+      medium:
+        system_prompt: 800
+        user_input: 400
+        output_mean: 1200
+        output_std: 400
+        file_search_calls: 2
+        chunks_per_search: 5
+        turns: 1
+      high:
+        system_prompt: 1200
+        user_input: 800
+        output_mean: 3000
+        output_std: 1000
+        file_search_calls: 4
+        chunks_per_search: 8
+        turns: 1
+
+  ReAct_Agent:
+    description: "ReAct-style agent with tool loop (LangChain, MAF hosted, etc.)"
+    agent_pattern: react_agent
+    modalities: [text]
+    tools: [function_calling, web_search, custom_function]
+    token_profiles:
+      low:
+        system_prompt: 800
+        user_input: 300
+        output_mean: 500
+        output_std: 200
+        iterations_mean: 3
+        iterations_std: 1
+        tool_calls_per_iteration: 1
+        context_growth_per_iteration: 300
+        turns: 1
+      medium:
+        system_prompt: 1200
+        user_input: 500
+        output_mean: 800
+        output_std: 300
+        iterations_mean: 6
+        iterations_std: 2
+        tool_calls_per_iteration: 1.5
+        context_growth_per_iteration: 500
+        turns: 1
+      high:
+        system_prompt: 2000
+        user_input: 1000
+        output_mean: 1500
+        output_std: 500
+        iterations_mean: 12
+        iterations_std: 4
+        tool_calls_per_iteration: 2
+        context_growth_per_iteration: 800
+        turns: 1
+
+  Workflow:
+    description: "Multi-step deterministic workflow with branching"
+    agent_pattern: workflow
+    modalities: [text]
+    tools: [function_calling, code_interpreter]
+    token_profiles:
+      low:
+        system_prompt: 500
+        user_input: 200
+        output_mean: 400
+        output_std: 150
+        steps_mean: 3
+        steps_std: 1
+        tool_calls_per_step: 0.5
+        turns: 1
+      medium:
+        system_prompt: 800
+        user_input: 400
+        output_mean: 800
+        output_std: 300
+        steps_mean: 5
+        steps_std: 2
+        tool_calls_per_step: 1.0
+        turns: 1
+      high:
+        system_prompt: 1200
+        user_input: 800
+        output_mean: 1500
+        output_std: 500
+        steps_mean: 10
+        steps_std: 3
+        tool_calls_per_step: 2.0
+        turns: 1
+
+  MultiAgent:
+    description: "Multiple agents communicating (CrewAI, AutoGen, MAF multi-agent)"
+    agent_pattern: multi_agent
+    modalities: [text]
+    tools: [function_calling, web_search]
+    token_profiles:
+      low:
+        system_prompt: 800
+        user_input: 400
+        output_mean: 600
+        output_std: 200
+        agents: 2
+        turns_per_agent: 2
+        context_sharing_overhead: 0.3
+        turns: 1
+      medium:
+        system_prompt: 1200
+        user_input: 600
+        output_mean: 1000
+        output_std: 400
+        agents: 3
+        turns_per_agent: 4
+        context_sharing_overhead: 0.4
+        turns: 1
+      high:
+        system_prompt: 2000
+        user_input: 1000
+        output_mean: 2000
+        output_std: 700
+        agents: 5
+        turns_per_agent: 6
+        context_sharing_overhead: 0.5
+        turns: 1
+
+  CodeExec:
+    description: "Agent with code execution for data analysis/computation"
+    agent_pattern: code_exec
+    modalities: [text]
+    tools: [code_interpreter]
+    token_profiles:
+      low:
+        system_prompt: 600
+        user_input: 200
+        output_mean: 800
+        output_std: 300
+        code_gen_iterations: 1
+        code_output_tokens: 400
+        sessions: 1
+        turns: 1
+      medium:
+        system_prompt: 900
+        user_input: 500
+        output_mean: 1500
+        output_std: 500
+        code_gen_iterations: 3
+        code_output_tokens: 800
+        sessions: 1
+        turns: 1
+      high:
+        system_prompt: 1500
+        user_input: 1000
+        output_mean: 3000
+        output_std: 1000
+        code_gen_iterations: 6
+        code_output_tokens: 1500
+        sessions: 2
+        turns: 1
+
+  ReAct_CUA:
+    description: "Computer-Using Agent (GUI automation with screenshots)"
+    agent_pattern: react_agent
+    modalities: [text, image_input]
+    tools: [custom_function]
+    token_profiles:
+      low:
+        system_prompt: 1000
+        user_input: 300
+        output_mean: 400
+        output_std: 150
+        steps_mean: 5
+        steps_std: 2
+        screenshot_width: 1280
+        screenshot_height: 800
+        screenshots_per_step: 1
+        turns: 1
+      medium:
+        system_prompt: 1500
+        user_input: 500
+        output_mean: 600
+        output_std: 200
+        steps_mean: 15
+        steps_std: 5
+        screenshot_width: 1920
+        screenshot_height: 1080
+        screenshots_per_step: 1
+        turns: 1
+      high:
+        system_prompt: 2000
+        user_input: 800
+        output_mean: 1000
+        output_std: 400
+        steps_mean: 40
+        steps_std: 15
+        screenshot_width: 1920
+        screenshot_height: 1080
+        screenshots_per_step: 2
+        turns: 1

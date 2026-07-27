@@ -1,0 +1,10 @@
+{
+  "_comment": "A simulated live workload for a customer-support agent (the file-06 / elevator-pitch example). Mix of easy (routine, cacheable, repeated) and hard (high-stakes) queries across tenants. 'repeats' expands each into N near-duplicate phrasings to exercise the semantic cache.",
+  "requests": [
+    {"tenant": "acme", "difficulty": "easy", "question": "what are your opening hours", "repeats": 40, "paraphrases": ["what time do you open", "when are you open", "opening hours please", "are you open on saturday"]},
+    {"tenant": "acme", "difficulty": "easy", "question": "how do i reset my password", "repeats": 35, "paraphrases": ["forgot my password how to reset", "cant log in need password reset", "reset password steps"]},
+    {"tenant": "globex", "difficulty": "easy", "question": "where is my order", "repeats": 30, "paraphrases": ["track my order", "order status please", "hasnt my package arrived yet"]},
+    {"tenant": "globex", "difficulty": "hard", "question": "i was double charged and need a refund to a closed card", "repeats": 8, "paraphrases": ["charged twice card now closed how refund", "double billed and my card is cancelled"]},
+    {"tenant": "acme", "difficulty": "hard", "question": "explain how your data retention policy affects gdpr deletion requests", "repeats": 7, "paraphrases": ["gdpr delete my data but you keep backups explain", "how does retention work with a right to be forgotten request"]}
+  ]
+}

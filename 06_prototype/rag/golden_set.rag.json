@@ -1,0 +1,17 @@
+{
+  "_comment": "RAG golden set derived from the 5-book corpus. Same schema as ../golden_set.json: the evaluator scores an answer by the fraction of 'must_include' tokens present (case-insensitive substring). EASY = single retrievable fact from one book; HARD = multi-hop / synthesis / cross-book, where a weaker model with the same retrieved passages tends to drop required detail.",
+  "cases": [
+    {"id": "r1", "difficulty": "easy", "book": "Pride and Prejudice", "question": "who does elizabeth bennet ultimately marry in pride and prejudice", "must_include": ["darcy"]},
+    {"id": "r2", "difficulty": "easy", "book": "Pride and Prejudice", "question": "what is the name of mr bingley's estate that he leases near the bennets", "must_include": ["netherfield"]},
+    {"id": "r3", "difficulty": "easy", "book": "Frankenstein", "question": "who is the scientist that creates the creature in frankenstein", "must_include": ["victor", "frankenstein"]},
+    {"id": "r4", "difficulty": "easy", "book": "Dracula", "question": "what common plant is used to ward off dracula", "must_include": ["garlic"]},
+    {"id": "r5", "difficulty": "easy", "book": "The Adventures of Sherlock Holmes", "question": "who is sherlock holmes's friend and chronicler", "must_include": ["watson"]},
+    {"id": "r6", "difficulty": "easy", "book": "Alice's Adventures in Wonderland", "question": "what animal does alice follow at the start of the story", "must_include": ["rabbit"]},
+    {"id": "r7", "difficulty": "easy", "book": "The Adventures of Sherlock Holmes", "question": "in a scandal in bohemia what woman outwits sherlock holmes", "must_include": ["irene", "adler"]},
+    {"id": "r8", "difficulty": "hard", "book": "Frankenstein", "question": "explain the frame narrative of frankenstein: who is recording victor's story and how is it conveyed to the reader", "must_include": ["walton", "letters", "victor"]},
+    {"id": "r9", "difficulty": "hard", "book": "Dracula", "question": "how is the story of dracula told and which formats make up the narrative", "must_include": ["journal", "letters", "diary"]},
+    {"id": "r10", "difficulty": "hard", "book": "The Adventures of Sherlock Holmes", "question": "in a scandal in bohemia how does holmes locate the hidden photograph in irene adler's house", "must_include": ["disguise", "fire", "photograph"]},
+    {"id": "r11", "difficulty": "hard", "book": "cross-book", "question": "which two novels in this collection are told through letters and journal entries rather than a single narrator", "must_include": ["dracula", "frankenstein"]},
+    {"id": "r12", "difficulty": "hard", "book": "cross-book", "question": "compare how frankenstein's creature and count dracula are both portrayed as outsiders who provoke fear and isolation", "must_include": ["creature", "dracula", "fear"]}
+  ]
+}
