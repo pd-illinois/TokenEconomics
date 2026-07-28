@@ -3,6 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="icon" href="TokEcoStudio.png" type="image/png">
   <script>
     (() => {
       const param = new URLSearchParams(window.location.search).get("scoutTheme");
@@ -94,10 +95,7 @@
     .shell { min-height: 100vh; display: grid; grid-template-columns: 280px minmax(0, 1fr); }
     aside { min-width: 0; border-right: 1px solid var(--cp-border); background: var(--cp-surface); padding: 24px 16px; }
     .brand { padding: 4px 8px 24px; }
-    .brand-mark { width: 40px; height: 40px; border-radius: var(--fl-radius); position: relative; margin-bottom: 12px; background: var(--cp-accent); box-shadow: var(--fl-shadow-2); }
-    .brand-mark::before, .brand-mark::after { content: ""; position: absolute; background: var(--cp-accent-fg); opacity: .94; }
-    .brand-mark::before { width: 2px; inset-block: 6px; left: 19px; }
-    .brand-mark::after { height: 2px; inset-inline: 6px; top: 19px; }
+    .brand-mark { width: 56px; height: 56px; display: block; margin-bottom: 12px; object-fit: contain; }
     .brand strong { display: block; font-size: 18px; }
     .brand span { color: var(--cp-text-muted); font-size: 12px; }
     nav { display: grid; gap: 4px; }
@@ -186,7 +184,7 @@
     .change-summary small { display: block; color: var(--cp-text-muted); margin-top: 4px; }
     .headroom { color: var(--cp-success); }
     @media (max-width: 1200px) { .report-context { grid-template-columns: 1fr 1fr; } }
-    @media (max-width: 900px) { .shell { width: 100%; grid-template-columns: minmax(0, 1fr); } aside { border-right: 0; border-bottom: 1px solid var(--cp-border); padding: 14px; } .brand { padding-bottom: 12px; } .brand-mark { display: none; } nav { grid-template-columns: repeat(5, minmax(0, 1fr)); overflow-x: auto; } .tab { min-width: 0; overflow: hidden; text-overflow: ellipsis; text-align: center; white-space: nowrap; } .tab.active::before { display: none; } .grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } .policy-form-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+    @media (max-width: 900px) { .shell { width: 100%; grid-template-columns: minmax(0, 1fr); } aside { border-right: 0; border-bottom: 1px solid var(--cp-border); padding: 14px; } .brand { padding-bottom: 12px; } .brand-mark { width: 48px; height: 48px; } nav { grid-template-columns: repeat(6, minmax(0, 1fr)); overflow-x: auto; } .tab { min-width: 0; overflow: hidden; text-overflow: ellipsis; text-align: center; white-space: nowrap; } .tab.active::before { display: none; } .grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } .policy-form-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
     @media (max-width: 680px) { .report-workspace { grid-template-columns: 1fr; } }
     @media (max-width: 760px) { .agent-model-row { grid-template-columns: 1fr 1fr; } }
     @media (max-width: 560px) { main { padding: 20px 14px; } header { display: block; } .status { margin-top: 12px; } .grid, .flow, .intake-grid, .report-context, .policy-groups, .policy-form-grid, .agent-model-row { grid-template-columns: 1fr; } .panel { overflow-x: auto; } .report-gate { padding: 24px 14px; } .segmented { display: grid; grid-template-columns: 1fr; width: 100%; } }
@@ -195,7 +193,7 @@
 <body>
   <section class="report-gate" id="report-gate">
     <div class="report-gate-inner">
-      <div class="report-gate-head"><div class="brand-mark" aria-hidden="true"></div><h1>TokenEconomics Studio</h1><p class="subtitle">Create a report workspace or reopen a previous analysis.</p></div>
+      <div class="report-gate-head"><img class="brand-mark" src="TokEcoStudio.png" alt="" aria-hidden="true"><h1>TokenEconomics Studio</h1><p class="subtitle">Create a report workspace or reopen a previous analysis.</p></div>
       <div class="report-workspace">
         <div class="panel report-form"><h2>New report</h2><label class="field">Report title<input id="new-report-title" value="AI economics assessment"></label><button class="primary" id="create-report-button">Create report</button></div>
         <div class="panel"><div class="toolbar"><h2>Saved reports</h2><button class="secondary" id="refresh-reports-button">Refresh</button></div><div class="report-list" id="report-list"><div class="empty">Loading saved reports…</div></div></div>
@@ -204,8 +202,9 @@
   </section>
   <div class="shell" id="studio-shell" hidden>
     <aside>
-      <div class="brand"><div class="brand-mark" aria-hidden="true"></div><strong>TokenEconomics Studio</strong><span>Predict, govern, learn.</span></div>
+      <div class="brand"><img class="brand-mark" src="TokEcoStudio.png" alt="" aria-hidden="true"><strong>TokenEconomics Studio</strong><span>Predict, govern, learn.</span></div>
       <nav aria-label="Studio views">
+        <button class="tab" data-view="home">Home</button>
         <button class="tab active" data-view="plan">Plan</button>
         <button class="tab" data-view="govern">Govern</button>
         <button class="tab" data-view="runs">Runs</button>
@@ -221,7 +220,7 @@
         <div class="flow"><div>1. Forecast</div><div>2. Admit policy</div><div>3. Execute</div><div>4. Evaluate</div><div>5. Reconcile</div></div>
         <div class="panel composer">
           <label for="plan-prompt"><strong>Describe the solution you want to estimate</strong></label>
-          <textarea id="plan-prompt">Use FutureTokenPredictor to predict the tokens and AI cost for running a RAG solution for 1,000 users using Microsoft Foundry and Azure AI Search. It should use VNets and Private Endpoints.</textarea>
+          <textarea id="plan-prompt"></textarea>
           <div class="intake-grid">
             <label class="field">Default / coordinator model<select id="plan-model" disabled><option>Loading priced models...</option></select></label>
             <label class="field">Users<input id="plan-users" type="number" min="1" value="1000"></label>
@@ -240,7 +239,7 @@
         <div id="plan-content" class="result-stack"><div class="panel empty">Submit a workload to inspect token usage, model cost, assumptions, and prediction provenance.</div></div>
       </section>
       <section class="view" id="govern">
-        <div class="toolbar"><div><h2>Policy governance</h2><p class="subtitle">Current scope: authoritative Azure admission and change staging. Candidate optimization is planned.</p></div><button class="primary" id="propose-policy-button">Propose change</button></div>
+        <div class="toolbar"><div><h2>Policy governance</h2><p class="subtitle">Read-only in v1. Interactive Govern workflows will be released in v2.</p></div><button class="primary" id="propose-policy-button" disabled>Propose change (v2)</button></div>
         <div class="segmented" role="tablist" aria-label="Govern work areas">
           <button class="govern-tab active" data-govern-pane="decision">Decision</button>
           <button class="govern-tab" data-govern-pane="policy">Effective policy</button>
@@ -269,16 +268,16 @@
         </div>
       </section>
       <section class="view" id="runs">
-        <div class="toolbar"><div><h2>Benchmark runs</h2><p class="subtitle">Current scope: policy-bound offline reference execution.</p></div><button class="primary" id="run-button">Start offline run</button></div>
+        <div class="toolbar"><div><h2>Benchmark runs</h2><p class="subtitle">Read-only in v1. Execution workflows will be released in v2.</p></div><button class="primary" id="run-button" disabled>Start offline run (v2)</button></div>
         <div class="panel"><div id="run-content" class="empty">No run loaded.</div></div>
       </section>
       <section class="view" id="observe">
-        <div class="toolbar"><div><h2>Observed economics</h2><p class="subtitle">Current scope: completed-request cost and segment quality. Accepted-task economics is planned.</p></div></div>
-        <div class="grid" id="metrics"><div class="panel wide empty">Complete a run to see measured cost, quality, cache, latency, and tokens.</div></div>
+        <div class="toolbar"><div><h2>Observed economics</h2><p class="subtitle">Read-only in v1. Observability views will be released in v2.</p></div></div>
+        <div class="grid" id="metrics"><div class="panel wide empty">Observe is read-only in this release and will be enabled in v2.</div></div>
       </section>
       <section class="view" id="reconcile">
-        <div class="toolbar"><div><h2>Forecast feedback</h2><p class="subtitle">Current scope: completed-task calibration. Acceptance and distribution coverage are planned.</p></div></div>
-        <div class="panel"><div id="reconcile-content" class="empty">Complete a run to inspect per-segment calibration writes.</div></div>
+        <div class="toolbar"><div><h2>Forecast feedback</h2><p class="subtitle">Read-only in v1. Reconciliation workflows will be released in v2.</p></div></div>
+        <div class="panel"><div id="reconcile-content" class="empty">Reconcile is read-only in this release and will be enabled in v2.</div></div>
       </section>
     </main>
   </div>
@@ -484,7 +483,8 @@
       document.getElementById("studio-shell").hidden = false;
       document.querySelector('.tab[data-view="plan"]').click();
       renderReportArtifacts(report);
-      await Promise.all([loadGovernWorkspace(), loadModelCatalog()]);
+      if (report.artifacts?.plans?.length) await openPlan(report.artifacts.plans[0].id);
+      await loadModelCatalog();
     }
     document.getElementById("save-report-button").addEventListener("click", async event => {
       event.target.disabled = true;
@@ -494,21 +494,20 @@
       else document.getElementById("report-save-status").textContent = report.error || "Save failed";
       event.target.disabled = false;
     });
-    document.getElementById("switch-report-button").addEventListener("click", async () => {
+    async function showHome() {
       document.getElementById("studio-shell").hidden = true;
       document.getElementById("report-gate").hidden = false;
       await loadReports();
-    });
+    }
+    document.querySelector('.tab[data-view="home"]').addEventListener("click", showHome);
+    document.getElementById("switch-report-button").addEventListener("click", showHome);
     function renderReportArtifacts(report) {
       const plans = report.artifacts?.plans || [], runs = report.artifacts?.runs || [], handoffs = report.artifacts?.govern_handoffs || [];
       const planRows = plans.map(plan => `<tr><td><button class="link-button open-plan-button" data-plan-id="${escapeHtml(plan.id)}">${escapeHtml(plan.id)}</button></td><td>${escapeHtml(plan.status)}</td><td>${escapeHtml(plan.prediction_id ?? "—")}</td></tr>`).join("");
       document.getElementById("plan-content").innerHTML = plans.length ? `<div class="panel"><div class="toolbar"><h3 class="section-title">Forecasts in this report</h3><span class="badge">${number(plans.length)} plan(s)</span></div><table><thead><tr><th>Plan ID</th><th>Status</th><th>Prediction ID</th></tr></thead><tbody>${planRows}</tbody></table></div>` : `<div class="panel empty">This report has no forecasts yet. Submit the workload above to create one.</div>`;
       document.querySelectorAll(".open-plan-button").forEach(button => button.addEventListener("click", () => openPlan(button.dataset.planId)));
-      const runRows = runs.map(run => `<tr><td><button class="link-button open-run-button" data-run-id="${escapeHtml(run.id)}">${escapeHtml(run.id)}</button></td><td>${escapeHtml(run.status)}</td></tr>`).join("");
-      document.getElementById("run-content").innerHTML = runs.length ? `<table><thead><tr><th>Run ID</th><th>Status</th></tr></thead><tbody>${runRows}</tbody></table>` : `<div class="empty">No runs in this report.</div>`;
-      document.querySelectorAll(".open-run-button").forEach(button => button.addEventListener("click", () => loadRun(button.dataset.runId)));
-      if (handoffs.length) renderGovernHandoff(handoffs[handoffs.length - 1]);
-      else document.getElementById("govern-content").innerHTML = `<div class="panel wide empty">Complete a Plan and hand its immutable receipt to Govern.</div>`;
+      document.getElementById("run-content").innerHTML = `<div class="empty">Runs are read-only in this release and will be enabled in v2.</div>`;
+      document.getElementById("govern-content").innerHTML = `<div class="panel wide empty">Govern is read-only in this release and will be enabled in v2.</div>`;
     }
     async function openPlan(planId) {
       const response = await fetch(`/api/plans/${encodeURIComponent(planId)}/receipt`);
@@ -559,6 +558,9 @@
       document.getElementById("plan-content").innerHTML = `<div class="panel warning"><h3 class="section-title">More information needed</h3><ul class="assumptions">${questions}</ul><p>Plan session <code>${escapeHtml(plan.plan_id)}</code> is saved. Fill the missing field and estimate again.</p></div>`;
     }
     function renderPlan(plan) {
+      const planDescription = plan.description || plan.intake?.description || "";
+      const prompt = document.getElementById("plan-prompt");
+      if (prompt && prompt.value !== planDescription) prompt.value = planDescription;
       const p = plan.prediction, tokens = p.tokens_per_call, bounds = p.bound_provenance, intake = plan.intake;
       const trace = p.calculation_trace || {}, tokenTrace = trace.tokens || {}, costTrace = trace.cost_per_call || {}, toolTrace = trace.tool_costs || {}, scale = trace.scale || {}, method = trace.method || {}, boundTrace = trace.bounds || bounds;
       const tokenRows = Object.entries(tokens).filter(([key, value]) => key !== "total" && value > 0).map(([key, value]) => `<tr><td>${escapeHtml(key.replaceAll("_", " "))}</td><td>${number(value)}</td></tr>`).join("");
@@ -603,7 +605,11 @@
         ${agentModelPanel}
         <div class="panel"><h3 class="section-title">Non-model tool charges</h3><table><tbody><tr><td>Per invocation</td><td>${preciseMoney(toolTrace.per_invocation_usd)}</td></tr><tr><td>Daily</td><td>${money(toolTrace.daily_result_usd)}</td></tr><tr><td>Monthly</td><td>${money(toolTrace.monthly_result_usd)}</td></tr></tbody></table>${calculation(toolCalculation)}</div>
         <div class="grid"><div class="panel"><h3 class="section-title">Workload and provenance</h3><table><tbody><tr><td>${agentModels.length ? "Default / coordinator model" : "Model"}</td><td>${escapeHtml(p.model)}</td></tr><tr><td>Provider</td><td>${escapeHtml(p.provider)}</td></tr><tr><td>Archetype</td><td>${escapeHtml(p.archetype)}</td></tr><tr><td>Users</td><td>${number(intake.users)}</td></tr><tr><td>Calls / user / day</td><td>${number(intake.calls_per_user_per_day)}</td></tr><tr><td>Prediction ID</td><td><code>${escapeHtml(p.prediction_id)}</code></td></tr><tr><td>Plan receipt</td><td><code>${escapeHtml(plan.receipt_id)}</code></td></tr><tr><td>Receipt hash</td><td><code>${escapeHtml(plan.receipt_hash?.slice(0, 16))}…</code></td></tr><tr><td>Bounds</td><td>${escapeHtml(bounds.method)} · ${number(bounds.samples)} samples</td></tr><tr><td>Pricing verified</td><td>${p.pricing_verified ? "Yes" : "No"}</td></tr>${pricingUrl ? `<tr><td>Pricing source</td><td><a href="${pricingUrl}" target="_blank" rel="noreferrer">Provider pricing</a></td></tr>` : ""}${catalogUrl ? `<tr><td>Model catalog</td><td><a href="${catalogUrl}" target="_blank" rel="noreferrer">Model reference</a></td></tr>` : ""}</tbody></table></div><div class="panel"><h3 class="section-title">Modeling assumptions</h3><ul class="assumptions">${modelingAssumptions}</ul></div><div class="panel wide warning"><strong>Azure infrastructure:</strong> Not included in any figure above. ${escapeHtml(plan.infrastructure.message)}</div><div class="panel wide"><div class="toolbar"><div><h3 class="section-title">Ready for policy admission</h3><span class="subtitle">Govern receives this exact receipt snapshot; it does not parse the narrative.</span></div><button class="primary" id="govern-handoff-button">Send to Govern</button></div></div></div>`;
-      document.getElementById("govern-handoff-button").addEventListener("click", handoffToGovern);
+      const handoffButton = document.getElementById("govern-handoff-button");
+      if (handoffButton) {
+        handoffButton.disabled = true;
+        handoffButton.textContent = "Govern admission opens in v2";
+      }
     }
     async function handoffToGovern(event) {
       event.target.disabled = true;
@@ -627,6 +633,8 @@
       document.getElementById("govern-content").innerHTML = `<div class="panel metric"><span>Admission decision</span><strong>${escapeHtml(handoff.status)}</strong></div><div class="panel metric"><span>Monthly model exposure</span><strong>${monthly.mean == null ? "—" : money(monthly.mean)}</strong></div><div class="panel metric"><span>Annual model exposure</span><strong>${annual.mean == null ? "—" : money(annual.mean)}</strong></div><div class="panel metric"><span>Unit-cost headroom</span><strong class="${unitHeadroom != null && unitHeadroom >= 0 ? "headroom" : "danger"}">${unitHeadroom == null ? "—" : preciseMoney(unitHeadroom)}</strong></div><div class="panel wide"><h3 class="section-title">Effective decision binding</h3><table><tbody><tr><td>Policy</td><td><strong>${escapeHtml(policy.policy_id || "unavailable")}</strong> · ${escapeHtml(policy.version || "unavailable")}</td></tr><tr><td>Cost per call</td><td>${costPerCall.mean == null ? "—" : preciseMoney(costPerCall.mean)}</td></tr><tr><td>Mutation mode</td><td>${escapeHtml(mutation.mode || "not configured")}</td></tr><tr><td>Evaluated</td><td>${escapeHtml(formatDate(handoff.evaluated_at))}</td></tr></tbody></table></div><div class="panel wide"><h3 class="section-title">Authoritative policy provenance</h3><table><tbody><tr><td>Source</td><td>${escapeHtml(provenance.source || "unavailable")}</td></tr><tr><td>Endpoint</td><td><code>${escapeHtml(provenance.endpoint || "unavailable")}</code></td></tr><tr><td>Key / label</td><td><code>${escapeHtml(provenance.key || "unavailable")} / ${escapeHtml(provenance.label || "unavailable")}</code></td></tr><tr><td>ETag</td><td><code>${escapeHtml(provenance.etag || "unavailable")}</code></td></tr><tr><td>Policy SHA-256</td><td><code>${escapeHtml(policy.content_hash || "unavailable")}</code></td></tr></tbody></table></div>${checks ? `<div class="panel wide"><h3 class="section-title">Admission checks</h3><table><thead><tr><th>Check</th><th>Result</th><th>Actual</th><th>Policy requirement</th></tr></thead><tbody>${checks}</tbody></table></div>` : ""}<div class="panel wide"><h3 class="section-title">Immutable admission input</h3><table><tbody><tr><td>Report</td><td><code>${escapeHtml(handoff.report_id || state.report.report_id)}</code></td></tr><tr><td>Plan</td><td><code>${escapeHtml(handoff.plan_id)}</code></td></tr><tr><td>Receipt</td><td><code>${escapeHtml(handoff.receipt_id)}</code></td></tr>${handoff.receipt_hash ? `<tr><td>SHA-256</td><td><code>${escapeHtml(handoff.receipt_hash)}</code></td></tr>` : ""}</tbody></table><p>Execution is allowed only for an admitted receipt and remains pinned to this policy revision.</p></div>`;
     }
     document.getElementById("run-button").addEventListener("click", async event => {
+      document.getElementById("run-content").innerHTML = `<div class="empty">Runs are read-only in this release and will be enabled in v2.</div>`;
+      return;
       event.target.disabled = true;
       if (!state.handoff || state.handoff.status !== "admitted") { document.getElementById("run-content").innerHTML = `<div class="danger">An admitted Plan is required before execution.</div>`; event.target.disabled = false; return; }
       const response = await fetch("/api/runs", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ report_id: state.report.report_id, plan_id: state.handoff.plan_id }) });

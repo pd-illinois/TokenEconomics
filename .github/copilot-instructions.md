@@ -1,6 +1,6 @@
 # TokenEconomics development instructions
 
-Before planning or making a material architecture, schema, integration, policy, evaluation, infrastructure, or product-surface change, read [`09_TOKENECONOMICS_CONSTITUTION.md`](../09_TOKENECONOMICS_CONSTITUTION.md) and the latest relevant entries in [`decision.md`](../decision.md).
+Before planning or making a material architecture, schema, integration, policy, evaluation, infrastructure, or product-surface change, read [`09_TOKENECONOMICS_CONSTITUTION.md`](../docs/09_TOKENECONOMICS_CONSTITUTION.md) and the latest relevant entries in [`decision.md`](../docs/decision.md).
 
 Use the constitution as the canonical project intent. Prototype behavior and older handoff notes do not override it.
 

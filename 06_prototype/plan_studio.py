@@ -5,6 +5,7 @@ from __future__ import annotations
 import json
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
+import sys
 from urllib.parse import urlparse
 
 from costgov.mcp_prediction import McpPredictionError, McpPredictorClient
@@ -26,7 +27,7 @@ class PlanStudioHandler(SimpleHTTPRequestHandler):
     def do_GET(self):
         path = urlparse(self.path).path
         if path == "/":
-            self.path = "/plan.html"
+            self.path = "/studio.html"
             return super().do_GET()
         if path == "/api/models":
             try:
@@ -220,6 +221,9 @@ class PlanStudioHandler(SimpleHTTPRequestHandler):
 
 
 if __name__ == "__main__":
-    server = ThreadingHTTPServer(("127.0.0.1", 8765), PlanStudioHandler)
-    print("TokenEconomics Plan Studio: http://127.0.0.1:8765")
-    server.serve_forever()
+    message = (
+        "plan_studio.py is no longer the primary UI entrypoint. "
+        "Start the main Studio server instead: python studio.py"
+    )
+    print(message)
+    sys.exit(1)

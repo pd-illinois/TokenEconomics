@@ -2,16 +2,16 @@
 
 **AI unit economics: predict, govern, learn.**
 
-Development is governed by the project [`constitution`](../09_TOKENECONOMICS_CONSTITUTION.md). The deployed sample agentic RAG solution is the first reference workload used to prove the full lifecycle in practice; it remains outside TokenGov core and integrates through reusable task/trajectory contracts.
+Development is governed by the project [`constitution`](../docs/09_TOKENECONOMICS_CONSTITUTION.md). The deployed sample agentic RAG solution is the first reference workload used to prove the full lifecycle in practice; it remains outside TokenGov core and integrates through reusable task/trajectory contracts.
 
 A **runnable reference implementation** of the two-plane cost-governance
-architecture in [`../06_reusable-cost-governance-architecture.md`](../06_reusable-cost-governance-architecture.md).
+architecture in [`../docs/06_reusable-cost-governance-architecture.md`](../docs/06_reusable-cost-governance-architecture.md).
 The original simulated command-line demo demonstrates the local closed-loop mechanism on
 a customer-support example. Studio currently implements the durable Plan, authoritative
 Azure admission, policy-bound offline run, observation, and completed-task calibration
 path. Candidate-policy optimization, accepted-task economics, deployed RAG trajectories,
 and authorized Azure reversion remain future work tracked in
-[`../10_FUTURE_BUILD_TASKS.md`](../10_FUTURE_BUILD_TASKS.md).
+[`../docs/10_FUTURE_BUILD_TASKS.md`](../docs/10_FUTURE_BUILD_TASKS.md).
 
 ## Set up the shared environment
 

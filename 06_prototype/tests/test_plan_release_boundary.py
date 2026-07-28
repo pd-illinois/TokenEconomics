@@ -23,22 +23,21 @@ def test_plan_release_manifest_is_explicit_and_excludes_non_plan_surfaces():
     manifest = json.loads(MANIFEST.read_text(encoding="utf-8"))
 
     assert manifest["schema_version"] == "1.0"
-    assert manifest["surface"] == "plan"
+    assert manifest["surface"] == "studio-plan-readonly"
     assert manifest["entry_point"] == "plan_studio.py"
-    assert manifest["static_entry"] == "plan.html"
+    assert manifest["static_entry"] == "studio.html"
     assert manifest["predictor_component"]["path"] == "FutureTokenPredictor"
     assert manifest["predictor_component"]["test_command"] == (
         "python scripts/run_tests.py --all --expect pass"
     )
     included = set(manifest["include"])
     assert {
-        "plan_studio.py", "plan.html", "plan_requirements.txt",
+        "plan_studio.py", "studio.html", "plan_requirements.txt",
         "costgov/mcp_prediction.py",
     } <= included
     assert "requirements.txt" not in included
     assert not included & {
         "studio.py",
-        "studio.html",
         "costgov/orchestrator.py",
         "costgov/policy_store.py",
         "costgov/policy_changes.py",
@@ -79,8 +78,8 @@ def test_release_builder_copies_only_allowlisted_files_and_verifies_hashes(tmp_p
     )
     assert result.returncode == 0, result.stderr
 
-    (destination / "plan.html").write_text("tampered", encoding="utf-8")
-    assert builder.verify(destination) == ["hash mismatch: plan.html"]
+    (destination / "studio.html").write_text("tampered", encoding="utf-8")
+    assert builder.verify(destination) == ["hash mismatch: studio.html"]
 
 
 def test_plan_entry_point_has_no_govern_run_or_azure_runtime_imports():
@@ -107,17 +106,17 @@ def test_plan_entry_point_has_no_govern_run_or_azure_runtime_imports():
     assert not imports & forbidden
 
 
-def test_plan_html_exposes_only_the_plan_product_surface():
-    html = (ROOT / "plan.html").read_text(encoding="utf-8").lower()
+def test_studio_html_marks_non_plan_surfaces_read_only_v2():
+    html = (ROOT / "studio.html").read_text(encoding="utf-8").lower()
 
     assert "analyze workload" in html
     assert "confirm profile and estimate" in html
-    assert "cost-material quantities" in html
-    assert "open receipt" in html
-    assert "govern" not in html
-    assert "benchmark runs" not in html
-    assert "observed economics" not in html
-    assert "forecast feedback" not in html
+    assert "read-only in v1" in html
+    assert "will be enabled in v2" in html
+    assert "govern" in html
+    assert "benchmark runs" in html
+    assert "observed economics" in html
+    assert "forecast feedback" in html
 
 
 def _serve(tmp_path, monkeypatch):

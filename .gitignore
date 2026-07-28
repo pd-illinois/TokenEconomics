@@ -13,6 +13,9 @@ __pycache__/
 .ruff_cache/
 .uv/
 
+# Documentation folder (generated/archived)
+docs/
+
 # Local configuration and credentials
 .env
 **/.env
@@ -33,6 +36,7 @@ build/
 dist/
 release/
 *.tmp
+*.log
 
 # Editor and OS metadata
 .vscode/
