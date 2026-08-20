@@ -93,7 +93,7 @@ class TestPredictor:
     def test_workflow_bound_provenance(self):
         profile = UseCaseProfile(
             agent_type=AgentType.HOSTED,
-            agent_pattern=AgentPattern.REACT_AGENT,
+            agent_pattern=AgentPattern.TOOL_AGENT,
         )
         result = predict(profile=profile)
 
@@ -148,7 +148,7 @@ class TestPredictor:
         [
             (
                 "An autonomous ReAct agent iteratively retrieves documents from a knowledge base.",
-                "ReAct_Agent",
+                "ToolAgent",
             ),
             (
                 "Research agents and reviewer agents collaborate using retrieval over documents.",

@@ -1,0 +1,361 @@
+{
+  "schema_version": "1.0",
+  "as_of": "2026-08-20",
+  "cases": [
+    {
+      "case_id": "microsoft-copilot-employees",
+      "route": "included",
+      "description": "Provide licensed employees with grounded Microsoft 365 assistance.",
+      "parameters": {
+        "commercial": {
+          "seat_assumptions": {
+            "seats": 10,
+            "allocated_monthly_cost_per_user_usd": 30
+          },
+          "purchase_portfolio": {
+            "version": "nine-case-proof.v1",
+            "product": "Microsoft Copilot",
+            "environment": "default",
+            "committed_credits": 0,
+            "committed_cost_usd": 0,
+            "payg_enabled": false,
+            "payg_rate_usd_per_credit": 0,
+            "fixed_seat_cost_usd": 300,
+            "scope_evidence_version": "nine-case-proof.v1",
+            "billing_period": "monthly"
+          }
+        }
+      },
+      "expected": {
+        "commercial.scope": "fixed_subscription",
+        "commercial.total_copilot_credits": 0,
+        "purchase.fixed_allocation_cost_usd": 300,
+        "purchase.amortized_cost_usd": 300
+      }
+    },
+    {
+      "case_id": "copilot-cowork",
+      "route": "cowork",
+      "description": "Delegate ten deterministic medium-complexity tasks to Copilot Cowork.",
+      "parameters": {
+        "commercial": {
+          "task_count": 10,
+          "seed": 17,
+          "samples": 100,
+          "scenario_prior": {
+            "prior_id": "cowork-proof",
+            "version": "nine-case-proof.v1",
+            "product": "Copilot Cowork",
+            "segment": "medium",
+            "credits_per_task_p50": 7,
+            "credits_per_task_p95": 7,
+            "source_url": "https://www.microsoft.com/en-us/microsoft-365/blog/2026/06/16/copilot-cowork-is-now-generally-available/",
+            "source_retrieved_at": "2026-08-20T17:15:00Z",
+            "evidence_status": "modeled"
+          },
+          "purchase_portfolio": {
+            "version": "nine-case-proof.v1",
+            "product": "Copilot Cowork",
+            "environment": "default",
+            "committed_credits": 50,
+            "committed_cost_usd": 5,
+            "payg_enabled": true,
+            "payg_rate_usd_per_credit": 0.02,
+            "fixed_seat_cost_usd": 20,
+            "scope_evidence_version": "nine-case-proof.v1",
+            "billing_period": "monthly"
+          }
+        }
+      },
+      "expected": {
+        "commercial.mean_copilot_credits": 70,
+        "commercial.p50_copilot_credits": 70,
+        "commercial.p95_copilot_credits": 70,
+        "purchase.retail_cost_usd": 1.4,
+        "purchase.commitment_drawdown_credits": 50,
+        "purchase.unfunded_credits": 20,
+        "purchase.incremental_cash_cost_usd": 0.4,
+        "purchase.amortized_cost_usd": 25.4
+      }
+    },
+    {
+      "case_id": "agent-builder",
+      "route": "agent_builder",
+      "description": "Create a lightweight knowledge agent for five licensed makers.",
+      "parameters": {
+        "commercial": {
+          "seat_assumptions": {
+            "seats": 5,
+            "allocated_monthly_cost_per_user_usd": 25
+          },
+          "purchase_portfolio": {
+            "version": "nine-case-proof.v1",
+            "product": "Agent Builder",
+            "environment": "default",
+            "committed_credits": 0,
+            "committed_cost_usd": 0,
+            "payg_enabled": false,
+            "payg_rate_usd_per_credit": 0,
+            "fixed_seat_cost_usd": 125,
+            "scope_evidence_version": "nine-case-proof.v1",
+            "billing_period": "monthly"
+          }
+        }
+      },
+      "expected": {
+        "commercial.scope": "fixed_subscription",
+        "commercial.total_copilot_credits": 0,
+        "purchase.fixed_allocation_cost_usd": 125,
+        "purchase.amortized_cost_usd": 125
+      }
+    },
+    {
+      "case_id": "copilot-studio",
+      "route": "copilot_studio",
+      "description": "Serve three external generative-answer events in Copilot Studio.",
+      "parameters": {
+        "commercial": {
+          "as_of": "2026-08-20",
+          "environment": "default",
+          "events": [
+            {
+              "event_id": "studio-generative-proof",
+              "meter_id": "generative_answer",
+              "quantity": 3,
+              "quantity_source": "nine-case-proof.v1"
+            }
+          ],
+          "entitlement": {
+            "user_segment": "customers",
+            "audience_type": "b2c",
+            "authenticated": false,
+            "identity_mode": "anonymous",
+            "license_sku": null,
+            "channel": "website",
+            "trigger_type": "interactive",
+            "product_boundary": "copilot_studio",
+            "evidence_version": "nine-case-proof.v1",
+            "fair_use_assumption": null
+          },
+          "purchase_portfolio": {
+            "version": "nine-case-proof.v1",
+            "product": "Microsoft Copilot Studio",
+            "environment": "default",
+            "committed_credits": 5,
+            "committed_cost_usd": 1,
+            "payg_enabled": true,
+            "payg_rate_usd_per_credit": 0.01,
+            "fixed_seat_cost_usd": 10,
+            "scope_evidence_version": "nine-case-proof.v1",
+            "billing_period": "monthly"
+          }
+        }
+      },
+      "expected": {
+        "commercial.total_copilot_credits": 6,
+        "commercial.lines.0.billed_units": 3,
+        "commercial.lines.0.gross_copilot_credits": 6,
+        "commercial.lines.0.billed_copilot_credits": 6,
+        "purchase.retail_cost_usd": 0.06,
+        "purchase.commitment_drawdown_credits": 5,
+        "purchase.unfunded_credits": 1,
+        "purchase.incremental_cash_cost_usd": 0.01,
+        "purchase.amortized_cost_usd": 11.01
+      }
+    },
+    {
+      "case_id": "work-iq-api",
+      "route": "work_iq",
+      "description": "Execute twelve deterministic Work IQ API tasks.",
+      "parameters": {
+        "commercial": {
+          "task_count": 12,
+          "seed": 23,
+          "samples": 100,
+          "scenario_prior": {
+            "prior_id": "work-iq-proof",
+            "version": "nine-case-proof.v1",
+            "product": "Work IQ API",
+            "segment": "light",
+            "credits_per_task_p50": 3,
+            "credits_per_task_p95": 3,
+            "source_url": "https://learn.microsoft.com/en-us/microsoft-365/copilot/extensibility/work-iq/api-overview",
+            "source_retrieved_at": "2026-08-20T17:15:00Z",
+            "evidence_status": "modeled"
+          },
+          "purchase_portfolio": {
+            "version": "nine-case-proof.v1",
+            "product": "Work IQ API",
+            "environment": "default",
+            "committed_credits": 100,
+            "committed_cost_usd": 2,
+            "payg_enabled": false,
+            "payg_rate_usd_per_credit": 0.03,
+            "fixed_seat_cost_usd": 10,
+            "scope_evidence_version": "nine-case-proof.v1",
+            "billing_period": "monthly"
+          }
+        }
+      },
+      "expected": {
+        "commercial.mean_copilot_credits": 36,
+        "commercial.p50_copilot_credits": 36,
+        "commercial.p95_copilot_credits": 36,
+        "purchase.retail_cost_usd": 1.08,
+        "purchase.commitment_drawdown_credits": 36,
+        "purchase.unused_commitment_credits": 64,
+        "purchase.incremental_cash_cost_usd": 0,
+        "purchase.amortized_cost_usd": 12
+      }
+    },
+    {
+      "case_id": "microsoft-foundry",
+      "route": "foundry",
+      "description": "Run a deterministic Foundry model invocation forecast.",
+      "parameters": {},
+      "expected": {
+        "prediction.annual_cost.mean": 365,
+        "prediction.cost_per_call.mean": 0.01,
+        "commercial": null,
+        "hybrid": null
+      }
+    },
+    {
+      "case_id": "github-copilot",
+      "route": "github_copilot",
+      "description": "Forecast GitHub Copilot usage beyond one Business seat allowance.",
+      "parameters": {
+        "commercial": {
+          "as_of": "2026-08-20",
+          "plan_id": "copilot_business",
+          "model_id": "gpt-5.4",
+          "seat_count": 1,
+          "fixed_seat_cost_usd": 19,
+          "additional_usage_enabled": true,
+          "token_usage": {
+            "input_tokens": 10000000,
+            "cached_input_tokens": 0,
+            "cache_write_tokens": 0,
+            "output_tokens": 1000000,
+            "max_input_tokens_per_request": 100000
+          }
+        }
+      },
+      "oracle": {
+        "input_usd_per_million": 2.5,
+        "cached_input_usd_per_million": 0.25,
+        "cache_write_usd_per_million": 0,
+        "output_usd_per_million": 15,
+        "github_ai_credits_per_usd": 100,
+        "included_ai_credits_per_user_month": 1900
+      },
+      "expected": {
+        "commercial.model_usage_cost_usd": 40,
+        "commercial.gross_github_ai_credits": 4000,
+        "commercial.included_github_ai_credits": 1900,
+        "commercial.additional_github_ai_credits": 2100,
+        "commercial.additional_usage_cost_usd": 21,
+        "commercial.modeled_total_cost_usd": 40
+      }
+    },
+    {
+      "case_id": "copilot-studio-foundry-model",
+      "route": "copilot_studio_byom",
+      "description": "Run four Copilot Studio agent actions with separate Foundry inference.",
+      "parameters": {
+        "commercial": {
+          "as_of": "2026-08-20",
+          "environment": "default",
+          "events": [
+            {
+              "event_id": "byom-action-proof",
+              "meter_id": "agent_action",
+              "quantity": 4,
+              "quantity_source": "nine-case-proof.v1"
+            }
+          ],
+          "entitlement": {
+            "user_segment": "customers",
+            "audience_type": "b2c",
+            "authenticated": false,
+            "identity_mode": "anonymous",
+            "license_sku": null,
+            "channel": "website",
+            "trigger_type": "interactive",
+            "product_boundary": "copilot_studio_byom",
+            "evidence_version": "nine-case-proof.v1",
+            "fair_use_assumption": null
+          },
+          "purchase_portfolio": {
+            "version": "nine-case-proof.v1",
+            "product": "Microsoft Copilot Studio",
+            "environment": "default",
+            "committed_credits": 10,
+            "committed_cost_usd": 1,
+            "payg_enabled": true,
+            "payg_rate_usd_per_credit": 0.01,
+            "fixed_seat_cost_usd": 5,
+            "scope_evidence_version": "nine-case-proof.v1",
+            "billing_period": "monthly"
+          }
+        }
+      },
+      "expected": {
+        "commercial.total_copilot_credits": 20,
+        "purchase.retail_cost_usd": 0.2,
+        "purchase.commitment_drawdown_credits": 10,
+        "purchase.unfunded_credits": 10,
+        "purchase.incremental_cash_cost_usd": 0.1,
+        "purchase.amortized_cost_usd": 6.1,
+        "token_subforecast.cost_usd": 365,
+        "hybrid.total_usd": 438.2,
+        "hybrid.billing_period": "annual"
+      }
+    },
+    {
+      "case_id": "foundry-work-iq",
+      "route": "foundry_work_iq",
+      "description": "Run five Work IQ tasks with separate Foundry model inference.",
+      "parameters": {
+        "commercial": {
+          "task_count": 5,
+          "seed": 31,
+          "samples": 100,
+          "scenario_prior": {
+            "prior_id": "foundry-work-iq-proof",
+            "version": "nine-case-proof.v1",
+            "product": "Work IQ API",
+            "segment": "medium",
+            "credits_per_task_p50": 4,
+            "credits_per_task_p95": 4,
+            "source_url": "https://learn.microsoft.com/en-us/microsoft-365/copilot/extensibility/work-iq/api-overview",
+            "source_retrieved_at": "2026-08-20T17:15:00Z",
+            "evidence_status": "modeled"
+          },
+          "purchase_portfolio": {
+            "version": "nine-case-proof.v1",
+            "product": "Work IQ API",
+            "environment": "default",
+            "committed_credits": 0,
+            "committed_cost_usd": 0,
+            "payg_enabled": true,
+            "payg_rate_usd_per_credit": 0.01,
+            "fixed_seat_cost_usd": 2,
+            "scope_evidence_version": "nine-case-proof.v1",
+            "billing_period": "monthly"
+          }
+        }
+      },
+      "expected": {
+        "commercial.mean_copilot_credits": 20,
+        "purchase.retail_cost_usd": 0.2,
+        "purchase.unfunded_credits": 20,
+        "purchase.incremental_cash_cost_usd": 0.2,
+        "purchase.amortized_cost_usd": 2.2,
+        "token_subforecast.cost_usd": 365,
+        "hybrid.total_usd": 391.4,
+        "hybrid.billing_period": "annual"
+      }
+    }
+  ]
+}

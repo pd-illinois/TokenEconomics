@@ -7,6 +7,7 @@ from http.server import ThreadingHTTPServer
 
 import studio
 from costgov.mcp_prediction import McpPredictionError
+from costgov.planning import PlanStore
 from costgov.policy_store import LoadedPolicy
 
 
@@ -70,6 +71,65 @@ def test_analysis_endpoint_returns_predictor_evidence(monkeypatch):
         assert response.status == 200
         assert payload["rule_set_version"] == "enterprise-semantics-test"
         assert payload["topology"]["selected"] == "rag_pipeline"
+    finally:
+        server.shutdown()
+        thread.join()
+
+
+def test_main_studio_commercial_route_skips_model_predictor(tmp_path, monkeypatch):
+    monkeypatch.setattr(studio, "PLAN_STORE_PATH", tmp_path / "plans")
+    monkeypatch.setattr(studio, "REPORT_STORE_PATH", tmp_path / "reports")
+    monkeypatch.setattr(
+        studio.McpPredictorClient,
+        "analyze",
+        lambda *_: (_ for _ in ()).throw(AssertionError("predictor not expected")),
+    )
+    server = ThreadingHTTPServer(("127.0.0.1", 0), studio.StudioHandler)
+    thread = threading.Thread(target=server.serve_forever)
+    thread.start()
+    try:
+        connection = HTTPConnection("127.0.0.1", server.server_port)
+        report = _create_report(connection, "Commercial route")
+        connection.request(
+            "POST",
+            "/api/plan",
+            json.dumps(
+                {
+                    "report_id": report["report_id"],
+                    "description": "Public support agent",
+                    "parameters": {
+                        "route": "copilot_studio",
+                        "commercial": {
+                            "as_of": "2026-08-20",
+                            "events": [
+                                {"meter_id": "generative_answer", "quantity": 1}
+                            ],
+                            "entitlement": {
+                                "user_segment": "customers",
+                                "audience_type": "b2c",
+                                "authenticated": False,
+                                "identity_mode": "anonymous",
+                                "license_sku": None,
+                                "channel": "website",
+                                "trigger_type": "interactive",
+                                "product_boundary": "copilot_studio",
+                                "evidence_version": "entitlement-input.v1",
+                            },
+                        },
+                    },
+                }
+            ),
+            {"Content-Type": "application/json"},
+        )
+        response = connection.getresponse()
+        result = json.loads(response.read())
+
+        assert response.status == 201
+        assert result["commercial"]["total_copilot_credits"] == 2
+        assert result["token_subforecast"] is None
+        receipt = PlanStore(tmp_path / "plans").get_receipt(result["plan_id"])
+        assert receipt["schema_version"] == "4.0"
+        assert receipt["meter_stack"]["route_id"] == "copilot_studio"
     finally:
         server.shutdown()
         thread.join()
@@ -286,7 +346,8 @@ def test_plan_endpoint_persists_immutable_receipt_and_govern_handoff(tmp_path, m
         assert persisted["status"] == "complete"
         assert persisted["receipt_hash"] == payload["receipt_hash"]
         receipt = studio.PlanStore(tmp_path / "plans").get_receipt(payload["plan_id"])
-        assert receipt["schema_version"] == "2.0"
+        assert receipt["schema_version"] == "4.0"
+        assert receipt["meter_stack"]["route_id"] == "foundry"
         assert receipt["analysis"]["rule_set_version"] == "enterprise-semantics-test"
         assert receipt["confirmed_profile"]["agent_pattern"] == "rag_pipeline"
         assert receipt["assumptions"] == []

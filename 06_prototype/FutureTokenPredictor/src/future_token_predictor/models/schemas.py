@@ -23,11 +23,17 @@ class Provider(str, Enum):
 
 class AgentPattern(str, Enum):
     SINGLE_CALL = "single_call"
-    REACT_AGENT = "react_agent"
+    TOOL_AGENT = "tool_agent"
     MULTI_AGENT = "multi_agent"
     WORKFLOW = "workflow"
     RAG_PIPELINE = "rag_pipeline"
     CODE_EXEC = "code_exec"
+
+    @classmethod
+    def _missing_(cls, value):
+        if value == "react_agent":
+            return cls.TOOL_AGENT
+        return None
 
 
 class Framework(str, Enum):
@@ -249,13 +255,13 @@ class UseCaseProfile:
         _TYPE_TO_PATTERN = {
             AgentType.PROMPT: AgentPattern.SINGLE_CALL,
             AgentType.WORKFLOW: AgentPattern.WORKFLOW,
-            AgentType.HOSTED: AgentPattern.REACT_AGENT,
+            AgentType.HOSTED: AgentPattern.TOOL_AGENT,
         }
         _PATTERN_TO_TYPE = {
             AgentPattern.SINGLE_CALL: AgentType.PROMPT,
             AgentPattern.RAG_PIPELINE: AgentType.PROMPT,
             AgentPattern.CODE_EXEC: AgentType.PROMPT,
-            AgentPattern.REACT_AGENT: AgentType.HOSTED,
+            AgentPattern.TOOL_AGENT: AgentType.HOSTED,
             AgentPattern.MULTI_AGENT: AgentType.HOSTED,
             AgentPattern.WORKFLOW: AgentType.WORKFLOW,
         }
@@ -270,7 +276,7 @@ class UseCaseProfile:
         # implies agentic tool-loop, not a single prompt call
         _AGENTIC_TOOLS = {Tool.FUNCTION_CALLING, Tool.CUSTOM_FUNCTION, Tool.MCP_SERVER}
         if self.agent_pattern == AgentPattern.SINGLE_CALL and self.tools and _AGENTIC_TOOLS & set(self.tools):
-            self.agent_pattern = AgentPattern.REACT_AGENT
+            self.agent_pattern = AgentPattern.TOOL_AGENT
             self.agent_type = AgentType.HOSTED
 
 

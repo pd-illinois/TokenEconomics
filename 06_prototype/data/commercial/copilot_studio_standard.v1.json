@@ -1,0 +1,110 @@
+{
+  "schema_version": "1.0",
+  "rate_card_id": "microsoft-copilot-studio-standard-harness",
+  "version": "2026-08-03.1",
+  "status": "active_reviewed",
+  "evidence_status": "documented",
+  "product": "Microsoft Copilot Studio",
+  "experience": "custom_agents",
+  "harness": "standard",
+  "effective_from": "2026-08-03",
+  "effective_to": null,
+  "review_after": "2027-02-03",
+  "source_url": "https://learn.microsoft.com/en-us/microsoft-copilot-studio/requirements-messages-management",
+  "source_revision": "d3dd478d56933bdfd2dc0d5e562fd9546ab9823e",
+  "source_retrieved_at": "2026-08-20T16:00:00Z",
+  "notes": [
+    "Rates are additive when one interaction uses multiple feature types.",
+    "Reasoning models add the feature rate and premium AI-tool token rate.",
+    "Bring-your-own-model inference is billed separately by the model host."
+  ],
+  "meters": [
+    {
+      "meter_id": "classic_answer",
+      "feature": "classic_answer",
+      "native_unit": "event",
+      "unit_size": 1,
+      "credits_per_unit": 1
+    },
+    {
+      "meter_id": "generative_answer",
+      "feature": "generative_answer",
+      "native_unit": "event",
+      "unit_size": 1,
+      "credits_per_unit": 2
+    },
+    {
+      "meter_id": "agent_action",
+      "feature": "agent_action",
+      "native_unit": "action",
+      "unit_size": 1,
+      "credits_per_unit": 5
+    },
+    {
+      "meter_id": "tenant_graph_grounding",
+      "feature": "tenant_graph_grounding",
+      "native_unit": "event",
+      "unit_size": 1,
+      "credits_per_unit": 10
+    },
+    {
+      "meter_id": "agent_flow_actions",
+      "feature": "agent_flow_actions",
+      "native_unit": "action",
+      "unit_size": 100,
+      "credits_per_unit": 13
+    },
+    {
+      "meter_id": "basic_ai_tool",
+      "feature": "text_and_generative_ai_tool_basic",
+      "native_unit": "token_or_character",
+      "unit_size": 1000,
+      "credits_per_unit": 0.1,
+      "separately_billed_byom": true
+    },
+    {
+      "meter_id": "standard_ai_tool",
+      "feature": "text_and_generative_ai_tool_standard",
+      "native_unit": "token_or_character",
+      "unit_size": 1000,
+      "credits_per_unit": 1.5,
+      "separately_billed_byom": true
+    },
+    {
+      "meter_id": "premium_ai_tool",
+      "feature": "text_and_generative_ai_tool_premium",
+      "native_unit": "token_or_character",
+      "unit_size": 1000,
+      "credits_per_unit": 10,
+      "separately_billed_byom": true
+    },
+    {
+      "meter_id": "content_processing",
+      "feature": "content_processing_tool",
+      "native_unit": "page",
+      "unit_size": 1,
+      "credits_per_unit": 8
+    },
+    {
+      "meter_id": "classic_voice",
+      "feature": "classic_voice_classic_orchestration",
+      "native_unit": "minute",
+      "unit_size": 1,
+      "credits_per_unit": 10
+    },
+    {
+      "meter_id": "genai_voice",
+      "feature": "genai_voice",
+      "native_unit": "minute",
+      "unit_size": 1,
+      "credits_per_unit": 35
+    },
+    {
+      "meter_id": "premium_genai_voice",
+      "feature": "premium_genai_voice",
+      "native_unit": "minute",
+      "unit_size": 1,
+      "credits_per_unit": 75
+    }
+  ]
+}

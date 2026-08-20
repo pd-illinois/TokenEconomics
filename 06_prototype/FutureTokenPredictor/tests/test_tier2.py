@@ -107,7 +107,7 @@ class TestHistoryDatabase:
         record = PredictionRecord(
             model="gpt-4.1",
             provider="openai",
-            archetype="ReAct_Agent",
+            archetype="ToolAgent",
             predicted_total=5000.0,
             predicted_cost=0.05,
         )
@@ -300,10 +300,10 @@ class TestCalibrator:
             tmp_db, archetype="SingleCall_TextOnly", n=20, slope=1.1, noise_std=5.0
         )
         _seed_calibration_data(
-            tmp_db, archetype="ReAct_Agent", n=20, slope=1.5, noise_std=5.0
+            tmp_db, archetype="ToolAgent", n=20, slope=1.5, noise_std=5.0
         )
         f1 = calibrator.get_calibration("gpt-4.1", "SingleCall_TextOnly")
-        f2 = calibrator.get_calibration("gpt-4.1", "ReAct_Agent")
+        f2 = calibrator.get_calibration("gpt-4.1", "ToolAgent")
         # Slopes should be different
         assert abs(f1.slope - f2.slope) > 0.2
 

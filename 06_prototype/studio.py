@@ -10,6 +10,14 @@ from pathlib import Path
 from urllib.parse import urlparse
 from uuid import uuid4
 
+from costgov.commercial_planning import (
+    COMMERCIAL_ROUTES,
+    MODEL_ROUTES,
+    CommercialPlanClarification,
+    attach_foundry_meter_stack,
+    build_commercial_result,
+)
+from costgov.consumption_models import consumption_catalog
 from costgov.mcp_prediction import McpPredictionError, McpPredictorClient
 from costgov.orchestrator import StudioOrchestrator
 from costgov.planning import PlanStore
@@ -106,6 +114,8 @@ class StudioHandler(SimpleHTTPRequestHandler):
                 return self._json(McpPredictorClient(ROOT).model_catalog())
             except McpPredictionError as exc:
                 return self._json({"error": str(exc), "code": "model_catalog_unavailable"}, 503)
+        if path == "/api/consumption-models":
+            return self._json(consumption_catalog())
         if path == "/api/runs":
             return self._json({"runs": list(_read_registry().values())})
         if path == "/api/reports":
@@ -207,9 +217,10 @@ class StudioHandler(SimpleHTTPRequestHandler):
                         {"id": session["plan_id"], "status": session["status"]},
                     )
                 questions = []
+                route = str(parameters.get("route") or "foundry")
                 if not description:
                     questions.append({"field": "description", "question": "What workload should be forecast?"})
-                if not str(parameters.get("model", "")).strip():
+                if route in MODEL_ROUTES and not str(parameters.get("model", "")).strip():
                     questions.append({"field": "model", "question": "Which model should be priced?"})
                 if questions:
                     session = store.require_clarification(session, questions)
@@ -219,6 +230,11 @@ class StudioHandler(SimpleHTTPRequestHandler):
                         {"id": session["plan_id"], "status": session["status"]},
                     )
                     return self._json(session, 201)
+                if route in COMMERCIAL_ROUTES and route not in MODEL_ROUTES:
+                    result = build_commercial_result(description, parameters)
+                    return self._complete_plan(
+                        store, report_store, session, report_id, result
+                    )
                 analysis = McpPredictorClient(ROOT).analyze(description)
                 confirmed_profile = parameters.get("confirmed_profile") or {}
                 analysis_confirmed = parameters.get("analysis_confirmed") is True
@@ -256,37 +272,32 @@ class StudioHandler(SimpleHTTPRequestHandler):
                     "analysis": analysis,
                     "confirmed_profile": confirmed_profile,
                 }
-                result = McpPredictorClient(ROOT).predict(
+                token_result = McpPredictorClient(ROOT).predict(
                     description, parameters
                 )
-                session, receipt = store.complete(session, result)
-                report_store.add_artifact(
-                    report_id,
-                    "plans",
-                    {
-                        "id": session["plan_id"],
-                        "status": session["status"],
-                        "prediction_id": receipt["prediction"].get("prediction_id"),
-                    },
+                result = (
+                    build_commercial_result(
+                        description, parameters, token_result=token_result
+                    )
+                    if route in COMMERCIAL_ROUTES
+                    else attach_foundry_meter_stack(token_result)
                 )
-                report_store.add_artifact(
-                    report_id,
-                    "receipts",
-                    {
-                        "id": receipt["receipt_id"],
-                        "plan_id": session["plan_id"],
-                        "prediction_id": receipt["prediction"].get("prediction_id"),
-                        "content_hash": receipt["content_hash"],
-                    },
+                return self._complete_plan(
+                    store, report_store, session, report_id, result
                 )
-                result.update(
-                    report_id=report_id,
-                    plan_id=session["plan_id"],
-                    receipt_id=receipt["receipt_id"],
-                    receipt_hash=receipt["content_hash"],
-                    created_at=receipt["created_at"],
-                )
-                return self._json(result, 201)
+            except CommercialPlanClarification as exc:
+                if session:
+                    session = store.require_clarification(
+                        session,
+                        [{"field": exc.field, "question": str(exc)}],
+                    )
+                    report_store.add_artifact(
+                        session["report_id"],
+                        "plans",
+                        {"id": session["plan_id"], "status": session["status"]},
+                    )
+                    return self._json(session, 201)
+                return self._json({"status": "failed", "error": str(exc)}, 400)
             except (ValueError, json.JSONDecodeError) as exc:
                 if session:
                     store.fail(session, str(exc))
@@ -370,6 +381,37 @@ class StudioHandler(SimpleHTTPRequestHandler):
                 202,
             )
         return self._json({"error": "not_found"}, 404)
+
+    def _complete_plan(self, store, report_store, session, report_id, result):
+        session, receipt = store.complete(session, result)
+        prediction_id = receipt["prediction"].get("prediction_id")
+        report_store.add_artifact(
+            report_id,
+            "plans",
+            {
+                "id": session["plan_id"],
+                "status": session["status"],
+                "prediction_id": prediction_id,
+            },
+        )
+        report_store.add_artifact(
+            report_id,
+            "receipts",
+            {
+                "id": receipt["receipt_id"],
+                "plan_id": session["plan_id"],
+                "prediction_id": prediction_id,
+                "content_hash": receipt["content_hash"],
+            },
+        )
+        result.update(
+            report_id=report_id,
+            plan_id=session["plan_id"],
+            receipt_id=receipt["receipt_id"],
+            receipt_hash=receipt["content_hash"],
+            created_at=receipt["created_at"],
+        )
+        return self._json(result, 201)
 
     def _read_json(self):
         length = int(self.headers.get("Content-Length", "0"))

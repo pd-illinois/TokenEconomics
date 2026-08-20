@@ -195,7 +195,7 @@ from future_token_predictor.models.schemas import (
 profile = UseCaseProfile(
     model="gpt-4.1",
     provider=Provider.OPENAI,
-    agent_pattern=AgentPattern.REACT_AGENT,
+    agent_pattern=AgentPattern.TOOL_AGENT,
     complexity=Complexity.HIGH,
     modalities=[Modality.TEXT, Modality.DOCUMENT],
     tools=[Tool.FILE_SEARCH, Tool.CODE_INTERPRETER],
@@ -237,7 +237,7 @@ result = predict(profile=profile)
 |---------|----------|
 | `SINGLE_CALL` | One prompt → one response (chatbots, completions) |
 | `RAG_PIPELINE` | Retrieval-augmented generation with document search |
-| `REACT_AGENT` | Iterative tool-use loop (ReAct, function calling) |
+| `TOOL_AGENT` | Single tool-using agent (reason-act loop, function calling) |
 | `WORKFLOW` | Multi-step pipeline with sequential stages |
 | `MULTI_AGENT` | Multiple LLM agents collaborating |
 | `CODE_EXEC` | Code interpreter / sandbox execution |
@@ -356,7 +356,7 @@ Full prediction from natural language or structured parameters.
 {
   "model": "claude-sonnet-4",
   "provider": "anthropic",
-  "agent_pattern": "react_agent",
+  "agent_pattern": "tool_agent",
   "modalities": ["text", "document"],
   "tools": ["file_search"],
   "complexity": "high",

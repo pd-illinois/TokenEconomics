@@ -30,14 +30,14 @@ def corpus() -> dict:
 
 def test_enterprise_corpus_is_complete_and_reviewable(corpus):
     assert corpus["schema_version"] == "1.0"
-    assert corpus["corpus_version"] == "2026-07-24.1"
-    assert len(corpus["cases"]) == 34
-    assert len({case["id"] for case in corpus["cases"]}) == 34
+    assert corpus["corpus_version"] == "2026-07-28.2"
+    assert len(corpus["cases"]) == 43
+    assert len({case["id"] for case in corpus["cases"]}) == 43
 
     for case in corpus["cases"]:
         assert case["description"].startswith(f"{case['title']}:")
         assert case["expected_topology"] in {
-            "single_call", "rag_pipeline", "react_agent", "workflow",
+            "single_call", "rag_pipeline", "tool_agent", "workflow",
             "multi_agent", "code_exec",
         }
         assert case["minimum_modalities"]
@@ -79,7 +79,7 @@ def test_conflicting_autonomous_role_signals_expose_alternative(monkeypatch):
     )
 
     assert analysis.topology.selected.value == "multi_agent"
-    assert "react_agent" in [item.value for item in analysis.topology.alternatives]
+    assert "tool_agent" in [item.value for item in analysis.topology.alternatives]
     assert analysis.clarifications
 
 
@@ -124,7 +124,7 @@ def test_analysis_exposes_cost_material_quantity_defaults(monkeypatch):
     assert any("quantity" in item.lower() for item in analysis.clarifications)
 
 
-@pytest.mark.parametrize("case_index", range(34))
+@pytest.mark.parametrize("case_index", range(43))
 def test_enterprise_corpus_topology_and_agent_count(
     corpus, case_index, monkeypatch
 ):
@@ -142,7 +142,7 @@ def test_enterprise_corpus_topology_and_agent_count(
     assert set(case["minimum_tools"]) <= actual_tools, case["id"]
 
 
-@pytest.mark.parametrize("case_index", range(34))
+@pytest.mark.parametrize("case_index", range(43))
 def test_enterprise_corpus_prediction_arithmetic(corpus, case_index, monkeypatch):
     for key in CLASSIFIER_KEYS:
         monkeypatch.delenv(key, raising=False)
@@ -157,10 +157,10 @@ def test_enterprise_corpus_prediction_arithmetic(corpus, case_index, monkeypatch
     expected_archetype = {
         "single_call": "SingleCall_TextOnly",
         "rag_pipeline": "RAG_Pipeline",
-        "react_agent": "ReAct_Agent",
+        "tool_agent": "ToolAgent",
         "workflow": "Workflow",
         "multi_agent": "MultiAgent",
-        "code_exec": "CodeExecution_Agent",
+        "code_exec": "CodeExec",
     }[case["expected_topology"]]
     assert result.archetype == expected_archetype, case["id"]
     assert result.tokens_per_call.total > 0, case["id"]

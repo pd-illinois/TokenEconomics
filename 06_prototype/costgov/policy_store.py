@@ -27,6 +27,11 @@ def _canonical(value: object) -> str:
 
 def admit_receipt(receipt: dict[str, Any], loaded: LoadedPolicy) -> dict[str, Any]:
     """Evaluate an immutable Plan receipt against one authoritative policy revision."""
+    supported_schemas = {"1.0", "2.0", "3.0", "4.0"}
+    if receipt.get("schema_version") not in supported_schemas:
+        raise PolicyLoadError(
+            f"unsupported receipt schema: {receipt.get('schema_version')}"
+        )
     snapshot = {
         "report_id": receipt["report_id"],
         "plan_id": receipt["plan_id"],
@@ -35,7 +40,7 @@ def admit_receipt(receipt: dict[str, Any], loaded: LoadedPolicy) -> dict[str, An
         "description": receipt["description"],
         "intake": receipt["intake"],
     }
-    if receipt["schema_version"] == "2.0":
+    if receipt["schema_version"] in {"2.0", "3.0", "4.0"}:
         snapshot.update(
             analysis=receipt["analysis"],
             confirmed_profile=receipt["confirmed_profile"],
@@ -43,6 +48,17 @@ def admit_receipt(receipt: dict[str, Any], loaded: LoadedPolicy) -> dict[str, An
             clarifications=receipt["clarifications"],
             exclusions=receipt["exclusions"],
         )
+    if receipt["schema_version"] in {"3.0", "4.0"}:
+        snapshot.update(
+            route=receipt["route"],
+            commercial=receipt["commercial"],
+            purchase=receipt.get("purchase"),
+            token_subforecast=receipt.get("token_subforecast"),
+            hybrid=receipt.get("hybrid"),
+            acceptance_assumption=receipt.get("acceptance_assumption"),
+        )
+    if receipt["schema_version"] == "4.0":
+        snapshot["meter_stack"] = receipt["meter_stack"]
     snapshot.update(
         prediction=receipt["prediction"],
         infrastructure=receipt["infrastructure"],

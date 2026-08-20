@@ -40,7 +40,7 @@ Follow these 6 steps. Never skip CLARIFY — always verify you have enough info 
 When the user describes their workload, extract what you can:
 - **Model**: Which LLM? (e.g., GPT-4.1, Claude Opus 4, Gemini 2.5 Pro)
 - **Provider**: OpenAI, Anthropic, Google, Mistral, Cohere, Bedrock, Azure OpenAI, Local
-- **Agent pattern**: single_call, react_agent, multi_agent, workflow, rag_pipeline, code_exec
+- **Agent pattern**: single_call, tool_agent, multi_agent, workflow, rag_pipeline, code_exec
 - **Modalities**: text, image_input, image_output, document, audio_input, audio_output
 - **Tools**: file_search, code_interpreter, web_search, mcp_server, function_calling
 - **Scale**: Number of users, calls per user per day

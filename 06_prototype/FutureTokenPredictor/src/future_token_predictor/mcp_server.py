@@ -125,7 +125,7 @@ async def list_tools() -> list[Tool]:
                     },
                     "agent_pattern": {
                         "type": "string",
-                        "enum": [p.value for p in AgentPattern],
+                        "enum": [p.value for p in AgentPattern] + ["react_agent"],
                         "description": "Agent workflow pattern",
                     },
                     "modalities": {
@@ -426,7 +426,7 @@ async def _handle_predict(args: dict) -> list[TextContent]:
                 AgentPattern.SINGLE_CALL: AgentType.PROMPT,
                 AgentPattern.RAG_PIPELINE: AgentType.PROMPT,
                 AgentPattern.CODE_EXEC: AgentType.PROMPT,
-                AgentPattern.REACT_AGENT: AgentType.HOSTED,
+                AgentPattern.TOOL_AGENT: AgentType.HOSTED,
                 AgentPattern.MULTI_AGENT: AgentType.HOSTED,
                 AgentPattern.WORKFLOW: AgentType.WORKFLOW,
             }[profile.agent_pattern]

@@ -33,7 +33,10 @@ def test_plan_release_manifest_is_explicit_and_excludes_non_plan_surfaces():
     included = set(manifest["include"])
     assert {
         "plan_studio.py", "studio.html", "plan_requirements.txt",
+        "costgov/commercial_planning.py",
+        "costgov/commercial_forecasting.py",
         "costgov/mcp_prediction.py",
+        "data/commercial",
     } <= included
     assert "requirements.txt" not in included
     assert not included & {
@@ -117,6 +120,24 @@ def test_studio_html_marks_non_plan_surfaces_read_only_v2():
     assert "benchmark runs" in html
     assert "observed economics" in html
     assert "forecast feedback" in html
+    assert "describe the work you want ai to complete" in html
+    assert "how will this work be delivered?" in html
+    assert "copilot studio native usage and entitlement" in html
+    assert "github copilot token-derived ai credits" in html
+    assert "advanced forecast evidence preview" in html
+    assert 'data-ui-mode="standard"' in html
+    assert 'data-ui-mode="console-light"' in html
+    assert 'data-ui-mode="console-dark"' in html
+    assert "microsoft fluent appearance" in html
+    assert 'html[data-ui-mode="standard"]' in html
+    assert 'html[data-ui-mode="console-light"]' in html
+    assert 'html[data-ui-mode="console-dark"]' in html
+    assert "--cp-accent: #0f6cbd" in html
+    assert "--cp-accent: #0f7e54" in html
+    assert "--cp-accent: #57e39a" in html
+    assert "body.console-ui .view > .toolbar" in html
+    assert "tokeneconomics-studio-ui-mode" in html
+    assert "body.console-ui" in html
 
 
 def _serve(tmp_path, monkeypatch):
@@ -195,7 +216,8 @@ def test_plan_only_api_completes_and_reopens_immutable_receipt(tmp_path, monkeyp
         response = connection.getresponse()
         receipt = json.loads(response.read())
         assert response.status == 200
-        assert receipt["schema_version"] == "2.0"
+        assert receipt["schema_version"] == "4.0"
+        assert receipt["meter_stack"]["route_id"] == "foundry"
         assert receipt["content_hash"] == result["receipt_hash"]
         assert receipt["analysis"]["rule_set_version"] == "enterprise-semantics-test"
     finally:

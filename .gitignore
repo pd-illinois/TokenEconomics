@@ -25,6 +25,7 @@ docs/
 # Generated runtime and evidence data
 06_prototype/studio_plans/
 06_prototype/studio_reports/
+06_prototype/StudioUIScreenshot.jpeg
 06_prototype/studio_runs/
 06_prototype/studio_policy_changes/
 06_prototype/telemetry_*.jsonl

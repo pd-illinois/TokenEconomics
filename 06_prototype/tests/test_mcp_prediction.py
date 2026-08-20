@@ -147,7 +147,7 @@ def test_prediction_arguments_require_two_agent_models():
     ("description", "expected_pattern"),
     [
         ("RAG question answering with Azure AI Search", "rag_pipeline"),
-        ("Autonomous ReAct agent loop with RAG and Azure AI Search", "react_agent"),
+        ("Autonomous ReAct agent loop with RAG and Azure AI Search", "tool_agent"),
         ("Deterministic multi-step workflow with RAG and Azure AI Search", "workflow"),
         ("A 4 agent multi-agent research system with RAG and Azure AI Search", "multi_agent"),
     ],

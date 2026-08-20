@@ -91,7 +91,7 @@ class TestPredictTokenUsage:
         self, monkeypatch
     ):
         classified = UseCaseProfile(
-            agent_pattern=AgentPattern.REACT_AGENT,
+            agent_pattern=AgentPattern.TOOL_AGENT,
             agent_type=AgentType.HOSTED,
         )
         monkeypatch.setattr(
@@ -114,7 +114,7 @@ class TestPredictTokenUsage:
 
         assert prediction["model"] == "claude-sonnet-4"
         assert prediction["provider"] == "anthropic"
-        assert prediction["archetype"] == "ReAct_Agent"
+        assert prediction["archetype"] == "ToolAgent"
         assert prediction["calculation_trace"]["scale"]["daily_calls"] == 10_000
 
     @pytest.mark.asyncio
@@ -235,7 +235,8 @@ class TestPredictTokenUsage:
         ("agent_pattern", "expected_archetype"),
         [
             ("rag_pipeline", "RAG_Pipeline"),
-            ("react_agent", "ReAct_Agent"),
+            ("tool_agent", "ToolAgent"),
+            ("react_agent", "ToolAgent"),
             ("workflow", "Workflow"),
             ("multi_agent", "MultiAgent"),
         ],

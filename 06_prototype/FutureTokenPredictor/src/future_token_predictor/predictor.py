@@ -251,7 +251,7 @@ def predict(
         and profile.tools
         and _AGENTIC_TOOLS & set(profile.tools)
     ):
-        profile.agent_pattern = AgentPattern.REACT_AGENT
+        profile.agent_pattern = AgentPattern.TOOL_AGENT
         profile.agent_type = AgentType.HOSTED
 
     # Step 1: Predict tokens (workflow-aware, with Monte Carlo for complex agents)

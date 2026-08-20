@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" data-ui-mode="standard">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -16,6 +16,58 @@
   <style>
     :root {
       color-scheme: light;
+      --cp-bg: #f7f4ef;
+      --cp-bg-elevated: #fcfbf8;
+      --cp-surface: #ffffff;
+      --cp-surface-soft: #f5f5f5;
+      --cp-border: #dedede;
+      --cp-border-strong: #919191;
+      --cp-text: #242424;
+      --cp-text-muted: #5c5c5c;
+      --cp-text-soft: #6f6f6f;
+      --cp-accent: #b11f4b;
+      --cp-accent-hover: #9a1a41;
+      --cp-accent-soft: rgba(177, 31, 75, 0.08);
+      --cp-accent-fg: #ffffff;
+      --cp-success: #16a34a;
+      --cp-danger: #dc2626;
+      --cp-warning: #f59e0b;
+      --cp-link: #0078d4;
+      --cp-shadow: 0 18px 48px rgba(0, 0, 0, 0.12);
+      --cp-overlay: rgba(255, 255, 255, 0.8);
+      --cp-panel: rgba(255, 255, 255, 0.86);
+      --cp-panel-strong: rgba(255, 255, 255, 0.96);
+      --cp-sheen: rgba(255, 255, 255, 0.55);
+      --cp-highlight: rgba(177, 31, 75, 0.12);
+    }
+    html[data-theme="dark"] {
+      color-scheme: dark;
+      --cp-bg: #3d3b3a;
+      --cp-bg-elevated: #343231;
+      --cp-surface: #292929;
+      --cp-surface-soft: #2e2e2e;
+      --cp-border: #474747;
+      --cp-border-strong: #5f5f5f;
+      --cp-text: #dedede;
+      --cp-text-muted: #919191;
+      --cp-text-soft: #b0b0b0;
+      --cp-accent: #fd8ea1;
+      --cp-accent-hover: #fb7b91;
+      --cp-accent-soft: rgba(253, 142, 161, 0.14);
+      --cp-accent-fg: #1a1a1a;
+      --cp-success: #4ade80;
+      --cp-danger: #f87171;
+      --cp-warning: #fbbf24;
+      --cp-link: #4da6ff;
+      --cp-shadow: 0 18px 48px rgba(0, 0, 0, 0.32);
+      --cp-overlay: rgba(41, 41, 41, 0.88);
+      --cp-panel: rgba(41, 41, 41, 0.72);
+      --cp-panel-strong: rgba(41, 41, 41, 0.96);
+      --cp-sheen: rgba(255, 255, 255, 0.04);
+      --cp-highlight: rgba(253, 142, 161, 0.12);
+    }
+    html[data-ui-mode="standard"] {
+      color-scheme: light;
       --cp-bg: #f5f5f5;
       --cp-bg-elevated: #fafafa;
       --cp-surface: #ffffff;
@@ -29,42 +81,53 @@
       --cp-accent-hover: #115ea3;
       --cp-accent-soft: rgba(15, 108, 189, 0.10);
       --cp-accent-fg: #ffffff;
-      --cp-success: #16a34a;
-      --cp-danger: #dc2626;
-      --cp-warning: #f59e0b;
+      --cp-success: #107c10;
+      --cp-danger: #d13438;
+      --cp-warning: #986f0b;
       --cp-link: #0078d4;
-      --cp-shadow: 0 18px 48px rgba(0, 0, 0, 0.12);
-      --cp-overlay: rgba(255, 255, 255, 0.8);
-      --cp-panel: rgba(255, 255, 255, 0.86);
-      --cp-panel-strong: rgba(255, 255, 255, 0.96);
-      --cp-sheen: rgba(255, 255, 255, 0.55);
       --cp-highlight: rgba(15, 108, 189, 0.12);
     }
-    html[data-theme="dark"] {
-      color-scheme: dark;
-      --cp-bg: #1f1f1f;
-      --cp-bg-elevated: #242424;
-      --cp-surface: #292929;
-      --cp-surface-soft: #333333;
-      --cp-border: #474747;
-      --cp-border-strong: #adadad;
-      --cp-text: #ffffff;
-      --cp-text-muted: #d6d6d6;
-      --cp-text-soft: #adadad;
-      --cp-accent: #479ef5;
-      --cp-accent-hover: #62abf5;
-      --cp-accent-soft: rgba(71, 158, 245, 0.16);
+    html[data-ui-mode="console-light"] {
+      color-scheme: light;
+      --cp-bg: #f5f7fb;
+      --cp-bg-elevated: #ebf0f7;
+      --cp-surface: #ffffff;
+      --cp-surface-soft: #f7f9fc;
+      --cp-border: #aebdd0;
+      --cp-border-strong: #97a9bf;
+      --cp-text: #111923;
+      --cp-text-muted: #243140;
+      --cp-text-soft: #4b5d70;
+      --cp-accent: #0f7e54;
+      --cp-accent-hover: #0c6543;
+      --cp-accent-soft: rgba(15, 126, 84, 0.14);
       --cp-accent-fg: #ffffff;
-      --cp-success: #4ade80;
-      --cp-danger: #f87171;
-      --cp-warning: #fbbf24;
-      --cp-link: #4da6ff;
-      --cp-shadow: 0 18px 48px rgba(0, 0, 0, 0.32);
-      --cp-overlay: rgba(41, 41, 41, 0.88);
-      --cp-panel: rgba(41, 41, 41, 0.72);
-      --cp-panel-strong: rgba(41, 41, 41, 0.96);
-      --cp-sheen: rgba(255, 255, 255, 0.04);
-      --cp-highlight: rgba(71, 158, 245, 0.16);
+      --cp-success: #0f7e54;
+      --cp-danger: #b54747;
+      --cp-warning: #9a6200;
+      --cp-link: #006e95;
+      --cp-highlight: rgba(15, 126, 84, 0.14);
+    }
+    html[data-ui-mode="console-dark"] {
+      color-scheme: dark;
+      --cp-bg: #080b0f;
+      --cp-bg-elevated: #0b1016;
+      --cp-surface: #111a22;
+      --cp-surface-soft: #14202a;
+      --cp-border: #1d2b37;
+      --cp-border-strong: #26343f;
+      --cp-text: #d7e2ea;
+      --cp-text-muted: #9fb1bd;
+      --cp-text-soft: #6b7f8d;
+      --cp-accent: #57e39a;
+      --cp-accent-hover: #33c47b;
+      --cp-accent-soft: rgba(87, 227, 154, 0.18);
+      --cp-accent-fg: #080b0f;
+      --cp-success: #57e39a;
+      --cp-danger: #ff6b6b;
+      --cp-warning: #f4b13c;
+      --cp-link: #4cc5f0;
+      --cp-highlight: rgba(87, 227, 154, 0.18);
     }
     * { box-sizing: border-box; }
     body { margin: 0; background: var(--cp-bg); color: var(--cp-text); font-family: "Segoe UI", Aptos, Calibri, -apple-system, BlinkMacSystemFont, sans-serif; }
@@ -152,6 +215,18 @@
     .intake-grid { display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 10px; }
     .field { display: grid; gap: 5px; color: var(--cp-text-muted); font-size: 12px; }
     .field input, .field select { min-width: 0; border: 1px solid var(--cp-border); border-radius: 5px; padding: 9px 10px; background: var(--cp-surface); color: var(--cp-text); font: inherit; }
+    .experience-fieldset { min-width: 0; margin: 2px 0; padding: 0; border: 0; }
+    .experience-fieldset legend { margin-bottom: 8px; color: var(--cp-text); font-weight: 600; }
+    .experience-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
+    .experience-card { position: relative; display: grid; gap: 7px; min-height: 108px; padding: 12px; border: 1px solid var(--cp-border); border-radius: var(--fl-radius); background: var(--cp-surface); cursor: pointer; }
+    .experience-card:has(input:checked) { border-color: var(--cp-accent); box-shadow: 0 0 0 1px var(--cp-accent); background: var(--cp-surface-soft); }
+    .experience-card input { position: absolute; top: 10px; right: 10px; }
+    .experience-card strong { padding-right: 22px; font-size: 13px; }
+    .experience-card small { color: var(--cp-text-muted); line-height: 1.35; }
+    .meter-badges { display: flex; flex-wrap: wrap; gap: 5px; align-self: end; }
+    .meter-badge { padding: 2px 6px; border: 1px solid var(--cp-border); border-radius: 999px; color: var(--cp-text-muted); font-size: 10px; }
+    .route-fields { display: grid; gap: 10px; padding: 12px; border: 1px solid var(--cp-border); border-radius: var(--fl-radius); background: var(--cp-surface-soft); }
+    .evidence-preview pre { max-height: 280px; overflow: auto; padding: 10px; background: var(--cp-surface); border: 1px solid var(--cp-border); white-space: pre-wrap; font-size: 11px; }
     .model-details { display: flex; flex-wrap: wrap; gap: 6px 12px; min-height: 20px; color: var(--cp-text-muted); font-size: 12px; }
     .model-details .policy-rejected { color: var(--cp-danger); font-weight: 600; }
     .agent-model-editor { border: 1px solid var(--cp-border); border-radius: var(--fl-radius); padding: 12px; background: var(--cp-surface-soft); }
@@ -183,17 +258,119 @@
     .change-summary { display: flex; justify-content: space-between; gap: 12px; align-items: flex-start; }
     .change-summary small { display: block; color: var(--cp-text-muted); margin-top: 4px; }
     .headroom { color: var(--cp-success); }
+    .header-controls { display: flex; align-items: center; justify-content: flex-end; gap: 14px; flex-wrap: wrap; }
+    .appearance-switch { display: inline-flex; align-items: center; gap: 3px; padding: 3px; border: 1px solid var(--cp-border); border-radius: var(--fl-radius); background: var(--cp-surface-soft); }
+    .appearance-switch > span { padding: 0 6px; color: var(--cp-text-muted); font-size: 11px; }
+    .appearance-switch button { border: 0; border-radius: 6px; padding: 6px 9px; background: transparent; color: var(--cp-text-muted); cursor: pointer; font-size: 11px; }
+    .appearance-switch button[aria-pressed="true"] { background: var(--cp-surface); color: var(--cp-accent); box-shadow: var(--fl-shadow-2); font-weight: 700; }
+    .report-gate-head .appearance-switch { margin-top: 18px; }
+    body.console-ui {
+      font-family: Consolas, "Courier New", Courier, monospace;
+      background-color: var(--cp-bg);
+      background-image:
+        linear-gradient(to right, var(--cp-border) 1px, var(--cp-bg) 1px),
+        linear-gradient(to bottom, var(--cp-border) 1px, var(--cp-bg) 1px);
+      background-size: 40px 40px;
+    }
+    body.console-ui .report-gate {
+      background-color: var(--cp-bg);
+      background-image:
+        linear-gradient(to right, var(--cp-border) 1px, var(--cp-bg) 1px),
+        linear-gradient(to bottom, var(--cp-border) 1px, var(--cp-bg) 1px);
+      background-size: 40px 40px;
+    }
+    body.console-ui .shell { grid-template-columns: 288px minmax(0, 1fr); }
+    body.console-ui aside { background: var(--cp-bg-elevated); padding: 16px 14px; }
+    body.console-ui .brand { position: relative; padding: 12px; border: 1px solid var(--cp-border-strong); border-radius: var(--fl-radius); background: var(--cp-surface); }
+    body.console-ui .brand::before,
+    body.console-ui .brand::after { content: ""; position: absolute; width: 10px; height: 10px; }
+    body.console-ui .brand::before { top: -1px; left: -1px; border-top: 2px solid var(--cp-accent); border-left: 2px solid var(--cp-accent); }
+    body.console-ui .brand::after { right: -1px; bottom: -1px; border-right: 2px solid var(--cp-accent); border-bottom: 2px solid var(--cp-accent); }
+    body.console-ui .brand-mark { width: 42px; height: 42px; margin-bottom: 10px; }
+    body.console-ui .brand strong { color: var(--cp-accent); font-size: 16px; }
+    body.console-ui .brand span::before { content: "status: "; color: var(--cp-accent); }
+    body.console-ui nav { margin-top: 18px; gap: 2px; }
+    body.console-ui nav::before { content: "// WORKSPACE"; padding: 0 10px 8px; color: var(--cp-text-muted); font-size: 10px; letter-spacing: .16em; }
+    body.console-ui .tab { border: 1px solid transparent; border-left: 2px solid var(--cp-border-strong); border-radius: 0; padding: 9px 10px; font-size: 12px; }
+    body.console-ui .tab::after { content: "  ↗"; color: var(--cp-text-soft); }
+    body.console-ui .tab:hover { border-color: var(--cp-border); border-left-color: var(--cp-accent); background: var(--cp-surface); }
+    body.console-ui .tab.active { border-left-color: var(--cp-accent); background: var(--cp-surface-soft); color: var(--cp-text); }
+    body.console-ui .tab.active::before { display: none; }
+    body.console-ui main { padding: 0 24px 40px; }
+    body.console-ui header { margin: 0 -24px 20px; padding: 10px 16px; background: var(--cp-bg-elevated); }
+    body.console-ui header h1 { color: var(--cp-accent); font-size: 18px; }
+    body.console-ui header h1::before { content: "> "; }
+    body.console-ui header .subtitle { font-size: 11px; letter-spacing: .08em; text-transform: uppercase; }
+    body.console-ui .status { padding: 6px 9px; border: 1px solid var(--cp-border); border-radius: var(--fl-radius); background: var(--cp-surface); }
+    body.console-ui .dot { border-radius: 2px; box-shadow: 0 0 0 1px var(--cp-success); }
+    body.console-ui .view > .toolbar {
+      position: relative;
+      padding: 12px 14px;
+      border: 1px solid var(--cp-border-strong);
+      border-radius: var(--fl-radius);
+      background: var(--cp-surface);
+    }
+    body.console-ui .view > .toolbar::before {
+      content: "";
+      position: absolute;
+      top: -1px;
+      left: -1px;
+      width: 9px;
+      height: 9px;
+      border-top: 2px solid var(--cp-accent);
+      border-left: 2px solid var(--cp-accent);
+      pointer-events: none;
+    }
+    body.console-ui .view > .toolbar .subtitle { color: var(--cp-text-muted); }
+    body.console-ui .report-context,
+    body.console-ui .panel,
+    body.console-ui .route-fields,
+    body.console-ui .agent-model-editor,
+    body.console-ui .experience-card { border-color: var(--cp-border-strong); border-radius: var(--fl-radius); box-shadow: none; }
+    body.console-ui .panel { position: relative; }
+    body.console-ui .panel::before { content: ""; position: absolute; top: -1px; left: -1px; width: 9px; height: 9px; border-top: 2px solid var(--cp-accent); border-left: 2px solid var(--cp-accent); pointer-events: none; }
+    body.console-ui h2 { font-size: 15px; }
+    body.console-ui h2::before { content: "> "; color: var(--cp-accent); }
+    body.console-ui .section-title { display: flex; align-items: center; gap: 8px; color: var(--cp-text-muted); font-size: 11px; letter-spacing: .12em; text-transform: uppercase; }
+    body.console-ui .section-title::before { content: "//"; color: var(--cp-accent); }
+    body.console-ui .section-title::after { content: ""; flex: 1; height: 1px; background: var(--cp-border); }
+    body.console-ui .primary,
+    body.console-ui .secondary,
+    body.console-ui .appearance-switch,
+    body.console-ui .appearance-switch button { font-family: Consolas, "Courier New", Courier, monospace; }
+    body.console-ui .primary,
+    body.console-ui .secondary { text-transform: uppercase; letter-spacing: .08em; font-size: 11px; }
+    body.console-ui .experience-card { min-height: 118px; background: var(--cp-surface); }
+    body.console-ui .experience-card strong::before { content: "[ "; color: var(--cp-accent); }
+    body.console-ui .experience-card strong::after { content: " ]"; color: var(--cp-accent); }
+    body.console-ui .experience-card:has(input:checked) { background: var(--cp-accent-soft); }
+    body.console-ui .meter-badge,
+    body.console-ui .badge { border-radius: 3px; }
+    body.console-ui .flow { gap: 0; border: 1px solid var(--cp-border-strong); border-radius: var(--fl-radius); overflow: hidden; }
+    body.console-ui .flow div { border: 0; border-right: 1px solid var(--cp-border); border-left: 0; border-radius: 0; background: var(--cp-bg-elevated); text-transform: uppercase; letter-spacing: .08em; }
+    body.console-ui .flow div:first-child { background: var(--cp-accent-soft); color: var(--cp-accent); }
+    body.console-ui .flow div:last-child { border-right: 0; }
+    body.console-ui input,
+    body.console-ui textarea,
+    body.console-ui select,
+    body.console-ui code,
+    body.console-ui pre { font-family: Consolas, "Courier New", Courier, monospace; }
+    body.console-ui .report-gate-inner { width: min(1080px, 100%); }
+    body.console-ui .report-gate-head { position: relative; padding: 18px; border: 1px solid var(--cp-border-strong); border-radius: var(--fl-radius); background: var(--cp-surface); }
+    body.console-ui .report-gate-head::before { content: "TOKENGOV://STUDIO"; display: block; margin-bottom: 12px; color: var(--cp-accent); font-size: 11px; letter-spacing: .14em; }
+    body.console-ui .report-gate-head h1 { font-family: Consolas, "Courier New", Courier, monospace; font-size: clamp(26px, 4vw, 40px); }
+    body.console-ui .report-gate-head h1::after { content: "_"; color: var(--cp-accent); }
     @media (max-width: 1200px) { .report-context { grid-template-columns: 1fr 1fr; } }
-    @media (max-width: 900px) { .shell { width: 100%; grid-template-columns: minmax(0, 1fr); } aside { border-right: 0; border-bottom: 1px solid var(--cp-border); padding: 14px; } .brand { padding-bottom: 12px; } .brand-mark { width: 48px; height: 48px; } nav { grid-template-columns: repeat(6, minmax(0, 1fr)); overflow-x: auto; } .tab { min-width: 0; overflow: hidden; text-overflow: ellipsis; text-align: center; white-space: nowrap; } .tab.active::before { display: none; } .grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } .policy-form-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+    @media (max-width: 900px) { .shell { width: 100%; grid-template-columns: minmax(0, 1fr); } aside { border-right: 0; border-bottom: 1px solid var(--cp-border); padding: 14px; } .brand { padding-bottom: 12px; } .brand-mark { width: 48px; height: 48px; } nav { grid-template-columns: repeat(6, minmax(0, 1fr)); overflow-x: auto; } .tab { min-width: 0; overflow: hidden; text-overflow: ellipsis; text-align: center; white-space: nowrap; } .tab.active::before { display: none; } .grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } .policy-form-grid, .experience-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
     @media (max-width: 680px) { .report-workspace { grid-template-columns: 1fr; } }
     @media (max-width: 760px) { .agent-model-row { grid-template-columns: 1fr 1fr; } }
-    @media (max-width: 560px) { main { padding: 20px 14px; } header { display: block; } .status { margin-top: 12px; } .grid, .flow, .intake-grid, .report-context, .policy-groups, .policy-form-grid, .agent-model-row { grid-template-columns: 1fr; } .panel { overflow-x: auto; } .report-gate { padding: 24px 14px; } .segmented { display: grid; grid-template-columns: 1fr; width: 100%; } }
+    @media (max-width: 560px) { main { padding: 20px 14px; } header { display: block; } .status { margin-top: 12px; } .grid, .flow, .intake-grid, .report-context, .policy-groups, .policy-form-grid, .agent-model-row, .experience-grid { grid-template-columns: 1fr; } .panel { overflow-x: auto; } .report-gate { padding: 24px 14px; } .segmented { display: grid; grid-template-columns: 1fr; width: 100%; } }
   </style>
 </head>
 <body>
   <section class="report-gate" id="report-gate">
     <div class="report-gate-inner">
-      <div class="report-gate-head"><img class="brand-mark" src="TokEcoStudio.png" alt="" aria-hidden="true"><h1>TokenEconomics Studio</h1><p class="subtitle">Create a report workspace or reopen a previous analysis.</p></div>
+      <div class="report-gate-head"><img class="brand-mark" src="TokEcoStudio.png" alt="" aria-hidden="true"><h1>TokenEconomics Studio</h1><p class="subtitle">Create a report workspace or reopen a previous analysis.</p><div class="appearance-switch" role="group" aria-label="Studio appearance"><span>Appearance</span><button type="button" data-ui-mode="standard" aria-pressed="true" title="Microsoft Fluent appearance">Standard</button><button type="button" data-ui-mode="console-light" aria-pressed="false">Console Light</button><button type="button" data-ui-mode="console-dark" aria-pressed="false">Console Dark</button></div></div>
       <div class="report-workspace">
         <div class="panel report-form"><h2>New report</h2><label class="field">Report title<input id="new-report-title" value="AI economics assessment"></label><button class="primary" id="create-report-button">Create report</button></div>
         <div class="panel"><div class="toolbar"><h2>Saved reports</h2><button class="secondary" id="refresh-reports-button">Refresh</button></div><div class="report-list" id="report-list"><div class="empty">Loading saved reports…</div></div></div>
@@ -213,14 +390,55 @@
       </nav>
     </aside>
     <main>
-      <header><div><h1 id="title">Plan</h1><p class="subtitle">AI unit economics: predict, govern, learn.</p></div><div class="status"><span class="dot"></span><span id="api-status">Local control service</span></div></header>
+      <header><div><h1 id="title">Plan</h1><p class="subtitle">AI unit economics: predict, govern, learn.</p></div><div class="header-controls"><div class="appearance-switch" role="group" aria-label="Studio appearance"><span>Appearance</span><button type="button" data-ui-mode="standard" aria-pressed="true" title="Microsoft Fluent appearance">Standard</button><button type="button" data-ui-mode="console-light" aria-pressed="false">Console Light</button><button type="button" data-ui-mode="console-dark" aria-pressed="false">Console Dark</button></div><div class="status"><span class="dot"></span><span id="api-status">Local control service</span></div></div></header>
       <div class="report-context"><label class="field">Active report ID<code id="active-report-id"></code></label><label class="field">Report title<input id="active-report-title"></label><button class="secondary" id="save-report-button">Save report</button><button class="secondary" id="switch-report-button">Switch report</button><div class="report-save-status" id="report-save-status"></div></div>
       <section class="view active" id="plan">
-        <div class="toolbar"><div><h2>AI workload forecast</h2><p class="subtitle">Current scope: model-invocation economics. Policy-conditioned trajectory forecasting is planned.</p></div></div>
+        <div class="toolbar"><div><h2>AI workload forecast</h2><p class="subtitle">Start with the work and delivery experience; Studio resolves each independent subscription, credit, token, and resource meter.</p></div></div>
         <div class="flow"><div>1. Forecast</div><div>2. Admit policy</div><div>3. Execute</div><div>4. Evaluate</div><div>5. Reconcile</div></div>
         <div class="panel composer">
-          <label for="plan-prompt"><strong>Describe the solution you want to estimate</strong></label>
+          <label for="plan-prompt"><strong>Describe the work you want AI to complete</strong></label>
+          <span class="subtitle">Include the audience, expected outcome, frequency, and systems or information the work needs.</span>
           <textarea id="plan-prompt"></textarea>
+          <fieldset class="experience-fieldset">
+            <legend>How will this work be delivered?</legend>
+            <div class="experience-grid" id="experience-grid"><div class="empty">Loading versioned delivery experiences...</div></div>
+          </fieldset>
+          <div class="panel" id="consumption-summary"><div class="empty">Select a delivery experience to inspect its meter stack.</div></div>
+          <div id="commercial-route-fields">
+            <div class="route-fields" id="included-route-fields" hidden>
+              <h3 class="section-title">Subscription allocation</h3>
+              <div class="intake-grid"><label class="field">Licensed users<input id="plan-seat-count" type="number" min="1" value="100"></label><label class="field">Allocated monthly cost / user (USD)<input id="plan-seat-price" type="number" min="0" step="0.01" value="30"></label><label class="field">Environment<input id="plan-included-environment" value="default"></label></div>
+            </div>
+            <div class="route-fields" id="studio-route-fields" hidden>
+              <h3 class="section-title">Copilot Studio native usage and entitlement</h3>
+              <div class="intake-grid"><label class="field">Meter<select id="plan-studio-meter"><option value="generative_answer">Generative answer</option><option value="agent_action">Agent action</option><option value="tenant_graph_grounding">Tenant Graph grounding</option><option value="agent_flow_actions">Agent flow actions</option><option value="premium_ai_tool">Premium AI tool tokens</option></select></label><label class="field">Expected quantity<input id="plan-studio-quantity" type="number" min="0" value="1000"></label><label class="field">Audience<select id="plan-studio-audience"><option value="b2e">Employees</option><option value="b2c">Customers / external</option></select></label></div>
+              <div class="intake-grid"><label class="field">License evidence<select id="plan-studio-license"><option value="microsoft_365_copilot">Microsoft Copilot licensed user</option><option value="">No qualifying seat</option></select></label><label class="field">Channel<select id="plan-studio-channel"><option value="microsoft_365_copilot">Microsoft Copilot</option><option value="teams">Teams</option><option value="website">Website</option></select></label><label class="field">Trigger<select id="plan-studio-trigger"><option value="interactive">Interactive</option><option value="scheduled">Scheduled</option><option value="event">Event driven</option></select></label></div>
+              <label class="check-field"><input id="plan-studio-authenticated" type="checkbox" checked> Authenticated identity is confirmed</label>
+              <div class="intake-grid"><label class="field">Committed credits<input id="plan-ms-committed-credits" type="number" min="0" value="0"></label><label class="field">Committed invoice cost (USD)<input id="plan-ms-committed-cost" type="number" min="0" step="0.01" value="0"></label><label class="field">Fixed subscription allocation (USD)<input id="plan-ms-fixed-cost" type="number" min="0" step="0.01" value="0"></label></div>
+              <div class="intake-grid"><label class="check-field"><input id="plan-ms-payg" type="checkbox" checked> PAYG enabled</label><label class="field">PAYG USD / credit<input id="plan-ms-payg-rate" type="number" min="0" step="0.0001" value="0.01"></label><label class="field">Environment<input id="plan-ms-environment" value="default"></label></div>
+            </div>
+            <div class="route-fields" id="scenario-route-fields" hidden>
+              <h3 class="section-title">Modeled task demand</h3>
+              <div class="intake-grid"><label class="field">Task class / segment<select id="plan-scenario-segment"><option value="light">Light tasks</option><option value="medium" selected>Medium tasks</option><option value="heavy">Heavy tasks</option></select></label><label class="field">Tasks / month<input id="plan-scenario-tasks" type="number" min="1" value="100"></label><label class="field">Seed<input id="plan-scenario-seed" type="number" value="17"></label></div>
+              <div class="intake-grid"><label class="field">Modeled credits / task P50<input id="plan-scenario-p50" type="number" min="0.0001" step="0.1" value="25"></label><label class="field">Modeled credits / task P95<input id="plan-scenario-p95" type="number" min="0.0001" step="0.1" value="90"></label><label class="field">Fixed subscription allocation (USD)<input id="plan-scenario-fixed-cost" type="number" min="0" step="0.01" value="0"></label></div>
+              <div class="intake-grid"><label class="field">Committed credits<input id="plan-scenario-committed-credits" type="number" min="0" value="0"></label><label class="field">Committed cost (USD)<input id="plan-scenario-committed-cost" type="number" min="0" step="0.01" value="0"></label><label class="field">PAYG USD / credit<input id="plan-scenario-payg-rate" type="number" min="0" step="0.0001" value="0.01"></label></div>
+              <label class="check-field"><input id="plan-scenario-payg" type="checkbox" checked> PAYG enabled</label>
+            </div>
+            <div class="route-fields" id="github-route-fields" hidden>
+              <h3 class="section-title">GitHub Copilot token-derived AI Credits</h3>
+              <p class="provenance-note">GitHub AI Credits are calculated from GitHub model-token prices and are not Microsoft Copilot Credits.</p>
+              <div class="intake-grid"><label class="field">Plan<select id="plan-github-plan"><option value="copilot_business">Copilot Business</option><option value="copilot_enterprise">Copilot Enterprise</option><option value="copilot_pro">Copilot Pro</option><option value="copilot_pro_plus">Copilot Pro+</option><option value="copilot_max">Copilot Max</option></select></label><label class="field">Model<select id="plan-github-model"><option value="gpt-5-mini">GPT-5 mini</option><option value="gpt-5.4">GPT-5.4</option><option value="gpt-5.6-luna">GPT-5.6 Luna</option><option value="claude-sonnet-5">Claude Sonnet 5</option></select></label><label class="field">Seats<input id="plan-github-seats" type="number" min="1" value="100"></label></div>
+              <div class="intake-grid"><label class="field">Monthly input tokens<input id="plan-github-input" type="number" min="0" value="100000000"></label><label class="field">Monthly cached-input tokens<input id="plan-github-cached" type="number" min="0" value="0"></label><label class="field">Monthly cache-write tokens<input id="plan-github-cache-write" type="number" min="0" value="0"></label></div>
+              <div class="intake-grid"><label class="field">Monthly output tokens<input id="plan-github-output" type="number" min="0" value="10000000"></label><label class="field">Maximum input tokens / request<input id="plan-github-max-input-request" type="number" min="1" value="100000"></label><label class="field">Total monthly seat cost (USD)<input id="plan-github-seat-cost" type="number" min="0" step="0.01" value="1900"></label></div>
+              <label class="check-field"><input id="plan-github-overage" type="checkbox"> Additional usage enabled</label>
+            </div>
+            <details class="agent-model-editor evidence-preview">
+              <summary>Advanced forecast evidence preview</summary>
+              <p class="subtitle">Read-only generated evidence. Source, entitlement, rate, and assumption versions are hashed into the receipt.</p>
+              <pre id="commercial-evidence-preview">Choose an experience to generate evidence.</pre>
+            </details>
+          </div>
+          <div id="model-route-fields">
           <div class="intake-grid">
             <label class="field">Default / coordinator model<select id="plan-model" disabled><option>Loading priced models...</option></select></label>
             <label class="field">Users<input id="plan-users" type="number" min="1" value="1000"></label>
@@ -234,7 +452,8 @@
             <div class="agent-model-list" id="agent-model-list"></div>
             <button class="secondary" id="add-agent-model-button" type="button" disabled>Add agent model</button>
           </details>
-          <div class="composer-actions"><button class="primary" id="plan-button" disabled>Analyze workload</button></div>
+          </div>
+          <div class="composer-actions"><button class="primary" id="plan-button">Analyze workload</button></div>
         </div>
         <div id="plan-content" class="result-stack"><div class="panel empty">Submit a workload to inspect token usage, model cost, assumptions, and prediction provenance.</div></div>
       </section>
@@ -282,7 +501,38 @@
     </main>
   </div>
   <script>
-    const state = { report: null, plan: null, analysis: null, handoff: null, run: null, effectivePolicy: null, policyChanges: [], modelCatalog: [] };
+    const UI_MODE_KEY = "tokeneconomics-studio-ui-mode";
+    function normalizeUiMode(requestedMode) {
+      if (requestedMode === "current") return "standard";
+      if (requestedMode === "console") return "console-dark";
+      return ["standard", "console-light", "console-dark"].includes(requestedMode)
+        ? requestedMode
+        : "standard";
+    }
+    function applyUiMode(requestedMode) {
+      const mode = normalizeUiMode(requestedMode);
+      const consoleMode = mode === "console-light" || mode === "console-dark";
+      document.body.classList.toggle("console-ui", consoleMode);
+      document.documentElement.setAttribute(
+        "data-theme",
+        mode === "console-dark" ? "dark" : "light"
+      );
+      document.documentElement.dataset.uiMode = mode;
+      document.querySelectorAll("button[data-ui-mode]").forEach(button => {
+        button.setAttribute("aria-pressed", String(button.dataset.uiMode === mode));
+      });
+      localStorage.setItem(UI_MODE_KEY, mode);
+    }
+    document.querySelectorAll("button[data-ui-mode]").forEach(button => {
+      button.addEventListener("click", () => applyUiMode(button.dataset.uiMode));
+    });
+    applyUiMode(
+      new URLSearchParams(window.location.search).get("uiMode")
+        || localStorage.getItem(UI_MODE_KEY)
+        || "standard"
+    );
+    const state = { report: null, plan: null, analysis: null, handoff: null, run: null, effectivePolicy: null, policyChanges: [], modelCatalog: [], consumptionCatalog: null };
+    const modelRoutes = new Set(["foundry", "copilot_studio_byom", "foundry_work_iq"]);
     const titles = { plan: "Plan", govern: "Govern", runs: "Runs", observe: "Observe", reconcile: "Reconcile" };
     document.querySelectorAll(".tab").forEach(button => button.addEventListener("click", () => {
       document.querySelectorAll(".tab,.view").forEach(item => item.classList.remove("active"));
@@ -314,6 +564,161 @@
       else document.getElementById("effective-policy-content").innerHTML = `<div class="danger">${escapeHtml(effective.error || "Policy unavailable")}</div>`;
       renderPolicyChanges();
     }
+    function selectedRoute() {
+      return document.querySelector('input[name="plan-route"]:checked')?.value || "";
+    }
+    function meterStackFor(route) {
+      return (state.consumptionCatalog?.experiences || []).find(item => item.route_id === route);
+    }
+    function renderConsumptionSummary(route) {
+      const stack = meterStackFor(route);
+      const target = document.getElementById("consumption-summary");
+      if (!stack) {
+        target.innerHTML = `<div class="empty">Consumption evidence is unavailable for this experience.</div>`;
+        return;
+      }
+      target.innerHTML = `<h3 class="section-title">Consumption model · ${escapeHtml(stack.display_name)}</h3><div class="meter-badges">${stack.layers.map(layer => `<span class="meter-badge">${escapeHtml(layer.family.replaceAll("_", " "))} · ${escapeHtml(layer.unit)}</span>`).join("")}</div><p class="subtitle">${escapeHtml(stack.description)}</p>`;
+    }
+    function collectPurchasePortfolio(prefix, product, fixedCost) {
+      return {
+        version: "guided-purchase.v1",
+        product,
+        environment: "default",
+        committed_credits: Number(document.getElementById(`${prefix}-committed-credits`).value),
+        committed_cost_usd: Number(document.getElementById(`${prefix}-committed-cost`).value),
+        payg_enabled: document.getElementById(`${prefix}-payg`).checked,
+        payg_rate_usd_per_credit: Number(document.getElementById(`${prefix}-payg-rate`).value),
+        fixed_seat_cost_usd: fixedCost,
+        scope_evidence_version: "guided-allocation.v1",
+        billing_period: "monthly",
+      };
+    }
+    function collectCommercialInput(route) {
+      const asOf = new Date().toISOString().slice(0, 10);
+      if (route === "included" || route === "agent_builder") {
+        const seats = Number(document.getElementById("plan-seat-count").value);
+        const price = Number(document.getElementById("plan-seat-price").value);
+        return {
+          as_of: asOf,
+          environment: document.getElementById("plan-included-environment").value.trim(),
+          purchase_portfolio: {
+            version: "guided-subscription.v1",
+            product: route === "agent_builder" ? "Agent Builder" : "Microsoft Copilot",
+            environment: document.getElementById("plan-included-environment").value.trim(),
+            committed_credits: 0,
+            committed_cost_usd: 0,
+            payg_enabled: false,
+            payg_rate_usd_per_credit: 0,
+            fixed_seat_cost_usd: seats * price,
+            scope_evidence_version: "guided-seat-allocation.v1",
+            billing_period: "monthly",
+          },
+          seat_assumptions: { seats, allocated_monthly_cost_per_user_usd: price },
+        };
+      }
+      if (route === "copilot_studio" || route === "copilot_studio_byom") {
+        const audience = document.getElementById("plan-studio-audience").value;
+        const authenticated = document.getElementById("plan-studio-authenticated").checked;
+        const license = document.getElementById("plan-studio-license").value || null;
+        const environment = document.getElementById("plan-ms-environment").value.trim();
+        return {
+          as_of: asOf,
+          environment,
+          events: [{ meter_id: document.getElementById("plan-studio-meter").value, quantity: Number(document.getElementById("plan-studio-quantity").value), quantity_source: "guided-user-confirmed.v1" }],
+          entitlement: {
+            user_segment: audience === "b2e" ? "employees" : "customers",
+            audience_type: audience,
+            authenticated,
+            identity_mode: authenticated ? (license ? "licensed_user" : "authenticated_user") : "anonymous",
+            license_sku: license,
+            channel: document.getElementById("plan-studio-channel").value,
+            trigger_type: document.getElementById("plan-studio-trigger").value,
+            product_boundary: route,
+            evidence_version: "guided-entitlement-input.v1",
+            fair_use_assumption: license ? "within_current_documented_limits" : null,
+          },
+          purchase_portfolio: {
+            ...collectPurchasePortfolio("plan-ms", "Microsoft Copilot Studio", Number(document.getElementById("plan-ms-fixed-cost").value)),
+            environment,
+          },
+        };
+      }
+      if (route === "cowork" || route === "work_iq" || route === "foundry_work_iq") {
+        const product = route === "cowork" ? "Copilot Cowork" : "Work IQ API";
+        const sourceUrl = route === "cowork"
+          ? "https://www.microsoft.com/en-us/microsoft-365/blog/2026/06/16/copilot-cowork-is-now-generally-available/"
+          : "https://learn.microsoft.com/en-us/microsoft-365/copilot/extensibility/work-iq/api-overview";
+        return {
+          as_of: asOf,
+          environment: "default",
+          task_count: Number(document.getElementById("plan-scenario-tasks").value),
+          seed: Number(document.getElementById("plan-scenario-seed").value),
+          samples: 10000,
+          scenario_prior: {
+            prior_id: `${route}-${document.getElementById("plan-scenario-segment").value}`,
+            version: "guided-scenario.v1",
+            product,
+            segment: document.getElementById("plan-scenario-segment").value,
+            credits_per_task_p50: Number(document.getElementById("plan-scenario-p50").value),
+            credits_per_task_p95: Number(document.getElementById("plan-scenario-p95").value),
+            source_url: sourceUrl,
+            source_retrieved_at: "2026-08-20T17:15:00Z",
+            evidence_status: "modeled",
+          },
+          purchase_portfolio: collectPurchasePortfolio("plan-scenario", product, Number(document.getElementById("plan-scenario-fixed-cost").value)),
+        };
+      }
+      if (route === "github_copilot") {
+        return {
+          as_of: asOf,
+          plan_id: document.getElementById("plan-github-plan").value,
+          model_id: document.getElementById("plan-github-model").value,
+          seat_count: Number(document.getElementById("plan-github-seats").value),
+          token_usage: {
+            input_tokens: Number(document.getElementById("plan-github-input").value),
+            cached_input_tokens: Number(document.getElementById("plan-github-cached").value),
+            cache_write_tokens: Number(document.getElementById("plan-github-cache-write").value),
+            output_tokens: Number(document.getElementById("plan-github-output").value),
+            max_input_tokens_per_request: Number(document.getElementById("plan-github-max-input-request").value),
+          },
+          fixed_seat_cost_usd: Number(document.getElementById("plan-github-seat-cost").value),
+          additional_usage_enabled: document.getElementById("plan-github-overage").checked,
+          evidence_version: "guided-github-input.v1",
+        };
+      }
+      return null;
+    }
+    function refreshEvidencePreview() {
+      const route = selectedRoute();
+      const preview = document.getElementById("commercial-evidence-preview");
+      if (!route || !preview) return;
+      const evidence = { route, meter_stack: meterStackFor(route), commercial: route === "foundry" ? null : collectCommercialInput(route) };
+      preview.textContent = JSON.stringify(evidence, null, 2);
+    }
+    function updateRouteFields() {
+      const route = selectedRoute();
+      const needsModel = modelRoutes.has(route);
+      document.getElementById("model-route-fields").hidden = !needsModel;
+      document.getElementById("included-route-fields").hidden = !["included", "agent_builder"].includes(route);
+      document.getElementById("studio-route-fields").hidden = !["copilot_studio", "copilot_studio_byom"].includes(route);
+      document.getElementById("scenario-route-fields").hidden = !["cowork", "work_iq", "foundry_work_iq"].includes(route);
+      document.getElementById("github-route-fields").hidden = route !== "github_copilot";
+      document.getElementById("plan-button").textContent = needsModel ? "Analyze workload" : "Build forecast";
+      state.analysis = null;
+      renderConsumptionSummary(route);
+      refreshEvidencePreview();
+    }
+    async function loadConsumptionCatalog() {
+      const response = await fetch("/api/consumption-models");
+      const catalog = await response.json();
+      if (!response.ok) throw new Error(catalog.error || "Consumption catalog unavailable");
+      state.consumptionCatalog = catalog;
+      document.getElementById("experience-grid").innerHTML = catalog.experiences.map((experience, index) => `<label class="experience-card"><input type="radio" name="plan-route" value="${escapeHtml(experience.route_id)}"${index === 0 ? " checked" : ""}><strong>${escapeHtml(experience.display_name)}</strong><small>${escapeHtml(experience.description)}</small><span class="meter-badges">${experience.layers.map(layer => `<span class="meter-badge">${escapeHtml(layer.family.replaceAll("_", " "))}</span>`).join("")}</span></label>`).join("");
+      document.getElementById("experience-grid").addEventListener("change", updateRouteFields);
+      updateRouteFields();
+    }
+    document.getElementById("commercial-route-fields").addEventListener("input", refreshEvidencePreview);
+    document.getElementById("commercial-route-fields").addEventListener("change", refreshEvidencePreview);
     async function loadModelCatalog() {
       const select = document.getElementById("plan-model");
       const response = await fetch("/api/models");
@@ -385,7 +790,7 @@
       document.getElementById("plan-analysis").innerHTML = `
         <div class="toolbar"><div><h3 class="section-title">Review inferred workload profile</h3><p class="subtitle">Analysis ${escapeHtml(analysis.schema_version)} · rules ${escapeHtml(analysis.rule_set_version)} · confidence ${escapeHtml(topology.confidence)}</p></div><span class="badge">Modeled intake</span></div>
         <div class="intake-grid">
-          <label class="field">Topology<select id="analysis-topology">${["single_call", "rag_pipeline", "react_agent", "workflow", "multi_agent", "code_exec"].map(value => `<option value="${value}"${value === topology.selected ? " selected" : ""}>${escapeHtml(value.replaceAll("_", " "))}</option>`).join("")}</select></label>
+          <label class="field">Topology<select id="analysis-topology">${["single_call", "rag_pipeline", "tool_agent", "workflow", "multi_agent", "code_exec"].map(value => `<option value="${value}"${value === topology.selected ? " selected" : ""}>${escapeHtml(value.replaceAll("_", " "))}</option>`).join("")}</select></label>
           <label class="field">Agent count<input id="analysis-agent-count" type="number" min="1" value="${number(agentCount.value || 1)}"></label>
           <label class="field">Modalities, comma separated<input id="analysis-modalities" value="${escapeHtml((analysis.modalities || []).join(", "))}"></label>
           <label class="field">Tools, comma separated<input id="analysis-tools" value="${escapeHtml((analysis.tools || []).join(", "))}"></label>
@@ -484,6 +889,7 @@
       document.querySelector('.tab[data-view="plan"]').click();
       renderReportArtifacts(report);
       if (report.artifacts?.plans?.length) await openPlan(report.artifacts.plans[0].id);
+      await loadConsumptionCatalog();
       await loadModelCatalog();
     }
     document.getElementById("save-report-button").addEventListener("click", async event => {
@@ -513,7 +919,7 @@
       const response = await fetch(`/api/plans/${encodeURIComponent(planId)}/receipt`);
       if (response.ok) {
         const receipt = await response.json();
-        state.plan = { status: "complete", report_id: receipt.report_id, plan_id: receipt.plan_id, receipt_id: receipt.receipt_id, receipt_hash: receipt.content_hash, created_at: receipt.created_at, description: receipt.description, intake: receipt.intake, prediction: receipt.prediction, infrastructure: receipt.infrastructure };
+        state.plan = { ...receipt, status: "complete", receipt_hash: receipt.content_hash };
         renderPlan(state.plan);
         return;
       }
@@ -526,7 +932,10 @@
       event.target.disabled = true;
       try {
         const description = document.getElementById("plan-prompt").value;
-        if (!state.analysis) {
+        const route = selectedRoute();
+        if (!route) throw new Error("Choose how the work will be delivered.");
+        const needsModel = modelRoutes.has(route);
+        if (needsModel && !state.analysis) {
           document.getElementById("plan-analysis").className = "panel empty";
           document.getElementById("plan-analysis").textContent = "Analyzing with the local FutureTokenPredictor MCP server...";
           const analysisResponse = await fetch("/api/analyze", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ description }) });
@@ -537,11 +946,16 @@
           event.target.textContent = "Confirm profile and estimate";
           return;
         }
-        document.getElementById("plan-content").innerHTML = `<div class="panel empty">Starting the local FutureTokenPredictor MCP server...</div>`;
-        const modelOption = document.getElementById("plan-model").selectedOptions[0];
-        const parameters = { model: modelOption.dataset.model, provider: modelOption.dataset.provider, users: Number(document.getElementById("plan-users").value), calls_per_user_per_day: Number(document.getElementById("plan-calls").value), analysis_confirmed: true, confirmed_profile: collectConfirmedProfile() };
-        const agentModels = collectAgentModels();
-        if (agentModels.length) parameters.agent_models = agentModels;
+        document.getElementById("plan-content").innerHTML = `<div class="panel empty">Building immutable route evidence...</div>`;
+        const parameters = { route };
+        if (route !== "foundry") parameters.commercial = collectCommercialInput(route);
+        if (needsModel) {
+          const modelOption = document.getElementById("plan-model").selectedOptions[0];
+          if (!modelOption?.dataset.model) throw new Error("A priced model is required for this hybrid route.");
+          Object.assign(parameters, { model: modelOption.dataset.model, provider: modelOption.dataset.provider, users: Number(document.getElementById("plan-users").value), calls_per_user_per_day: Number(document.getElementById("plan-calls").value), analysis_confirmed: true, confirmed_profile: collectConfirmedProfile() });
+          const agentModels = collectAgentModels();
+          if (agentModels.length) parameters.agent_models = agentModels;
+        }
         const request = { report_id: state.report.report_id, description, parameters };
         if (state.plan?.status === "needs_clarification") request.plan_id = state.plan.plan_id;
         const response = await fetch("/api/plan", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(request) });
@@ -557,10 +971,16 @@
       const questions = (plan.clarifications || []).map(item => `<li><strong>${escapeHtml(item.field)}:</strong> ${escapeHtml(item.question)}</li>`).join("");
       document.getElementById("plan-content").innerHTML = `<div class="panel warning"><h3 class="section-title">More information needed</h3><ul class="assumptions">${questions}</ul><p>Plan session <code>${escapeHtml(plan.plan_id)}</code> is saved. Fill the missing field and estimate again.</p></div>`;
     }
+    function renderMeterStack(stack) {
+      if (!stack) return "";
+      const rows = (stack.layers || []).map(layer => `<tr><td>${escapeHtml(layer.layer_id.replaceAll("_", " "))}</td><td><span class="badge">${escapeHtml(layer.family.replaceAll("_", " "))}</span></td><td>${escapeHtml(layer.unit)}</td><td>${escapeHtml(layer.currency)}</td><td>${escapeHtml(layer.conditional ? "Conditional" : "Always applicable")}</td></tr>`).join("");
+      return `<div class="panel"><h3 class="section-title">Resolved consumption model</h3><table><thead><tr><th>Layer</th><th>Family</th><th>Unit</th><th>Currency</th><th>Applicability</th></tr></thead><tbody>${rows}</tbody></table><p class="provenance-note">Meter-stack version ${escapeHtml(stack.version)}. Similar credit names remain independent currencies and are never converted without a sourced contract.</p></div>`;
+    }
     function renderPlan(plan) {
       const planDescription = plan.description || plan.intake?.description || "";
       const prompt = document.getElementById("plan-prompt");
       if (prompt && prompt.value !== planDescription) prompt.value = planDescription;
+      if (plan.commercial) { renderCommercialPlan(plan); return; }
       const p = plan.prediction, tokens = p.tokens_per_call, bounds = p.bound_provenance, intake = plan.intake;
       const trace = p.calculation_trace || {}, tokenTrace = trace.tokens || {}, costTrace = trace.cost_per_call || {}, toolTrace = trace.tool_costs || {}, scale = trace.scale || {}, method = trace.method || {}, boundTrace = trace.bounds || bounds;
       const tokenRows = Object.entries(tokens).filter(([key, value]) => key !== "total" && value > 0).map(([key, value]) => `<tr><td>${escapeHtml(key.replaceAll("_", " "))}</td><td>${number(value)}</td></tr>`).join("");
@@ -592,7 +1012,7 @@
       const analysisPanel = analysis.schema_version ? `<div class="panel"><h3 class="section-title">Confirmed workload analysis</h3><table><tbody><tr><td>Analysis schema</td><td>${escapeHtml(analysis.schema_version)}</td></tr><tr><td>Rule set</td><td>${escapeHtml(analysis.rule_set_version)}</td></tr><tr><td>Description hash</td><td><code>${escapeHtml(analysis.description_hash)}</code></td></tr><tr><td>Inferred topology</td><td>${escapeHtml(analysis.topology?.selected)}</td></tr><tr><td>Confirmed topology</td><td>${escapeHtml(confirmedProfile.agent_pattern)}</td></tr><tr><td>Confirmed agent count</td><td>${number(confirmedProfile.multi_agent_count)}</td></tr><tr><td>Confirmed modalities</td><td>${escapeHtml((confirmedProfile.modalities || []).join(", "))}</td></tr><tr><td>Confirmed tools</td><td>${escapeHtml((confirmedProfile.tools || []).join(", ") || "None")}</td></tr></tbody></table><p class="provenance-note">This is versioned modeled intake evidence, not observed execution evidence.</p></div>` : "";
       const agentModelPanel = agentModels.length ? `<div class="panel"><h3 class="section-title">Per-agent model allocation</h3><table><thead><tr><th>Agent</th><th>Role</th><th>Provider / model</th><th>Turn share</th><th>Model cost / invocation</th><th>Pricing</th></tr></thead><tbody>${agentModels.map(item => `<tr><td><code>${escapeHtml(item.agent_id)}</code></td><td>${escapeHtml(item.role || "—")}</td><td>${escapeHtml(item.provider)} / ${escapeHtml(item.model)}</td><td>${decimal(item.allocation_share * 100, 1)}%</td><td>${preciseMoney(item.cost_per_invocation_usd)}</td><td>${item.pricing_verified ? "Verified" : "Unverified"}</td></tr>`).join("")}</tbody></table><p class="provenance-note">${escapeHtml(trace.agent_models?.assumption || "Per-agent costs use modeled token allocation, not observed runtime usage.")}</p></div>` : "";
       const pricingUrl = safeUrl(p.sources?.pricing_url), catalogUrl = safeUrl(p.sources?.model_catalog_url);
-      document.getElementById("plan-content").innerHTML = `
+      document.getElementById("plan-content").innerHTML = `${renderMeterStack(plan.meter_stack)}
         <div class="grid">
           <div class="panel metric"><span>Tokens per workload invocation</span><strong>${number(tokens.total)}</strong>${calculation(tokenCalculation)}</div>
           <div class="panel metric"><span>Monthly model cost</span><strong>${money(p.monthly_cost.mean)}</strong>${calculation(monthlyCalculation)}</div>
@@ -610,6 +1030,23 @@
         handoffButton.disabled = true;
         handoffButton.textContent = "Govern admission opens in v2";
       }
+    }
+    function renderCommercialPlan(plan) {
+      const commercial = plan.commercial || {};
+      const purchase = plan.purchase || commercial.purchase_economics;
+      const lines = (commercial.lines || []).filter(line => line.meter).map(line => `<tr><td>${escapeHtml(line.meter.feature)}</td><td>${number(line.event.quantity)} ${escapeHtml(line.meter.native_unit)}</td><td>${escapeHtml(line.entitlement.disposition)}</td><td>${number(line.billed_copilot_credits)}</td></tr>`).join("");
+      const githubLines = commercial.scope === "github_token_derived_credit" ? (commercial.lines || []).map(line => `<tr><td>${escapeHtml(line.component.replaceAll("_", " "))}</td><td>${number(line.tokens)}</td><td>${money(line.rate_usd_per_million)} / 1M</td><td>${money(line.cost_usd)}</td></tr>`).join("") : "";
+      const github = commercial.scope === "github_token_derived_credit"
+        ? `<div class="grid"><div class="panel metric"><span>Gross GitHub AI Credits</span><strong>${number(commercial.gross_github_ai_credits)}</strong></div><div class="panel metric"><span>Included credit pool used</span><strong>${number(commercial.included_github_ai_credits)}</strong></div><div class="panel metric"><span>Additional AI Credits</span><strong>${number(commercial.additional_github_ai_credits)}</strong></div><div class="panel metric"><span>Modeled monthly cost</span><strong>${commercial.modeled_total_cost_usd == null ? "Capacity risk" : money(commercial.modeled_total_cost_usd)}</strong></div></div><div class="panel ${commercial.status === "capacity_risk" ? "warning" : ""}">${escapeHtml(commercial.claim)}</div><div class="panel"><h3 class="section-title">GitHub model-token calculation</h3><table><thead><tr><th>Component</th><th>Tokens</th><th>Rate</th><th>Cost</th></tr></thead><tbody>${githubLines}</tbody></table><p class="provenance-note">1 GitHub AI Credit = ${money(commercial.credit_definition.usd_per_credit)}. These are not Microsoft Copilot Credits.</p></div>`
+        : "";
+      const scenario = commercial.scope === "commercial_meter_scenario"
+        ? `<div class="grid"><div class="panel metric"><span>Modeled mean credits</span><strong>${number(commercial.mean_copilot_credits)}</strong></div><div class="panel metric"><span>Modeled P50 credits</span><strong>${number(commercial.p50_copilot_credits)}</strong></div><div class="panel metric"><span>Modeled P95 credits</span><strong>${number(commercial.p95_copilot_credits)}</strong></div></div><div class="panel warning">${escapeHtml(commercial.claim)}</div>`
+        : commercial.scope === "github_token_derived_credit"
+        ? ""
+        : `<div class="panel metric"><span>Expected Microsoft Copilot Credits</span><strong>${number(commercial.total_copilot_credits)}</strong></div>`;
+      const purchasePanel = purchase ? `<div class="panel"><h3 class="section-title">Purchase portfolio economics</h3><table><tbody><tr><td>Status</td><td>${escapeHtml(purchase.status)}</td></tr><tr><td>Retail view</td><td>${money(purchase.retail_cost_usd)}</td></tr><tr><td>Committed invoice cost</td><td>${money(purchase.invoice_committed_cost_usd)}</td></tr><tr><td>Incremental cash cost</td><td>${purchase.incremental_cash_cost_usd == null ? "Unfunded" : money(purchase.incremental_cash_cost_usd)}</td></tr><tr><td>Fixed allocation</td><td>${money(purchase.fixed_allocation_cost_usd)}</td></tr><tr><td>Amortized view</td><td>${purchase.amortized_cost_usd == null ? "—" : money(purchase.amortized_cost_usd)}</td></tr><tr><td>Unused commitment</td><td>${number(purchase.unused_commitment_credits)} credits</td></tr></tbody></table></div>` : "";
+      const tokenPanel = plan.token_subforecast ? `<div class="panel"><h3 class="section-title">Independent model subforecast</h3><table><tbody><tr><td>Prediction</td><td><code>${escapeHtml(plan.token_subforecast.prediction_id)}</code></td></tr><tr><td>Provider / model</td><td>${escapeHtml(plan.token_subforecast.provider)} / ${escapeHtml(plan.token_subforecast.model)}</td></tr><tr><td>Annual model view</td><td>${money(plan.token_subforecast.cost_usd)}</td></tr></tbody></table><p class="provenance-note">Model tokens and Copilot Credits remain separate evidence domains.</p></div>` : "";
+      document.getElementById("plan-content").innerHTML = `${renderMeterStack(plan.meter_stack)}${github}${scenario}${lines ? `<div class="panel"><h3 class="section-title">Native meter calculation</h3><table><thead><tr><th>Feature</th><th>Quantity</th><th>Disposition</th><th>Billed credits</th></tr></thead><tbody>${lines}</tbody></table></div>` : ""}${purchasePanel}${tokenPanel}<div class="panel"><h3 class="section-title">Immutable meter-stack receipt</h3><table><tbody><tr><td>Route</td><td>${escapeHtml(plan.route.route_id)}</td></tr><tr><td>Evidence</td><td>${escapeHtml(commercial.evidence_status)}</td></tr><tr><td>Receipt schema</td><td>${escapeHtml(plan.schema_version || "4.0")}</td></tr><tr><td>Receipt</td><td><code>${escapeHtml(plan.receipt_id)}</code></td></tr><tr><td>SHA-256</td><td><code>${escapeHtml(plan.receipt_hash)}</code></td></tr></tbody></table><p class="provenance-note">Modeled planning evidence only. No admission, execution, accepted-task quality, calibrated tail-risk, or savings claim is made.</p></div>`;
     }
     async function handoffToGovern(event) {
       event.target.disabled = true;

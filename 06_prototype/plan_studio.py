@@ -8,6 +8,14 @@ from pathlib import Path
 import sys
 from urllib.parse import urlparse
 
+from costgov.commercial_planning import (
+    COMMERCIAL_ROUTES,
+    MODEL_ROUTES,
+    CommercialPlanClarification,
+    attach_foundry_meter_stack,
+    build_commercial_result,
+)
+from costgov.consumption_models import consumption_catalog
 from costgov.mcp_prediction import McpPredictionError, McpPredictorClient
 from costgov.planning import PlanStore
 from costgov.reports import ReportStore
@@ -34,6 +42,8 @@ class PlanStudioHandler(SimpleHTTPRequestHandler):
                 return self._json(McpPredictorClient(ROOT).model_catalog())
             except McpPredictionError as exc:
                 return self._json({"error": str(exc), "code": "model_catalog_unavailable"}, 503)
+        if path == "/api/consumption-models":
+            return self._json(consumption_catalog())
         if path == "/api/reports":
             return self._json({"reports": ReportStore(REPORT_STORE_PATH).list()})
         if path.startswith("/api/reports/"):
@@ -115,12 +125,27 @@ class PlanStudioHandler(SimpleHTTPRequestHandler):
                 })
 
             questions = []
+            route = str(parameters.get("route") or "foundry")
             if not description:
                 questions.append({"field": "description", "question": "What workload should be forecast?"})
-            if not str(parameters.get("model", "")).strip():
+            if route in MODEL_ROUTES and not str(parameters.get("model", "")).strip():
                 questions.append({"field": "model", "question": "Which model should be priced?"})
             if questions:
                 return self._clarify(store, report_store, session, questions)
+
+            if route in COMMERCIAL_ROUTES and route not in MODEL_ROUTES:
+                try:
+                    result = build_commercial_result(description, parameters)
+                except CommercialPlanClarification as exc:
+                    return self._clarify(
+                        store,
+                        report_store,
+                        session,
+                        [{"field": exc.field, "question": str(exc)}],
+                    )
+                return self._complete_plan(
+                    store, report_store, session, report_id, result
+                )
 
             analysis = McpPredictorClient(ROOT).analyze(description)
             confirmed = parameters.get("confirmed_profile") or {}
@@ -149,7 +174,46 @@ class PlanStudioHandler(SimpleHTTPRequestHandler):
                     "tools": analysis.get("tools", []),
                 }
             parameters = {**parameters, "analysis": analysis, "confirmed_profile": confirmed}
-            result = McpPredictorClient(ROOT).predict(description, parameters)
+            token_result = McpPredictorClient(ROOT).predict(description, parameters)
+            if route in COMMERCIAL_ROUTES:
+                try:
+                    result = build_commercial_result(
+                        description, parameters, token_result=token_result
+                    )
+                except CommercialPlanClarification as exc:
+                    return self._clarify(
+                        store,
+                        report_store,
+                        session,
+                        [{"field": exc.field, "question": str(exc)}],
+                        analysis,
+                    )
+            else:
+                result = attach_foundry_meter_stack(token_result)
+            return self._complete_plan(
+                store, report_store, session, report_id, result
+            )
+        except CommercialPlanClarification as exc:
+            if session:
+                return self._clarify(
+                    store,
+                    report_store,
+                    session,
+                    [{"field": exc.field, "question": str(exc)}],
+                )
+            return self._json({"status": "failed", "error": str(exc)}, 400)
+        except (ValueError, json.JSONDecodeError) as exc:
+            if session:
+                store.fail(session, str(exc))
+            return self._json({"status": "failed", "error": str(exc)}, 400)
+        except McpPredictionError as exc:
+            if session:
+                store.fail(session, str(exc))
+            return self._json({"status": "failed", "error": str(exc)}, 502)
+        except OSError:
+            return self._json({"status": "failed", "error": "Plan persistence failed"}, 507)
+
+    def _complete_plan(self, store, report_store, session, report_id, result):
             session, receipt = store.complete(session, result)
             report_store.add_artifact(report_id, "plans", {
                 "id": session["plan_id"], "status": session["status"],
@@ -168,16 +232,6 @@ class PlanStudioHandler(SimpleHTTPRequestHandler):
                 created_at=receipt["created_at"],
             )
             return self._json(result, 201)
-        except (ValueError, json.JSONDecodeError) as exc:
-            if session:
-                store.fail(session, str(exc))
-            return self._json({"status": "failed", "error": str(exc)}, 400)
-        except McpPredictionError as exc:
-            if session:
-                store.fail(session, str(exc))
-            return self._json({"status": "failed", "error": str(exc)}, 502)
-        except OSError:
-            return self._json({"status": "failed", "error": "Plan persistence failed"}, 507)
 
     def _clarify(self, store, report_store, session, questions, analysis=None):
         session = store.require_clarification(session, questions, analysis=analysis)

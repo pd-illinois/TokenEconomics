@@ -1,0 +1,80 @@
+{
+  "schema_version": "1.0",
+  "rate_card_id": "github-copilot-usage-based",
+  "version": "2026-08-20.1",
+  "status": "active_reviewed",
+  "evidence_status": "documented",
+  "effective_from": "2026-06-01",
+  "effective_to": null,
+  "review_after": "2026-09-01",
+  "source_url": "https://docs.github.com/en/copilot/reference/copilot-billing/models-and-pricing",
+  "source_revision": "retrieved-2026-08-20",
+  "source_retrieved_at": "2026-08-20T17:15:00Z",
+  "github_ai_credits_per_usd": 100,
+  "plans": {
+    "copilot_business": {
+      "display_name": "Copilot Business",
+      "included_ai_credits_per_user_month": 1900
+    },
+    "copilot_enterprise": {
+      "display_name": "Copilot Enterprise",
+      "included_ai_credits_per_user_month": 3900
+    },
+    "copilot_pro": {
+      "display_name": "Copilot Pro",
+      "included_ai_credits_per_user_month": 1500
+    },
+    "copilot_pro_plus": {
+      "display_name": "Copilot Pro+",
+      "included_ai_credits_per_user_month": 7000
+    },
+    "copilot_max": {
+      "display_name": "Copilot Max",
+      "included_ai_credits_per_user_month": 20000
+    }
+  },
+  "models": {
+    "gpt-5-mini": {
+      "display_name": "GPT-5 mini",
+      "input_usd_per_million": 0.25,
+      "cached_input_usd_per_million": 0.025,
+      "cache_write_usd_per_million": 0,
+      "output_usd_per_million": 2.0
+    },
+    "gpt-5.4": {
+      "display_name": "GPT-5.4",
+      "input_usd_per_million": 2.5,
+      "cached_input_usd_per_million": 0.25,
+      "cache_write_usd_per_million": 0,
+      "output_usd_per_million": 15.0,
+      "long_context_threshold_input_tokens": 272000,
+      "long_context": {
+        "input_usd_per_million": 5.0,
+        "cached_input_usd_per_million": 0.5,
+        "cache_write_usd_per_million": 0,
+        "output_usd_per_million": 22.5
+      }
+    },
+    "gpt-5.6-luna": {
+      "display_name": "GPT-5.6 Luna",
+      "input_usd_per_million": 0.2,
+      "cached_input_usd_per_million": 0.02,
+      "cache_write_usd_per_million": 0.25,
+      "output_usd_per_million": 1.2,
+      "long_context_threshold_input_tokens": 200000,
+      "long_context": {
+        "input_usd_per_million": 0.4,
+        "cached_input_usd_per_million": 0.04,
+        "cache_write_usd_per_million": 0.5,
+        "output_usd_per_million": 1.8
+      }
+    },
+    "claude-sonnet-5": {
+      "display_name": "Claude Sonnet 5",
+      "input_usd_per_million": 2.0,
+      "cached_input_usd_per_million": 0.2,
+      "cache_write_usd_per_million": 2.5,
+      "output_usd_per_million": 10.0
+    }
+  }
+}

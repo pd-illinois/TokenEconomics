@@ -18,6 +18,8 @@ if TYPE_CHECKING:
     from .policy_store import LoadedPolicy
 
 SCHEMA_VERSION = "2.0"
+COMMERCIAL_SCHEMA_VERSION = "3.0"
+METER_STACK_SCHEMA_VERSION = "4.0"
 _plan_lock = threading.RLock()
 
 
@@ -92,10 +94,17 @@ class PlanStore:
         assumptions = analysis.get("assumptions", [])
         clarifications = analysis.get("clarifications", [])
         exclusions = analysis.get("exclusions", [])
+        schema_version = (
+            METER_STACK_SCHEMA_VERSION
+            if result.get("meter_stack")
+            else COMMERCIAL_SCHEMA_VERSION
+            if result.get("route")
+            else SCHEMA_VERSION
+        )
         snapshot = {
             "report_id": session["report_id"],
             "plan_id": session["plan_id"],
-            "schema_version": SCHEMA_VERSION,
+            "schema_version": schema_version,
             "created_at": created_at,
             "description": result["description"],
             "intake": intake,
@@ -107,32 +116,50 @@ class PlanStore:
             "prediction": result["prediction"],
             "infrastructure": result["infrastructure"],
         }
+        if schema_version in {COMMERCIAL_SCHEMA_VERSION, METER_STACK_SCHEMA_VERSION}:
+            snapshot.update(
+                route=result["route"],
+                commercial=result["commercial"],
+                purchase=result.get("purchase"),
+                token_subforecast=result.get("token_subforecast"),
+                hybrid=result.get("hybrid"),
+                acceptance_assumption=result.get("acceptance_assumption"),
+            )
+        if schema_version == METER_STACK_SCHEMA_VERSION:
+            snapshot["meter_stack"] = result["meter_stack"]
         content_hash = hashlib.sha256(_canonical(snapshot).encode("utf-8")).hexdigest()
-        receipt = PlanReceipt(
-            receipt_id=f"plan_{content_hash[:20]}",
-            report_id=session["report_id"],
-            plan_id=session["plan_id"],
-            schema_version=SCHEMA_VERSION,
-            created_at=created_at,
-            description=result["description"],
-            intake_json=_canonical(intake),
-            analysis_json=_canonical(analysis),
-            confirmed_profile_json=_canonical(confirmed_profile),
-            assumptions_json=_canonical(assumptions),
-            clarifications_json=_canonical(clarifications),
-            exclusions_json=_canonical(exclusions),
-            prediction_json=_canonical(result["prediction"]),
-            infrastructure_json=_canonical(result["infrastructure"]),
-            content_hash=content_hash,
-        )
-        receipt_payload = self._receipt_payload(receipt)
+        if schema_version in {COMMERCIAL_SCHEMA_VERSION, METER_STACK_SCHEMA_VERSION}:
+            receipt_payload = {
+                "receipt_id": f"plan_{content_hash[:20]}",
+                **snapshot,
+                "content_hash": content_hash,
+            }
+        else:
+            receipt = PlanReceipt(
+                receipt_id=f"plan_{content_hash[:20]}",
+                report_id=session["report_id"],
+                plan_id=session["plan_id"],
+                schema_version=SCHEMA_VERSION,
+                created_at=created_at,
+                description=result["description"],
+                intake_json=_canonical(intake),
+                analysis_json=_canonical(analysis),
+                confirmed_profile_json=_canonical(confirmed_profile),
+                assumptions_json=_canonical(assumptions),
+                clarifications_json=_canonical(clarifications),
+                exclusions_json=_canonical(exclusions),
+                prediction_json=_canonical(result["prediction"]),
+                infrastructure_json=_canonical(result["infrastructure"]),
+                content_hash=content_hash,
+            )
+            receipt_payload = self._receipt_payload(receipt)
         self._write_receipt(receipt_payload)
         session.update(
             status="complete",
             intake=result["intake"],
             updated_at=created_at,
-            receipt_id=receipt.receipt_id,
-            receipt_hash=receipt.content_hash,
+            receipt_id=receipt_payload["receipt_id"],
+            receipt_hash=receipt_payload["content_hash"],
             clarifications=[],
         )
         self._write_session(session)

@@ -40,7 +40,7 @@ from future_token_predictor.models.schemas import (
 logger = logging.getLogger(__name__)
 
 ANALYSIS_SCHEMA_VERSION = "1.0"
-RULE_SET_VERSION = "enterprise-semantics-2026-07-28.1"
+RULE_SET_VERSION = "enterprise-semantics-2026-07-28.3"
 
 # --- Pattern Definitions ---
 
@@ -205,6 +205,14 @@ _SINGLE_AGENT_ACTION_PATTERNS = re.compile(
     r"\bexecutes?\b|\bresolves?\b|\benrich\w*\b|\brecommend\w*\b|"
     r"\btriage\b|\bsubmits?\b|\bcreates?\s+transactions?\b|"
     r"\bgathers?\b.*\b(?:create|synthesi[sz])\w*\b",
+    re.IGNORECASE,
+)
+
+_CODE_EXECUTION_PATTERNS = re.compile(
+    r"\bcode interpreter\b|"
+    r"\b(?:write|writes|generate|generates)\s+and\s+(?:run|runs|execute|executes)\b|"
+    r"\b(?:execute|executes|executing|run|runs|running)\s+(?:\w+\s+){0,2}code\b|"
+    r"\b(?:python|sql)\s+code\b",
     re.IGNORECASE,
 )
 
@@ -374,6 +382,7 @@ def analyze_workload(description: str) -> WorkloadAnalysis:
     workflow = _BOUNDED_WORKFLOW_PATTERNS.search(normalized) or _WORKFLOW_PATTERNS.search(normalized)
     retrieval = _RETRIEVAL_PATTERNS.search(normalized)
     action = _SINGLE_AGENT_ACTION_PATTERNS.search(normalized)
+    code_execution = _CODE_EXECUTION_PATTERNS.search(normalized)
     explicit_multi = re.search(
         r"\bmulti[ -]?agent\b|\bagent.to.agent\b|\bnetwork of autonomous agents\b",
         normalized,
@@ -389,13 +398,13 @@ def analyze_workload(description: str) -> WorkloadAnalysis:
         topology_evidence = role_evidence or [_evidence("explicit_multi_agent", explicit_multi)]
         confidence = "high"
         if autonomous:
-            alternatives.append(AgentPattern.REACT_AGENT)
+            alternatives.append(AgentPattern.TOOL_AGENT)
             clarifications.append(
                 "Confirm whether named agents are independently orchestrated or one autonomous actor."
             )
             confidence = "medium"
     elif autonomous:
-        selected = AgentPattern.REACT_AGENT
+        selected = AgentPattern.TOOL_AGENT
         topology_evidence = [_evidence("autonomous_control_loop", autonomous)]
         confidence = "high"
         if workflow:
@@ -405,8 +414,14 @@ def analyze_workload(description: str) -> WorkloadAnalysis:
         selected = AgentPattern.WORKFLOW
         topology_evidence = [_evidence("bounded_workflow", workflow)]
         confidence = "medium"
+    elif code_execution:
+        selected = AgentPattern.CODE_EXEC
+        topology_evidence = [_evidence("code_execution", code_execution)]
+        confidence = "medium"
+        if action:
+            alternatives.append(AgentPattern.TOOL_AGENT)
     elif retrieval and action:
-        selected = AgentPattern.REACT_AGENT
+        selected = AgentPattern.TOOL_AGENT
         topology_evidence = [
             _evidence("retrieval_capability", retrieval),
             _evidence("agent_action", action),
@@ -418,7 +433,7 @@ def analyze_workload(description: str) -> WorkloadAnalysis:
         topology_evidence = [_evidence("retrieval_pipeline", retrieval)]
         confidence = "medium"
     elif action:
-        selected = AgentPattern.REACT_AGENT
+        selected = AgentPattern.TOOL_AGENT
         topology_evidence = [_evidence("agent_action", action)]
         confidence = "medium"
     else:
@@ -698,7 +713,7 @@ def classify(description: str) -> UseCaseProfile:
         AgentPattern.RAG_PIPELINE: AgentType.PROMPT,
         AgentPattern.CODE_EXEC: AgentType.PROMPT,
         AgentPattern.WORKFLOW: AgentType.WORKFLOW,
-        AgentPattern.REACT_AGENT: AgentType.HOSTED,
+        AgentPattern.TOOL_AGENT: AgentType.HOSTED,
         AgentPattern.MULTI_AGENT: AgentType.HOSTED,
     }[profile.agent_pattern]
     profile.multi_agent_count = analysis.agent_count.value
@@ -890,7 +905,7 @@ def _agent_type_to_pattern(agent_type: AgentType) -> AgentPattern:
     mapping = {
         AgentType.PROMPT: AgentPattern.SINGLE_CALL,
         AgentType.WORKFLOW: AgentPattern.WORKFLOW,
-        AgentType.HOSTED: AgentPattern.REACT_AGENT,
+        AgentType.HOSTED: AgentPattern.TOOL_AGENT,
     }
     return mapping.get(agent_type, AgentPattern.SINGLE_CALL)
 

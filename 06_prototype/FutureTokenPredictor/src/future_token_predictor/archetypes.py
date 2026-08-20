@@ -73,7 +73,7 @@ def match_archetype(
         _type_to_pattern = {
             "prompt": "single_call",
             "workflow": "workflow",
-            "hosted": "react_agent",
+            "hosted": "tool_agent",
         }
         pattern_value = _type_to_pattern.get(agent_type.value, agent_type.value)
 

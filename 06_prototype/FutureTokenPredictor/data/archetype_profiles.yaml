@@ -155,9 +155,9 @@ archetypes:
         chunks_per_search: 8
         turns: 1
 
-  ReAct_Agent:
-    description: "ReAct-style agent with tool loop (LangChain, MAF hosted, etc.)"
-    agent_pattern: react_agent
+  ToolAgent:
+    description: "Single tool-using agent (reason-act loop; LangChain, MAF hosted, etc.)"
+    agent_pattern: tool_agent
     modalities: [text]
     tools: [function_calling, web_search, custom_function]
     token_profiles:
@@ -294,9 +294,9 @@ archetypes:
         sessions: 2
         turns: 1
 
-  ReAct_CUA:
+  ToolAgent_CUA:
     description: "Computer-Using Agent (GUI automation with screenshots)"
-    agent_pattern: react_agent
+    agent_pattern: tool_agent
     modalities: [text, image_input]
     tools: [custom_function]
     token_profiles:
