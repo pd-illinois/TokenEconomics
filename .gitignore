@@ -13,7 +13,8 @@ __pycache__/
 .ruff_cache/
 .uv/
 
-# Documentation folder (generated/archived)
+# Repository-local instructions and documentation
+.github/
 docs/
 
 # Local configuration and credentials
