@@ -12,8 +12,8 @@ from urllib.error import HTTPError, URLError
 from urllib.request import Request, urlopen
 
 
-ROOT = Path(__file__).resolve().parents[2]
-CORPUS_PATH = ROOT / "13_ENTERPRISE_AGENT_REGRESSION_RESULTS.md"
+ROOT = Path(__file__).resolve().parents[1]
+CORPUS_PATH = ROOT / "docs" / "13_ENTERPRISE_AGENT_REGRESSION_RESULTS.md"
 BASE_URL = "http://127.0.0.1:8765"
 USERS = 1000
 CALLS_PER_USER_PER_DAY = 10
@@ -157,7 +157,7 @@ def main() -> int:
             flush=True,
         )
 
-    output_dir = ROOT / "06_prototype" / "studio_reports"
+    output_dir = ROOT / "studio_reports"
     output_dir.mkdir(parents=True, exist_ok=True)
     output_path = output_dir / f"enterprise_corpus_run_{run_id}.json"
     output_path.write_text(json.dumps({"seed": seed, "results": results}, indent=2), encoding="utf-8")

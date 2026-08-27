@@ -5,7 +5,7 @@ deployments + Entra RBAC, and (optional) App Configuration + Application Insight
 writes ..\.env for you.
 
 Prereqs:  az login   (then optionally: az account set --subscription <id>)
-Run (from the 06_prototype folder):
+Run from the repository root:
     pwsh infra/provision.ps1
     # or override defaults:
     pwsh infra/provision.ps1 -Loc swedencentral -Acct myaoai -DeployOptional:$false

@@ -1,7 +1,7 @@
 <#
 Deploy only the Azure App Configuration resources required for TokenGov policy.
 
-Run from 06_prototype:
+Run from the repository root:
   pwsh infra/provision-policy.ps1 -SubscriptionId <id>
 #>
 

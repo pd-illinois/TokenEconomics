@@ -9,7 +9,7 @@ Auth is Entra ID everywhere (DefaultAzureCredential), consistent with the rest o
 prototype — no keys. Requires these RBAC roles on the search service for the signed-in user:
   * Search Service Contributor      (create the index)
   * Search Index Data Contributor   (upload documents)
-Run from `06_prototype`: `.venv/Scripts/python.exe rag/ingest.py`
+Run from the repository root: `.venv/Scripts/python.exe rag/ingest.py`
 """
 
 from __future__ import annotations

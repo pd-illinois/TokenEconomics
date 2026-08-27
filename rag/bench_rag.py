@@ -10,7 +10,7 @@ to gate on.
 Reuses the core gateway/telemetry/finops unchanged; only injects a retrieval
 `context_provider` into the models (the generic hook added to providers.RealModel).
 
-Run from `06_prototype`: `.venv/Scripts/python.exe rag/bench_rag.py`
+Run from the repository root: `.venv/Scripts/python.exe rag/bench_rag.py`
 """
 
 from __future__ import annotations

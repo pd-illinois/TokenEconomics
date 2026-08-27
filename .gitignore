@@ -24,14 +24,14 @@ docs/
 !**/.env.example
 
 # Generated runtime and evidence data
-06_prototype/studio_plans/
-06_prototype/studio_reports/
-06_prototype/StudioUIScreenshot.jpeg
-06_prototype/studio_runs/
-06_prototype/studio_policy_changes/
-06_prototype/telemetry_*.jsonl
-06_prototype/dashboard_data.json
-06_prototype/dashboard.html
+studio_plans/
+studio_reports/
+StudioUIScreenshot.jpeg
+studio_runs/
+studio_policy_changes/
+telemetry_*.jsonl
+dashboard_data.json
+dashboard.html
 
 # Build and release output
 build/

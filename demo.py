@@ -1,7 +1,7 @@
 """
 demo.py - end-to-end walkthrough of the cost-governance architecture.
 
-Run:  python demo.py         (from the 06_prototype folder)
+Run:  python demo.py         (from the repository root)
 
 It exercises the whole file-06 loop on the customer-support example:
   ACT 1  Baseline (no governance)         -> establish the expensive status quo
@@ -360,4 +360,3 @@ if __name__ == "__main__":
         live_main()
     else:
         main()
-

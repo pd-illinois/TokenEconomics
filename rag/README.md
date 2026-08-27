@@ -36,7 +36,7 @@ The benchmark also uses the existing Azure OpenAI deployment variables and optio
 
 ## Install and ingest
 
-From `06_prototype`:
+From the repository root:
 
 ```powershell
 .\.venv\Scripts\python.exe -m pip install -r requirements.txt
