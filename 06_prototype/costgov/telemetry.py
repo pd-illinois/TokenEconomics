@@ -41,6 +41,19 @@ class Telemetry:
                 "cached_tokens": res.cached_tokens,
                 "reasoning_tokens": res.reasoning_tokens,
                 "document_tokens": res.document_tokens,
+                "task_id": res.task_id,
+                "trajectory_id": res.trajectory_id,
+                "workload_id": res.workload_id,
+                "workload_version": res.workload_version,
+                "segment_id": res.segment_id,
+                "segment_version": res.segment_version,
+                "prediction_receipt_id": res.prediction_receipt_id,
+                "prediction_receipt_hash": res.prediction_receipt_hash,
+                "policy_id": res.policy_id,
+                "policy_hash": res.policy_hash,
+                "policy_source": res.policy_source,
+                "policy_label": res.policy_label,
+                "policy_etag": res.policy_etag,
             })
         # continuous eval only looks at a sampled fraction of live traffic
         if self._rng.random() < self.sample_rate:
@@ -56,6 +69,19 @@ class Telemetry:
                 "prediction_id": res.prediction_id,
                 "segment": res.segment,
                 "policy_version": res.policy_version,
+                "task_id": res.task_id,
+                "trajectory_id": res.trajectory_id,
+                "workload_id": res.workload_id,
+                "workload_version": res.workload_version,
+                "segment_id": res.segment_id,
+                "segment_version": res.segment_version,
+                "prediction_receipt_id": res.prediction_receipt_id,
+                "prediction_receipt_hash": res.prediction_receipt_hash,
+                "policy_id": res.policy_id,
+                "policy_hash": res.policy_hash,
+                "policy_source": res.policy_source,
+                "policy_label": res.policy_label,
+                "policy_etag": res.policy_etag,
             })
 
     def tenant_cost(self, tenant: str) -> float:

@@ -293,7 +293,7 @@ def test_plan_experience_has_correct_end_to_end_arithmetic(
         _assert_independent_arithmetic(case, result)
 
         receipt = PlanStore(tmp_path / "plans").get_receipt(result["plan_id"])
-        assert receipt["schema_version"] == "4.0"
+        assert receipt["schema_version"] == "5.0"
         assert receipt["content_hash"] == result["receipt_hash"]
         assert receipt["meter_stack"] == result["meter_stack"]
         assert receipt["commercial"] == result["commercial"]

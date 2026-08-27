@@ -4,8 +4,9 @@ from __future__ import annotations
 
 import json
 from dataclasses import asdict
+from datetime import datetime, timezone
 from pathlib import Path
-from uuid import uuid4
+from uuid import NAMESPACE_URL, uuid4, uuid5
 
 from .contracts import ExecutionContext, ForecastReceipt, ForecastRequest
 from .evaluator import Evaluator
@@ -13,6 +14,17 @@ from .gateway import Gateway
 from .prediction import PythonPredictorAdapter
 from .reconciliation import ReconciliationService
 from .telemetry import Telemetry
+from .trajectory_contracts import (
+    EvidenceField,
+    SegmentIdentity,
+    StepEvidence,
+    StepKind,
+    StepStatus,
+    TaskIdentity,
+    TrajectoryContractBinding,
+    TrajectoryEnvelope,
+    TrajectoryStore,
+)
 
 
 class StudioOrchestrator:
@@ -72,20 +84,150 @@ class StudioOrchestrator:
         telemetry = Telemetry(sample_rate=1.0)
         gateway = Gateway(config, telemetry)
         by_segment = {forecast.segment: forecast for forecast in receipt.forecasts}
+        trajectory_contract = TrajectoryContractBinding.from_dict(
+            admission.get("trajectory_contract")
+        )
+        if (
+            trajectory_contract.prediction_binding is None
+            or trajectory_contract.policy_binding is None
+        ):
+            raise ValueError(
+                "execution requires prediction and policy trajectory bindings"
+            )
 
-        for tenant, question, segment in expanded_workload:
+        for index, (tenant, question, segment) in enumerate(expanded_workload, 1):
             forecast = by_segment[segment]
+            task_id = f"task-{uuid5(NAMESPACE_URL, f'{run_id}:task:{index}').hex}"
+            trajectory_id = (
+                f"trajectory-"
+                f"{uuid5(NAMESPACE_URL, f'{run_id}:trajectory:{index}').hex}"
+            )
+            started_at = datetime.now(timezone.utc).isoformat()
             gateway.handle(tenant, question, segment, ExecutionContext(
                 run_id=receipt.run_id,
                 prediction_id=forecast.prediction_id,
                 segment=segment,
                 policy_version=admission["policy"]["version"],
                 report_id=report_id,
+                task_id=task_id,
+                trajectory_id=trajectory_id,
+                task_created_at=started_at,
+                trajectory_started_at=started_at,
+                workload_id=trajectory_contract.workload.workload_id,
+                workload_version=trajectory_contract.workload.version,
+                segment_id=segment,
+                segment_version=trajectory_contract.segment_schema_version,
+                prediction_receipt_id=(
+                    trajectory_contract.prediction_binding.receipt_id
+                ),
+                prediction_receipt_hash=(
+                    trajectory_contract.prediction_binding.content_hash
+                ),
+                policy_id=trajectory_contract.policy_binding.policy_id,
+                policy_hash=trajectory_contract.policy_binding.content_hash,
+                policy_source=trajectory_contract.policy_binding.source,
+                policy_label=trajectory_contract.policy_binding.label,
+                policy_etag=trajectory_contract.policy_binding.etag,
             ))
 
         evaluator = Evaluator(str(self.root / "golden_set.json"))
         quality = evaluator.continuous(telemetry.sampled)
         reconciliation = ReconciliationService(adapter).reconcile(receipt, telemetry.records)
+        outcome_by_task = {item.task_id: item for item in quality.outcomes}
+        trajectory_store = TrajectoryStore(
+            self.artifacts / receipt.run_id / "trajectories"
+        )
+        trajectory_evidence = []
+        for record in telemetry.records:
+            outcome = outcome_by_task.get(record.task_id)
+            child_kind = (
+                StepKind.CACHE
+                if record.cache_hit
+                else StepKind.MODEL
+                if record.model != "none"
+                else StepKind.TOOL
+            )
+            child_status = (
+                StepStatus.SKIPPED
+                if record.model == "none"
+                else StepStatus.COMPLETED
+            )
+            root_step_id = f"step-{record.task_id[5:]}-iteration"
+            child_step_id = f"step-{record.task_id[5:]}-work"
+            evidence = (
+                EvidenceField.from_value("model", record.model),
+                EvidenceField.from_value("cost_usd", record.cost_usd),
+                EvidenceField.from_value("input_tokens", record.input_tokens),
+                EvidenceField.from_value("output_tokens", record.output_tokens),
+                EvidenceField.from_value("cache_hit", record.cache_hit),
+                EvidenceField.from_value(
+                    "evaluation_score",
+                    outcome.score if outcome is not None else None,
+                ),
+                EvidenceField.from_value("evidence_status", "simulated"),
+            )
+            envelope = TrajectoryEnvelope(
+                schema_version=trajectory_contract.schema_version,
+                trajectory_id=record.trajectory_id,
+                run_id=record.run_id,
+                trace_id=record.trace_id,
+                task=TaskIdentity(
+                    task_id=record.task_id,
+                    report_id=record.report_id,
+                    workload=trajectory_contract.workload,
+                    segment=SegmentIdentity(
+                        segment_id=record.segment_id,
+                        version=record.segment_version,
+                        attributes=(
+                            EvidenceField.from_value(
+                                "difficulty", record.difficulty
+                            ),
+                        ),
+                    ),
+                    created_at=record.task_created_at,
+                ),
+                prediction_binding=trajectory_contract.prediction_binding,
+                policy_binding=trajectory_contract.policy_binding,
+                status="completed",
+                started_at=record.trajectory_started_at,
+                ended_at=record.timestamp,
+                recorded_at=datetime.now(timezone.utc).isoformat(),
+                steps=(
+                    StepEvidence(
+                        step_id=root_step_id,
+                        sequence=1,
+                        kind=StepKind.ITERATION,
+                        status=StepStatus.COMPLETED,
+                        operation="task_execution",
+                        started_at=record.trajectory_started_at,
+                        ended_at=record.timestamp,
+                    ),
+                    StepEvidence(
+                        step_id=child_step_id,
+                        sequence=2,
+                        kind=child_kind,
+                        status=child_status,
+                        operation=(
+                            "semantic_cache"
+                            if record.cache_hit
+                            else "model_generation"
+                            if record.model != "none"
+                            else "budget_rejection"
+                        ),
+                        started_at=record.trajectory_started_at,
+                        ended_at=record.timestamp,
+                        parent_step_id=root_step_id,
+                        evidence=evidence,
+                    ),
+                ),
+            )
+            stored = trajectory_store.append(envelope)
+            trajectory_evidence.append({
+                "trajectory_id": envelope.trajectory_id,
+                "task_id": envelope.task.task_id,
+                "segment_id": envelope.task.segment.segment_id,
+                "content_hash": stored.content_hash,
+            })
         result = {
             "run_id": receipt.run_id,
             "report_id": report_id,
@@ -111,6 +253,11 @@ class StudioOrchestrator:
                 "quality_by_segment": quality.by_difficulty,
             },
             "reconciliation": [asdict(item) for item in reconciliation],
+            "trajectory_contract": trajectory_contract.to_dict(),
+            "trajectory_evidence": trajectory_evidence,
+            "evaluation_outcomes": [
+                asdict(item) for item in quality.outcomes
+            ],
         }
         run_dir = self.artifacts / receipt.run_id
         run_dir.mkdir(exist_ok=True)

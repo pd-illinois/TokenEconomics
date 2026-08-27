@@ -66,6 +66,32 @@ def test_mcp_prediction_uses_explicit_scale_overrides():
     assert result["prediction"]["daily_tokens"] > 0
 
 
+def test_released_luna_prediction_pins_exact_studio_release_evidence():
+    result = McpPredictorClient(".").predict(
+        "Summarize one document.",
+        {
+            "provider": "azure_openai",
+            "model": "gpt-5.6-luna",
+            "confirmed_profile": {
+                "agent_pattern": "single_call",
+                "multi_agent_count": 1,
+                "modalities": ["text", "document"],
+                "tools": [],
+            },
+        },
+    )
+
+    release = result["model_release"]
+    assert release["release_version"] == "2026-08-25.2"
+    assert release["offering_key"] == "azure_openai:gpt-5.6-luna"
+    assert release["status"] == "released"
+    assert release["pricing"]["input"] == 0.2
+    assert release["pricing"]["output"] == 1.2
+    assert result["intake"]["model_release"] == release
+    assert result["prediction"]["pricing_version"] == "2026-08-25.2"
+    assert "prices.azure.com" in result["prediction"]["sources"]["pricing_url"]
+
+
 def test_prediction_arguments_preserve_selected_provider_model_offering():
     arguments, intake = McpPredictorClient._build_arguments(
         "General assistant",

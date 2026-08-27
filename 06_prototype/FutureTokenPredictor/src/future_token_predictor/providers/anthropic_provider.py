@@ -1,8 +1,4 @@
-"""Anthropic (Claude) provider implementation.
-
-Supports Claude Opus 4, Sonnet 4, Sonnet 4.5, Haiku 3.5.
-Uses resolution-tier-based image tokenization.
-"""
+"""Anthropic (Claude) provider implementation."""
 
 from __future__ import annotations
 
@@ -52,7 +48,47 @@ def _sonnet_info(version: str) -> ModelInfo:
     )
 
 
+def _foundry_info(name: str, context: int, output: int) -> ModelInfo:
+    return ModelInfo(
+        name=name, provider="anthropic",
+        context_window=context, max_output_tokens=output,
+        supports_vision=True, supports_reasoning=True, supports_caching=True,
+        tokenizer="cl100k_base", reasoning_multiplier=1.0,
+    )
+
+
 _MODELS: dict[str, ModelInfo] = {
+    "claude-mythos-5": _foundry_info("claude-mythos-5", 1_000_000, 128_000),
+    "claude-fable-5": _foundry_info("claude-fable-5", 1_000_000, 128_000),
+    "claude-mythos-preview": _foundry_info(
+        "claude-mythos-preview", 1_000_000, 128_000,
+    ),
+    "claude-opus-5": ModelInfo(
+        name="claude-opus-5", provider="anthropic",
+        context_window=1_000_000, max_output_tokens=128_000,
+        supports_vision=True, supports_reasoning=True, supports_caching=True,
+        tokenizer="cl100k_base",
+    ),
+    "claude-sonnet-5": ModelInfo(
+        name="claude-sonnet-5", provider="anthropic",
+        context_window=1_000_000, max_output_tokens=128_000,
+        supports_vision=True, supports_reasoning=True, supports_caching=True,
+        tokenizer="cl100k_base",
+    ),
+    "claude-haiku-4-5": ModelInfo(
+        name="claude-haiku-4-5", provider="anthropic",
+        context_window=200_000, max_output_tokens=64_000,
+        supports_vision=True, supports_reasoning=True, supports_caching=True,
+        tokenizer="cl100k_base",
+    ),
+    "claude-opus-4-8": _foundry_info("claude-opus-4-8", 1_000_000, 128_000),
+    "claude-opus-4-7": _foundry_info("claude-opus-4-7", 1_000_000, 128_000),
+    "claude-opus-4-6": _foundry_info("claude-opus-4-6", 1_000_000, 128_000),
+    "claude-opus-4-5": _foundry_info("claude-opus-4-5", 200_000, 64_000),
+    "claude-sonnet-4-6": _foundry_info(
+        "claude-sonnet-4-6", 1_000_000, 128_000,
+    ),
+    "claude-sonnet-4-5": _foundry_info("claude-sonnet-4-5", 200_000, 64_000),
     "claude-opus-4": _opus_info("4"),
     "claude-opus-4.1": _opus_info("4.1"),
     "claude-opus-4.5": _opus_info("4.5"),
@@ -75,15 +111,42 @@ _MODELS: dict[str, ModelInfo] = {
     ),
 }
 
-# Static pricing (USD per 1M tokens, May 2026)
-# Static pricing (USD per 1M tokens, May 2026)
-# Source: https://www.anthropic.com/pricing
-_OPUS_PRICING = PricingTier(input=15.00, output=75.00, cached_input=1.50)
-_SONNET_PRICING = PricingTier(input=3.00, output=15.00, cached_input=0.30)
+# Static pricing (USD per 1M tokens).
+# Source: https://platform.claude.com/docs/en/about-claude/pricing
+_OPUS_LEGACY_PRICING = PricingTier(input=15.00, output=75.00, cached_input=1.50)
+_OPUS_PRICING = PricingTier(
+    input=5.00, output=25.00, cached_input=0.50,
+    cache_write_5m=6.25, cache_write_1h=10.00,
+)
+_SONNET_PRICING = PricingTier(
+    input=3.00, output=15.00, cached_input=0.30,
+    cache_write_5m=3.75, cache_write_1h=6.00,
+)
+_FABLE_PRICING = PricingTier(
+    input=10.00, output=50.00, cached_input=1.00,
+    cache_write_5m=12.50, cache_write_1h=20.00,
+)
 
 _PRICING: dict[str, PricingTier] = {
-    "claude-opus-4": _OPUS_PRICING,
-    "claude-opus-4.1": _OPUS_PRICING,
+    "claude-mythos-5": _FABLE_PRICING,
+    "claude-fable-5": _FABLE_PRICING,
+    "claude-opus-5": _OPUS_PRICING,
+    "claude-sonnet-5": PricingTier(
+        input=2.00, output=10.00, cached_input=0.20,
+        cache_write_5m=2.50, cache_write_1h=4.00,
+    ),
+    "claude-haiku-4-5": PricingTier(
+        input=1.00, output=5.00, cached_input=0.10,
+        cache_write_5m=1.25, cache_write_1h=2.00,
+    ),
+    "claude-opus-4-8": _OPUS_PRICING,
+    "claude-opus-4-7": _OPUS_PRICING,
+    "claude-opus-4-6": _OPUS_PRICING,
+    "claude-opus-4-5": _OPUS_PRICING,
+    "claude-sonnet-4-6": _SONNET_PRICING,
+    "claude-sonnet-4-5": _SONNET_PRICING,
+    "claude-opus-4": _OPUS_LEGACY_PRICING,
+    "claude-opus-4.1": _OPUS_LEGACY_PRICING,
     "claude-opus-4.5": _OPUS_PRICING,
     "claude-opus-4.6": _OPUS_PRICING,
     "claude-opus-4.7": _OPUS_PRICING,
@@ -94,7 +157,8 @@ _PRICING: dict[str, PricingTier] = {
         input=0.80, output=4.00, cached_input=0.08,
     ),
     "claude-haiku-4.5": PricingTier(
-        input=0.80, output=4.00, cached_input=0.08,
+        input=1.00, output=5.00, cached_input=0.10,
+        cache_write_5m=1.25, cache_write_1h=2.00,
     ),
 }
 
@@ -112,11 +176,14 @@ class AnthropicProvider(BaseProvider):
 
     @property
     def pricing_url(self) -> str:
-        return "https://www.anthropic.com/pricing"
+        return "https://platform.claude.com/docs/en/about-claude/pricing"
 
     @property
     def model_catalog_url(self) -> str:
-        return "https://docs.anthropic.com/en/docs/about-claude/models"
+        return (
+            "https://learn.microsoft.com/azure/foundry/foundry-models/"
+            "concepts/claude-models"
+        )
 
     def list_models(self) -> list[str]:
         static = list(_MODELS.keys())

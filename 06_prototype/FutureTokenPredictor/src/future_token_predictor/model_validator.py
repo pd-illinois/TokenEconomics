@@ -53,6 +53,19 @@ class ModelValidationResult:
         return self.status == ValidationStatus.SUBSTITUTED
 
     @property
+    def pricing_verified(self) -> bool:
+        """Return true only when the resolved model has an exact local price."""
+        if self.status not in (ValidationStatus.VALID, ValidationStatus.VALID_LIVE):
+            return False
+        from future_token_predictor.providers import resolve_provider_for_model
+
+        result = resolve_provider_for_model(self.resolved_model)
+        if result is None:
+            return False
+        _, provider = result
+        return provider.get_pricing(self.resolved_model) is not None
+
+    @property
     def warning(self) -> Optional[str]:
         if self.status == ValidationStatus.SUBSTITUTED:
             return (

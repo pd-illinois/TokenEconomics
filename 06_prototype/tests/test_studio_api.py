@@ -128,7 +128,7 @@ def test_main_studio_commercial_route_skips_model_predictor(tmp_path, monkeypatc
         assert result["commercial"]["total_copilot_credits"] == 2
         assert result["token_subforecast"] is None
         receipt = PlanStore(tmp_path / "plans").get_receipt(result["plan_id"])
-        assert receipt["schema_version"] == "4.0"
+        assert receipt["schema_version"] == "5.0"
         assert receipt["meter_stack"]["route_id"] == "copilot_studio"
     finally:
         server.shutdown()
@@ -339,6 +339,10 @@ def test_plan_endpoint_persists_immutable_receipt_and_govern_handoff(tmp_path, m
         assert payload["intake"]["users"] == 1000
         assert payload["prediction"]["prediction_id"] == 42
         assert len(payload["receipt_hash"]) == 64
+        assert payload["schema_version"] == "5.0"
+        assert payload["trajectory_contract"]["schema_version"] == (
+            "trajectory-envelope.v1"
+        )
 
         connection.request("GET", f"/api/plans/{payload['plan_id']}")
         persisted_response = connection.getresponse()
@@ -346,7 +350,7 @@ def test_plan_endpoint_persists_immutable_receipt_and_govern_handoff(tmp_path, m
         assert persisted["status"] == "complete"
         assert persisted["receipt_hash"] == payload["receipt_hash"]
         receipt = studio.PlanStore(tmp_path / "plans").get_receipt(payload["plan_id"])
-        assert receipt["schema_version"] == "4.0"
+        assert receipt["schema_version"] == "5.0"
         assert receipt["meter_stack"]["route_id"] == "foundry"
         assert receipt["analysis"]["rule_set_version"] == "enterprise-semantics-test"
         assert receipt["confirmed_profile"]["agent_pattern"] == "rag_pipeline"

@@ -70,6 +70,22 @@ class TestPredictor:
         result = predict(description="Simple GPT-4.1 chatbot")
         assert result.pricing_verified is True
 
+    def test_foundry_catalog_only_model_does_not_claim_verified_pricing(self, monkeypatch):
+        monkeypatch.setattr(
+            "future_token_predictor.model_validator._check_azure_ai_catalog",
+            lambda model: model == "gpt-5-6-luna",
+        )
+        profile = UseCaseProfile(
+            model="gpt-5-6-luna",
+            provider=Provider.AZURE_OPENAI,
+        )
+
+        result = predict(profile=profile, enable_tier2=False, enable_tier3=False)
+
+        assert result.model == "gpt-5-6-luna"
+        assert result.pricing_verified is False
+        assert any("not in local pricing catalogs" in warning for warning in result.model_warnings)
+
     def test_scaled_projections_positive(self):
         result = predict(description="GPT-4.1 chatbot, 100 users, 5 queries per day")
         assert result.daily_tokens > 0

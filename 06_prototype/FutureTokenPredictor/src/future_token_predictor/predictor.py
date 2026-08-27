@@ -91,7 +91,7 @@ def _price_agent_models(
         aggregate.ci_95_low += estimate.ci_95_low
         aggregate.ci_95_high += estimate.ci_95_high
         aggregate.worst_case += estimate.worst_case
-        all_verified = all_verified and validation.is_valid
+        all_verified = all_verified and validation.pricing_verified
 
         component_specs = [
             ("text input", allocated.text_input, prices.get("input", 2.0)),
@@ -123,7 +123,7 @@ def _price_agent_models(
             "allocation_share": share,
             "allocated_tokens": allocated.total,
             "cost_per_invocation_usd": estimate.mean,
-            "pricing_verified": validation.is_valid,
+            "pricing_verified": validation.pricing_verified,
             "pricing_url": validation.pricing_url,
             "model_catalog_url": validation.model_catalog_url,
             "components": components,
@@ -376,7 +376,7 @@ def predict(
             p99_total=p99_total,
         )
         prices = _get_prices(profile.model, profile.provider)
-        assignment_pricing_verified = validation.is_valid
+        assignment_pricing_verified = validation.pricing_verified
 
     # Step 4: Scale projections
     projection = project_scale(

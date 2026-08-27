@@ -121,6 +121,9 @@ def test_studio_html_marks_non_plan_surfaces_read_only_v2():
     assert "observed economics" in html
     assert "forecast feedback" in html
     assert "describe the work you want ai to complete" in html
+    assert 'class="description-help"' in html
+    assert 'role="tooltip"' in html
+    assert "selected fields override conflicting values in the description" in html
     assert "how will this work be delivered?" in html
     assert "copilot studio native usage and entitlement" in html
     assert "github copilot token-derived ai credits" in html
@@ -138,6 +141,41 @@ def test_studio_html_marks_non_plan_surfaces_read_only_v2():
     assert "body.console-ui .view > .toolbar" in html
     assert "tokeneconomics-studio-ui-mode" in html
     assert "body.console-ui" in html
+    assert "body.console-ui .flow { isolation: isolate;" in html
+    assert (
+        "linear-gradient(var(--cp-accent-soft), var(--cp-accent-soft)), "
+        "var(--cp-bg-elevated)"
+    ) in html
+
+
+def test_studio_html_exposes_trajectory_contract_evidence():
+    html = (ROOT / "studio.html").read_text(encoding="utf-8")
+
+    assert "Trajectory contract" in html
+    assert "Workload identity" in html
+    assert "Segment schema" in html
+    assert "Trajectory evidence" in html
+    assert 'plan.schema_version || "5.0"' in html
+
+
+def test_studio_html_has_route_specific_workload_samples():
+    html = (ROOT / "studio.html").read_text(encoding="utf-8")
+
+    for route in {
+        "included",
+        "cowork",
+        "agent_builder",
+        "copilot_studio",
+        "work_iq",
+        "foundry",
+        "github_copilot",
+        "copilot_studio_byom",
+        "foundry_work_iq",
+    }:
+        assert f"{route}:" in html
+    assert "function updateWorkloadExample(route)" in html
+    assert "prompt.value === previousGeneratedSample" in html
+    assert "Sample: ${example}" in html
 
 
 def _serve(tmp_path, monkeypatch):
@@ -211,12 +249,16 @@ def test_plan_only_api_completes_and_reopens_immutable_receipt(tmp_path, monkeyp
         assert status == 201
         assert headers["X-Content-Type-Options"] == "nosniff"
         assert len(result["receipt_hash"]) == 64
+        assert result["schema_version"] == "5.0"
+        assert result["trajectory_contract"]["schema_version"] == (
+            "trajectory-envelope.v1"
+        )
 
         connection.request("GET", f"/api/plans/{result['plan_id']}/receipt")
         response = connection.getresponse()
         receipt = json.loads(response.read())
         assert response.status == 200
-        assert receipt["schema_version"] == "4.0"
+        assert receipt["schema_version"] == "5.0"
         assert receipt["meter_stack"]["route_id"] == "foundry"
         assert receipt["content_hash"] == result["receipt_hash"]
         assert receipt["analysis"]["rule_set_version"] == "enterprise-semantics-test"

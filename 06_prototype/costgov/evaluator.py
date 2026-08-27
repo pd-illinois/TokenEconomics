@@ -17,11 +17,20 @@ from dataclasses import dataclass
 
 
 @dataclass
+class EvalOutcome:
+    task_id: str
+    trajectory_id: str
+    segment_id: str
+    score: float
+
+
+@dataclass
 class EvalReport:
     mean_score: float
     n: int
     by_difficulty: dict
     by_difficulty_n: dict | None = None
+    outcomes: tuple[EvalOutcome, ...] = ()
 
 
 class Evaluator:
@@ -56,7 +65,7 @@ class Evaluator:
 
     def continuous(self, sampled) -> EvalReport:
         """Score the sampled live stream against matched golden references."""
-        scores, buckets = [], {}
+        scores, buckets, outcomes = [], {}, []
         for item in sampled:
             case = self._match_case(item["question"])
             if not case:
@@ -64,11 +73,20 @@ class Evaluator:
             s = self._score_answer(item["answer_text"], case["must_include"])
             scores.append(s)
             buckets.setdefault(item["difficulty"], []).append(s)
-        return self._report(scores, buckets)
+            if item.get("task_id") and item.get("trajectory_id"):
+                outcomes.append(EvalOutcome(
+                    task_id=item["task_id"],
+                    trajectory_id=item["trajectory_id"],
+                    segment_id=item.get("segment_id") or item["difficulty"],
+                    score=s,
+                ))
+        return self._report(scores, buckets, tuple(outcomes))
 
     @staticmethod
-    def _report(scores, buckets) -> EvalReport:
+    def _report(scores, buckets, outcomes=()) -> EvalReport:
         mean = sum(scores) / len(scores) if scores else 1.0
         by_diff = {k: round(sum(v) / len(v), 3) for k, v in buckets.items()}
         by_diff_n = {key: len(values) for key, values in buckets.items()}
-        return EvalReport(round(mean, 3), len(scores), by_diff, by_diff_n)
+        return EvalReport(
+            round(mean, 3), len(scores), by_diff, by_diff_n, outcomes
+        )

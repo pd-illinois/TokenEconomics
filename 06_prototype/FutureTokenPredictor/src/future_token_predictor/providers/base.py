@@ -30,6 +30,9 @@ class PricingTier:
     input: float
     output: float
     cached_input: Optional[float] = None
+    cache_write: Optional[float] = None
+    cache_write_5m: Optional[float] = None
+    cache_write_1h: Optional[float] = None
     image_input: Optional[float] = None
     audio_input: Optional[float] = None
     audio_output: Optional[float] = None
@@ -45,6 +48,12 @@ class PricingTier:
         d: dict[str, float] = {"input": self.input, "output": self.output}
         if self.cached_input is not None:
             d["cached_input"] = self.cached_input
+        if self.cache_write is not None:
+            d["cache_write"] = self.cache_write
+        if self.cache_write_5m is not None:
+            d["cache_write_5m"] = self.cache_write_5m
+        if self.cache_write_1h is not None:
+            d["cache_write_1h"] = self.cache_write_1h
         if self.image_input is not None:
             d["image_input"] = self.image_input
         if self.audio_input is not None:

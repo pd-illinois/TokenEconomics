@@ -138,8 +138,12 @@ def test_github_route_uses_token_derived_credits_without_foundry_predictor(
         assert result["commercial"]["currency"] == "GitHub AI Credits"
         assert result["commercial"]["gross_github_ai_credits"] == 400
         assert result["prediction"] == {}
+        assert result["schema_version"] == "5.0"
+        assert result["trajectory_contract"]["schema_version"] == (
+            "trajectory-envelope.v1"
+        )
         receipt = PlanStore(tmp_path / "plans").get_receipt(result["plan_id"])
-        assert receipt["schema_version"] == "4.0"
+        assert receipt["schema_version"] == "5.0"
         assert receipt["meter_stack"]["route_id"] == "github_copilot"
     finally:
         server.shutdown()
@@ -199,7 +203,7 @@ def test_non_model_commercial_route_does_not_require_predictor_or_model(
         assert result["commercial"]["total_copilot_credits"] == 9
         assert result["token_subforecast"] is None
         receipt = PlanStore(tmp_path / "plans").get_receipt(result["plan_id"])
-        assert receipt["schema_version"] == "4.0"
+        assert receipt["schema_version"] == "5.0"
         assert receipt["meter_stack"]["route_id"] == "copilot_studio"
     finally:
         server.shutdown()

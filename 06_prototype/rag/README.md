@@ -60,3 +60,41 @@ The three arms are premium baseline, TokenGov balanced routing/cache, and Azure 
 The current five-book index uses `RAG_TOP_K=12`. A 2026-07-22 retrieval check found all required facts for 7/7 easy golden cases, but only 2/5 hard synthesis cases. The hard segment is therefore not decision-grade; improving multi-source retrieval is follow-up work, and generation quality must not conceal missing retrieval evidence.
 
 When Application Insights is configured, request-level `costgov.request` records are exported. Local governed-arm telemetry is written to the ignored `telemetry_rag.jsonl` file.
+
+## Capture a policy-bound Foundry agent trajectory
+
+`foundry_trajectory_adapter.py` is the TE-003 workload adapter. It remains outside
+`costgov/`, validates an admitted schema-5 trajectory binding before making any
+remote call, and translates Foundry conversation, MCP, retrieval, model, usage,
+and citation evidence into `trajectory-envelope.v1`.
+
+The adapter records provider-reported model tokens directly. Per-task Search,
+infrastructure, and model cost remain explicitly `unavailable` or `unpriced`
+until authoritative meter and rate evidence is joined; they are never recorded
+as zero. Retrieved corpus output is hashed rather than copied into the envelope.
+
+Configure the existing Foundry project and agent without storing credentials:
+
+```dotenv
+FOUNDRY_PROJECT_ENDPOINT=https://<resource>.services.ai.azure.com/api/projects/<project>
+FOUNDRY_AGENT_NAME=tokengov-books-rag-agent
+FOUNDRY_AGENT_VERSION=2
+```
+
+Then pass a real admitted Govern handoff:
+
+```powershell
+.\.venv\Scripts\python.exe rag\capture_foundry_trajectory.py `
+  --admission .\path\to\admitted-handoff.json `
+  --report-id RPT-FOUNDRY-RAG-001 `
+  --segment-id hard-synthesis `
+  --question "Compare how two indexed books portray social class, citing both."
+```
+
+The command uses `DefaultAzureCredential`, creates a Foundry conversation,
+invokes the pinned agent version through the Responses API, and appends the
+content-hashed envelope under `rag/captured_trajectories/`. Missing admission,
+prediction, policy hash, source, label, or ETag fails before conversation
+creation. A successful HTTP response is labeled measured execution evidence;
+it is not accepted-task quality, calibrated tail risk, commercial billing
+evidence, or proof for non-Foundry delivery experiences.

@@ -1,0 +1,234 @@
+{
+  "schema_version": "foundry-model-release.v2",
+  "release_version": "2026-08-25.2",
+  "released_at": "2026-08-25T00:00:00Z",
+  "default_key": "azure_openai:gpt-5.6-luna",
+  "scope": "Complete OpenAI and Anthropic model inventory for Microsoft Foundry planning",
+  "selection_rule": "The catalog shows every supported model. Selectors admit only coordinator-capable offerings with model-specific, verified input and output pricing and a compatible deployment path.",
+  "pricing_claim": "Public list-price planning inputs. Contract discounts, taxes, regional and data-zone uplifts, provisioned throughput, batch discounts, long-context tiers, and complete task or trajectory costs remain separate evidence.",
+  "sources": {
+    "openai_catalog": "https://learn.microsoft.com/en-us/azure/foundry/foundry-models/concepts/models-sold-directly-by-azure?pivots=azure-openai",
+    "openai_pricing": "https://prices.azure.com/api/retail/prices?$filter=contains(productName,%20%27OpenAI%27)",
+    "anthropic_catalog": "https://learn.microsoft.com/en-us/azure/foundry/foundry-models/concepts/models-from-partners?tabs=az-americas#anthropic",
+    "anthropic_pricing": "https://platform.claude.com/docs/en/about-claude/pricing#claude-in-microsoft-foundry-pricing",
+    "anthropic_billing": "https://learn.microsoft.com/en-us/azure/foundry/foundry-models/concepts/claude-models-billing"
+  },
+  "providers": {
+    "azure_openai": {
+      "provider_name": "OpenAI on Azure",
+      "pricing_url": "https://prices.azure.com/api/retail/prices?$filter=contains(productName,%20%27OpenAI%27)",
+      "model_catalog_url": "https://learn.microsoft.com/en-us/azure/foundry/foundry-models/concepts/models-sold-directly-by-azure?pivots=azure-openai",
+      "deployment": {
+        "family": "Microsoft Foundry Models sold by Azure",
+        "type": "Global Standard",
+        "geography": "Global"
+      },
+      "evidence": {
+        "status": "verified",
+        "price_source": "Azure Retail Prices API",
+        "source_retrieved_at": "2026-08-25T00:00:00Z"
+      }
+    },
+    "anthropic": {
+      "provider_name": "Anthropic on Microsoft Foundry",
+      "pricing_url": "https://platform.claude.com/docs/en/about-claude/pricing#claude-in-microsoft-foundry-pricing",
+      "model_catalog_url": "https://learn.microsoft.com/en-us/azure/foundry/foundry-models/concepts/models-from-partners?tabs=az-americas#anthropic",
+      "pricing_unit": "USD per 1M tokens before CCU conversion",
+      "deployment": {
+        "family": "Microsoft Foundry Models from partners and community",
+        "type": "Global Standard",
+        "geography": "Global",
+        "invoice_meter": "Claude Consumption Units at 100 CCU per USD"
+      },
+      "evidence": {
+        "status": "verified",
+        "price_source": "Anthropic Claude in Microsoft Foundry pricing",
+        "source_retrieved_at": "2026-08-25T00:00:00Z",
+        "billing_source": "https://learn.microsoft.com/en-us/azure/foundry/foundry-models/concepts/claude-models-billing"
+      }
+    }
+  },
+  "model_groups": [
+    {
+      "provider": "azure_openai",
+      "modality_group": "text",
+      "defaults": {
+        "coordinator_capable": true,
+        "selector_eligible": true,
+        "pricing_unit": "USD per 1M tokens",
+        "tokenizer": "o200k_base",
+        "capabilities": {"text": true, "tools": true}
+      },
+      "models": [
+        {"model": "gpt-5.6-sol", "display_name": "GPT-5.6 Sol", "lifecycle": "ga", "versions": ["2026-07-09"], "context_window": 1050000, "max_output_tokens": 128000, "pricing": {"input": 5.0, "cached_input": 0.5, "cache_write": 6.25, "output": 30.0}, "evidence": {"price_effective_at": "2026-07-01T00:00:00Z", "meters": {"input": "5.6 sol ShortCo Inp Std Gl 1M Tokens", "cached_input": "5.6 sol ShortCo Cd Inp Std Gl 1M Tokens", "cache_write": "5.6 sol ShortCo Cd Wr Std Gl 1M Tokens", "output": "5.6 sol ShortCo Opt Std Gl 1M Tokens"}}},
+        {"model": "gpt-5.6-terra", "display_name": "GPT-5.6 Terra", "lifecycle": "ga", "versions": ["2026-07-09"], "context_window": 1050000, "max_output_tokens": 128000, "pricing": {"input": 2.0, "cached_input": 0.2, "cache_write": 2.5, "output": 12.0}, "evidence": {"price_effective_at": "2026-08-01T00:00:00Z", "meters": {"input": "5.6 terra ShortCo Inp Std Gl 1M Tokens", "cached_input": "5.6 terra ShortCo Cd Inp Std Gl 1M Tokens", "cache_write": "5.6 terra ShortCo Cd Wr Std Gl 1M Tokens", "output": "5.6 terra ShortCo Opt Std Gl 1M Tokens"}}},
+        {"model": "gpt-5.6-luna", "display_name": "GPT-5.6 Luna", "lifecycle": "ga", "versions": ["2026-07-09"], "context_window": 1050000, "max_output_tokens": 128000, "pricing": {"input": 0.2, "cached_input": 0.02, "cache_write": 0.25, "output": 1.2}, "evidence": {"price_effective_at": "2026-08-01T00:00:00Z", "meters": {"input": "5.6 luna ShortCo Inp Std Gl 1M Tokens", "cached_input": "5.6 luna ShortCo Cd Inp Std Gl 1M Tokens", "cache_write": "5.6 luna ShortCo Cd Wr Std Gl 1M Tokens", "output": "5.6 luna ShortCo Opt Std Gl 1M Tokens"}}},
+        {"model": "gpt-chat-latest", "display_name": "GPT Chat Latest", "lifecycle": "preview", "versions": ["2026-08-06", "2026-06-24", "2026-05-28", "2026-05-05"], "context_window": 400000, "max_output_tokens": 128000, "pricing": {"input": 5.0, "cached_input": 0.5, "output": 30.0}, "evidence": {"price_effective_at": "2026-08-01T00:00:00Z", "meter_family": "chat-latest 08062026 * Gl 1M Tokens"}},
+        {"model": "gpt-5.5", "display_name": "GPT-5.5", "lifecycle": "ga", "versions": ["2026-04-24"], "context_window": 1050000, "max_output_tokens": 128000, "pricing": {"input": 5.0, "cached_input": 0.5, "output": 30.0}, "evidence": {"price_effective_at": "2026-05-01T00:00:00Z", "meter_family": "5.5 ShortCo * Gl 1M Tokens"}},
+        {"model": "gpt-5.4", "display_name": "GPT-5.4", "lifecycle": "ga", "versions": ["2026-03-05"], "context_window": 1050000, "max_output_tokens": 128000, "pricing": {"input": 2.5, "cached_input": 0.25, "output": 15.0}, "evidence": {"price_effective_at": "2026-03-01T00:00:00Z", "meter_family": "5.4 * Gl 1M Tokens"}},
+        {"model": "gpt-5.4-pro", "display_name": "GPT-5.4 Pro", "lifecycle": "ga", "versions": ["2026-03-05"], "context_window": 1050000, "max_output_tokens": 128000, "pricing": {"input": 30.0, "output": 180.0}, "evidence": {"price_effective_at": "2026-03-01T00:00:00Z", "meter_family": "5.4 pro * Gl 1M Tokens"}},
+        {"model": "gpt-5.4-mini", "display_name": "GPT-5.4 Mini", "lifecycle": "ga", "versions": ["2026-03-17"], "context_window": 400000, "max_output_tokens": 128000, "pricing": {"input": 0.75, "cached_input": 0.075, "output": 4.5}, "evidence": {"price_effective_at": "2026-03-01T00:00:00Z", "meter_family": "5.4 mini * Gl 1M Tokens"}},
+        {"model": "gpt-5.4-nano", "display_name": "GPT-5.4 Nano", "lifecycle": "ga", "versions": ["2026-03-17"], "context_window": 400000, "max_output_tokens": 128000, "pricing": {"input": 0.2, "cached_input": 0.02, "output": 1.25}, "evidence": {"price_effective_at": "2026-03-01T00:00:00Z", "meter_family": "5.4 nano * Gl 1M Tokens"}},
+        {"model": "gpt-5.3-codex", "display_name": "GPT-5.3 Codex", "lifecycle": "ga", "versions": ["2026-02-24"], "context_window": 400000, "max_output_tokens": 128000, "pricing": {"input": 1.75, "cached_input": 0.175, "output": 14.0}, "evidence": {"price_effective_at": "2026-03-01T00:00:00Z", "meter_family": "5.3 codex * Gl 1M Tokens"}},
+        {"model": "gpt-5.3-chat", "display_name": "GPT-5.3 Chat", "lifecycle": "preview", "versions": ["2026-03-03"], "context_window": 128000, "max_output_tokens": 16384, "pricing": {"input": 1.75, "cached_input": 0.175, "output": 14.0}, "evidence": {"price_effective_at": "2026-03-01T00:00:00Z", "meter_family": "5.3 chat * Gl 1M Tokens"}},
+        {"model": "gpt-5.2", "display_name": "GPT-5.2", "lifecycle": "ga", "versions": ["2025-12-11"], "context_window": 400000, "max_output_tokens": 128000, "pricing": {"input": 1.75, "cached_input": 0.175, "output": 14.0}, "evidence": {"price_effective_at": "2025-12-01T00:00:00Z", "meter_family": "GPT 5.2 * Gl 1M Tokens"}},
+        {"model": "gpt-5.2-codex", "display_name": "GPT-5.2 Codex", "lifecycle": "ga", "versions": ["2026-01-14"], "context_window": 400000, "max_output_tokens": 128000, "pricing": {"input": 1.75, "cached_input": 0.175, "output": 14.0}, "evidence": {"price_effective_at": "2026-01-01T00:00:00Z", "meter_family": "5.2 codex * Gl 1M Tokens"}},
+        {"model": "gpt-5.2-chat", "display_name": "GPT-5.2 Chat", "lifecycle": "preview", "versions": ["2026-02-10", "2025-12-11"], "context_window": 128000, "max_output_tokens": 16384, "pricing": {"input": 1.75, "cached_input": 0.175, "output": 14.0}, "evidence": {"price_effective_at": "2026-02-01T00:00:00Z", "meter_family": "5.2 chat 0210 * Gl 1M Tokens"}},
+        {"model": "gpt-5.1", "display_name": "GPT-5.1", "lifecycle": "ga", "versions": ["2025-11-13"], "context_window": 400000, "max_output_tokens": 128000, "pricing": {"input": 1.25, "cached_input": 0.125, "output": 10.0}, "evidence": {"price_effective_at": "2025-11-01T00:00:00Z", "meter_family": "GPT 5.1 * Gl 1M Tokens"}},
+        {"model": "gpt-5.1-chat", "display_name": "GPT-5.1 Chat", "lifecycle": "preview", "versions": ["2025-11-13"], "context_window": 128000, "max_output_tokens": 16384, "pricing": {"input": 1.25, "cached_input": 0.125, "output": 10.0}, "evidence": {"price_effective_at": "2025-11-01T00:00:00Z", "meter_family": "GPT 5.1 chat * Gl 1M Tokens"}},
+        {"model": "gpt-5.1-codex", "display_name": "GPT-5.1 Codex", "lifecycle": "ga", "versions": ["2025-11-13"], "context_window": 400000, "max_output_tokens": 128000, "pricing": {"input": 1.25, "cached_input": 0.125, "output": 10.0}, "evidence": {"price_effective_at": "2025-11-01T00:00:00Z", "meter_family": "5.1 codex * Gl 1M Tokens"}},
+        {"model": "gpt-5.1-codex-mini", "display_name": "GPT-5.1 Codex Mini", "lifecycle": "ga", "versions": ["2025-11-13"], "context_window": 400000, "max_output_tokens": 128000, "pricing": {"input": 0.25, "cached_input": 0.025, "output": 2.0}, "evidence": {"price_effective_at": "2025-11-01T00:00:00Z", "meter_family": "5.1 codex mini * Gl 1M Tokens"}},
+        {"model": "gpt-5.1-codex-max", "display_name": "GPT-5.1 Codex Max", "lifecycle": "ga", "versions": ["2025-12-04"], "context_window": 400000, "max_output_tokens": 128000, "pricing": {"input": 1.25, "cached_input": 0.125, "output": 10.0}, "evidence": {"price_effective_at": "2025-12-01T00:00:00Z", "meter_family": "5.1 codex max * Gl 1M Tokens"}},
+        {"model": "gpt-5", "display_name": "GPT-5", "lifecycle": "ga", "versions": ["2025-08-07"], "context_window": 400000, "max_output_tokens": 128000, "pricing": {"input": 1.25, "cached_input": 0.125, "output": 10.0}, "evidence": {"price_effective_at": "2025-08-01T00:00:00Z", "meter_family": "GPT 5 * Glbl 1M Tokens"}},
+        {"model": "gpt-5-pro", "display_name": "GPT-5 Pro", "lifecycle": "ga", "versions": ["2025-10-06"], "context_window": 400000, "max_output_tokens": 128000, "pricing": {"input": 15.0, "output": 120.0}, "evidence": {"price_effective_at": "2025-10-01T00:00:00Z", "meter_family": "gpt 5 pro * glbl Tokens"}},
+        {"model": "gpt-5-mini", "display_name": "GPT-5 Mini", "lifecycle": "ga", "versions": ["2025-08-07"], "context_window": 400000, "max_output_tokens": 128000, "pricing": {"input": 0.25, "cached_input": 0.025, "output": 2.0}, "evidence": {"price_effective_at": "2025-08-01T00:00:00Z", "meter_family": "GPT 5 Mini * Glbl 1M Tokens"}},
+        {"model": "gpt-5-nano", "display_name": "GPT-5 Nano", "lifecycle": "ga", "versions": ["2025-08-07"], "context_window": 400000, "max_output_tokens": 128000, "pricing": {"input": 0.05, "cached_input": 0.005, "output": 0.4}, "evidence": {"price_effective_at": "2025-08-01T00:00:00Z", "meter_family": "GPT 5 Nano * Glbl 1M Tokens"}},
+        {"model": "gpt-5-chat", "display_name": "GPT-5 Chat", "lifecycle": "preview", "versions": ["2025-10-03", "2025-08-07"], "context_window": 128000, "max_output_tokens": 16384, "pricing": {"input": 1.25, "cached_input": 0.125, "output": 10.0}, "evidence": {"price_effective_at": "2025-08-01T00:00:00Z", "meter_family": "GPT 5 Chat * Glbl 1M Tokens"}},
+        {"model": "gpt-5-codex", "display_name": "GPT-5 Codex", "lifecycle": "ga", "versions": ["2025-09-11"], "context_window": 400000, "max_output_tokens": 128000, "pricing": {"input": 1.25, "cached_input": 0.125, "output": 10.0}, "evidence": {"price_effective_at": "2025-09-01T00:00:00Z", "meter_family": "gpt-5-codex-* glbl Tokens"}},
+        {"model": "gpt-oss-120b", "display_name": "GPT OSS 120B", "lifecycle": "preview", "versions": ["1"], "context_window": 131072, "max_output_tokens": 131072, "pricing": {"input": 0.15, "output": 0.6}, "evidence": {"price_effective_at": "2026-03-01T00:00:00Z", "meter_family": "gpt-oss-120B * glbl Tokens"}},
+        {"model": "gpt-oss-20b", "display_name": "GPT OSS 20B", "lifecycle": "preview", "versions": ["1"], "context_window": 131072, "max_output_tokens": 131072, "selector_eligible": false, "pricing": {"input": 0.07, "output": 0.3}, "deployment": {"type": "Managed compute or Foundry Local"}, "evidence": {"price_effective_at": "2025-11-01T00:00:00Z", "meter_family": "GPT-OSS-20b-*-FT Tokens"}},
+        {"model": "gpt-4.1", "display_name": "GPT-4.1", "lifecycle": "ga", "versions": ["2025-04-14"], "context_window": 1048576, "max_output_tokens": 32768, "pricing": {"input": 2.0, "cached_input": 0.5, "output": 8.0}, "evidence": {"price_effective_at": "2025-04-01T00:00:00Z", "meter_family": "gpt 4.1 * glbl Tokens"}},
+        {"model": "gpt-4.1-mini", "display_name": "GPT-4.1 Mini", "lifecycle": "ga", "versions": ["2025-04-14"], "context_window": 1048576, "max_output_tokens": 32768, "pricing": {"input": 0.4, "cached_input": 0.1, "output": 1.6}, "evidence": {"price_effective_at": "2025-04-01T00:00:00Z", "meter_family": "gpt 4.1 mini * glbl Tokens"}},
+        {"model": "gpt-4.1-nano", "display_name": "GPT-4.1 Nano", "lifecycle": "ga", "versions": ["2025-04-14"], "context_window": 1048576, "max_output_tokens": 32768, "pricing": {"input": 0.1, "cached_input": 0.025, "output": 0.4}, "evidence": {"price_effective_at": "2025-04-01T00:00:00Z", "meter_family": "gpt 4.1 nano * glbl Tokens"}},
+        {"model": "o3-pro", "display_name": "o3 Pro", "lifecycle": "ga", "versions": ["2025-06-10"], "context_window": 200000, "max_output_tokens": 100000, "pricing": {"input": 20.0, "output": 80.0}, "evidence": {"price_effective_at": "2025-06-01T00:00:00Z", "meter_family": "o3-pro * glbl Tokens"}},
+        {"model": "o3", "display_name": "o3", "lifecycle": "ga", "versions": ["2025-04-16"], "context_window": 200000, "max_output_tokens": 100000, "pricing": {"input": 2.0, "cached_input": 0.5, "output": 8.0}, "evidence": {"price_effective_at": "2025-06-01T00:00:00Z", "meter_family": "o3 0416 * glbl Tokens"}},
+        {"model": "o4-mini", "display_name": "o4 Mini", "lifecycle": "ga", "versions": ["2025-04-16"], "context_window": 200000, "max_output_tokens": 100000, "pricing": {"input": 1.1, "cached_input": 0.275, "output": 4.4}, "evidence": {"price_effective_at": "2025-04-01T00:00:00Z", "meter_family": "o4-mini 0416 * glbl Tokens"}},
+        {"model": "codex-mini", "display_name": "Codex Mini", "lifecycle": "ga", "versions": ["2025-05-16"], "context_window": 200000, "max_output_tokens": 100000, "pricing": {"input": 1.5, "cached_input": 0.375, "output": 6.0}, "evidence": {"price_effective_at": "2025-06-01T00:00:00Z", "meter_family": "codex mini * glbl Tokens"}},
+        {"model": "o3-mini", "display_name": "o3 Mini", "lifecycle": "ga", "versions": ["2025-01-31"], "context_window": 200000, "max_output_tokens": 100000, "pricing": {"input": 1.1, "cached_input": 0.55, "output": 4.4}, "evidence": {"price_effective_at": "2025-02-01T00:00:00Z", "meter_family": "o3 mini 0131 * glbl Tokens"}},
+        {"model": "o1", "display_name": "o1", "lifecycle": "ga", "versions": ["2024-12-17"], "context_window": 200000, "max_output_tokens": 100000, "pricing": {"input": 15.0, "cached_input": 7.5, "output": 60.0}, "evidence": {"price_effective_at": "2024-12-01T00:00:00Z", "meter_family": "o1 1217 * glbl Tokens"}},
+        {"model": "o1-preview", "display_name": "o1 Preview", "lifecycle": "legacy-preview", "versions": ["2024-09-12"], "context_window": 128000, "max_output_tokens": 32768, "selector_eligible": false, "pricing": {"input": 15.0, "cached_input": 7.5, "output": 60.0}, "evidence": {"price_effective_at": "2024-10-01T00:00:00Z", "meter_family": "o1 preview * glbl Tokens"}},
+        {"model": "o1-mini", "display_name": "o1 Mini", "lifecycle": "ga-limited", "versions": ["2024-09-12"], "context_window": 128000, "max_output_tokens": 65536, "pricing": {"input": 1.1, "cached_input": 0.55, "output": 4.4}, "evidence": {"price_effective_at": "2025-04-01T00:00:00Z", "meter_family": "o1 mini * glbl Tokens"}},
+        {"model": "gpt-4o", "display_name": "GPT-4o", "lifecycle": "ga", "versions": ["2024-11-20", "2024-08-06", "2024-05-13"], "context_window": 128000, "max_output_tokens": 16384, "pricing": {"input": 2.5, "cached_input": 1.25, "output": 10.0}, "evidence": {"price_effective_at": "2024-12-01T00:00:00Z", "meter_family": "gpt 4o 1120 * glbl Tokens"}},
+        {"model": "gpt-4o-mini", "display_name": "GPT-4o Mini", "lifecycle": "ga", "versions": ["2024-07-18"], "context_window": 128000, "max_output_tokens": 16384, "pricing": {"input": 0.15, "cached_input": 0.075, "output": 0.6}, "evidence": {"price_effective_at": "2024-07-01T00:00:00Z", "meter_family": "gpt-4o-mini-0718-* glbl Tokens"}},
+        {"model": "gpt-4-turbo", "display_name": "GPT-4 Turbo", "lifecycle": "ga", "versions": ["turbo-2024-04-09"], "context_window": 128000, "max_output_tokens": 4096, "pricing": {"input": 10.0, "output": 30.0}, "evidence": {"price_effective_at": "2024-06-01T00:00:00Z", "meter_family": "gpt-4-turbo128K * glbl Tokens"}},
+        {"model": "gpt-4.5-preview", "display_name": "GPT-4.5 Preview", "lifecycle": "preview", "versions": ["2025-02-27"], "context_window": 128000, "max_output_tokens": 16384, "pricing": {"input": 70.0, "cached_input": 40.0, "output": 150.0}, "evidence": {"price_effective_at": "2025-03-01T00:00:00Z", "meter_family": "gpt 4.5 0227 * glbl Tokens"}},
+        {"model": "computer-use-preview", "display_name": "Computer Use Preview", "lifecycle": "gated-preview", "versions": ["2025-03-11"], "context_window": 8192, "max_output_tokens": 1024, "selector_eligible": false, "pricing": {"input": 3.0, "output": 12.0}, "evidence": {"price_effective_at": "2025-03-01T00:00:00Z", "meter_family": "computer-use-* glbl Tokens"}},
+        {"model": "gpt-4", "display_name": "GPT-4 8K", "lifecycle": "legacy", "versions": ["0613"], "context_window": 8192, "max_output_tokens": 4096, "selector_eligible": false, "pricing": {"input": 30.0, "output": 60.0}, "evidence": {"price_effective_at": "2025-03-01T00:00:00Z", "meter_family": "gpt-4-8K-* glbl Tokens"}},
+        {"model": "gpt-4-32k", "display_name": "GPT-4 32K", "lifecycle": "legacy", "versions": ["0613"], "context_window": 32768, "max_output_tokens": 4096, "selector_eligible": false, "pricing": {"input": 60.0, "output": 120.0}, "evidence": {"price_effective_at": "2025-03-01T00:00:00Z", "meter_family": "gpt-4-32K-* glbl Tokens"}},
+        {"model": "gpt-35-turbo", "display_name": "GPT-35 Turbo", "lifecycle": "legacy", "versions": ["0125", "1106", "0613"], "context_window": 16384, "max_output_tokens": 4096, "selector_eligible": false, "pricing": {}, "evidence": {"status": "unavailable", "reason": "No unambiguous current global rate was resolved across the supported versions."}},
+        {"model": "gpt-35-turbo-16k", "display_name": "GPT-35 Turbo 16K", "lifecycle": "legacy", "versions": ["0613"], "context_window": 16384, "max_output_tokens": 4096, "selector_eligible": false, "pricing": {}, "evidence": {"status": "unavailable", "reason": "No unambiguous current global rate was resolved."}},
+        {"model": "gpt-35-turbo-instruct", "display_name": "GPT-35 Turbo Instruct", "lifecycle": "legacy", "versions": [], "context_window": 4096, "max_output_tokens": 4096, "selector_eligible": false, "pricing": {}, "evidence": {"status": "unavailable", "reason": "Only regional meters were resolved in the current public feed."}},
+        {"model": "babbage-002", "display_name": "Babbage 002", "lifecycle": "base-model", "versions": [], "coordinator_capable": false, "selector_eligible": false, "pricing": {}, "evidence": {"status": "unavailable", "reason": "Base and fine-tuning meters are deployment-specific."}},
+        {"model": "davinci-002", "display_name": "Davinci 002", "lifecycle": "base-model", "versions": [], "coordinator_capable": false, "selector_eligible": false, "pricing": {}, "evidence": {"status": "unavailable", "reason": "Base and fine-tuning meters are deployment-specific."}}
+      ]
+    },
+    {
+      "provider": "azure_openai",
+      "modality_group": "embeddings",
+      "defaults": {
+        "coordinator_capable": false,
+        "selector_eligible": false,
+        "pricing_unit": "USD per 1M input tokens",
+        "capabilities": {"embeddings": true}
+      },
+      "models": [
+        {"model": "text-embedding-3-large", "display_name": "Text Embedding 3 Large", "lifecycle": "ga", "versions": [], "context_window": 8192, "pricing": {"input": 0.13}, "evidence": {"price_effective_at": "2024-06-01T00:00:00Z", "meter_family": "text-embedding-3-large-glbl Tokens"}},
+        {"model": "text-embedding-3-small", "display_name": "Text Embedding 3 Small", "lifecycle": "ga", "versions": [], "context_window": 8192, "pricing": {"input": 0.02}, "evidence": {"price_effective_at": "2024-06-01T00:00:00Z", "meter_family": "text-embedding-3-small-glbl Tokens"}},
+        {"model": "text-embedding-ada-002", "display_name": "Text Embedding Ada 002", "lifecycle": "ga", "versions": ["2", "1"], "context_window": 8192, "pricing": {"input": 0.1}, "evidence": {"price_effective_at": "2026-08-01T00:00:00Z", "meter_family": "embedding-ada-glbl-new Tokens"}}
+      ]
+    },
+    {
+      "provider": "azure_openai",
+      "modality_group": "image",
+      "defaults": {
+        "coordinator_capable": false,
+        "selector_eligible": false,
+        "capabilities": {"image_generation": true}
+      },
+      "models": [
+        {"model": "gpt-image-1", "display_name": "GPT Image 1", "lifecycle": "ga", "pricing_unit": "USD per 1M tokens", "pricing": {"text_input": 5.0, "cached_text_input": 1.25, "image_input": 10.0, "cached_image_input": 2.5, "image_output": 40.0}, "evidence": {"meter_family": "gpt-image-1-* glbl Tokens"}},
+        {"model": "gpt-image-1-mini", "display_name": "GPT Image 1 Mini", "lifecycle": "ga", "pricing_unit": "USD per 1M tokens", "pricing": {"text_input": 2.0, "cached_text_input": 0.2, "image_input": 2.5, "cached_image_input": 0.25, "image_output": 8.0}, "evidence": {"meter_family": "gpt img 1 mini * glbl Tokens"}},
+        {"model": "gpt-image-1.5", "display_name": "GPT Image 1.5", "lifecycle": "ga", "pricing_unit": "USD per 1M tokens", "pricing": {"text_input": 5.0, "cached_text_input": 1.25, "image_input": 8.0, "cached_image_input": 2.0, "text_output": 10.0, "image_output": 32.0}, "evidence": {"meter_family": "gpt img 1.5 * gl 1M Tokens"}},
+        {"model": "gpt-image-2", "display_name": "GPT Image 2", "lifecycle": "ga", "pricing_unit": "USD per 1M tokens", "pricing": {"text_input": 5.0, "cached_text_input": 1.25, "image_input": 8.0, "cached_image_input": 2.0, "image_output": 30.0}, "evidence": {"meter_family": "Image 2 * Gl 1M Tokens"}},
+        {"model": "dall-e-3", "display_name": "DALL-E 3", "lifecycle": "legacy-ga", "pricing_unit": "USD per 100 images", "pricing": {"standard_low_resolution_per_100_images": 4.0, "standard_high_resolution_per_100_images": 8.0, "hd_low_resolution_per_100_images": 8.0, "hd_high_resolution_per_100_images": 12.0}, "evidence": {"price_effective_at": "2025-03-01T00:00:00Z", "meter_family": "Image-Dall-E-3 * glbl Images"}},
+        {"model": "dall-e-2", "display_name": "DALL-E 2", "lifecycle": "legacy-ga", "pricing_unit": "USD per 100 images", "pricing": {"images_per_100": 2.0}, "evidence": {"price_effective_at": "2025-03-01T00:00:00Z", "meter_family": "Image-DALL-E-2-glbl Images"}}
+      ]
+    },
+    {
+      "provider": "azure_openai",
+      "modality_group": "video",
+      "defaults": {
+        "coordinator_capable": false,
+        "selector_eligible": false,
+        "capabilities": {"video_generation": true}
+      },
+      "models": [
+        {"model": "sora", "display_name": "Sora", "lifecycle": "preview", "pricing_unit": "USD per generated second", "pricing": {"square_480p_per_second": 0.15, "landscape_480p_per_second": 0.2, "square_720p_per_second": 0.3, "landscape_720p_1_to_5_seconds": 0.45, "landscape_1080p_1_to_5_seconds": 1.3}, "evidence": {"price_effective_at": "2025-08-01T00:00:00Z", "meter_family": "Sora * glbl Video"}},
+        {"model": "sora-2", "display_name": "Sora 2", "lifecycle": "preview", "pricing_unit": "USD per generated second", "pricing": {"standard_per_second": 0.1, "pro_per_second": 0.3, "pro_high_resolution_per_second": 0.5}, "evidence": {"price_effective_at": "2025-10-01T00:00:00Z", "meter_family": "Sora 2 * glbl Second"}}
+      ]
+    },
+    {
+      "provider": "azure_openai",
+      "modality_group": "audio",
+      "defaults": {
+        "coordinator_capable": false,
+        "selector_eligible": false,
+        "pricing_unit": "USD per 1M tokens",
+        "capabilities": {"audio": true}
+      },
+      "models": [
+        {"model": "gpt-4o-audio-preview", "display_name": "GPT-4o Audio Preview", "lifecycle": "ga", "versions": ["2024-12-17"], "pricing": {"text_input": 2.5, "text_output": 10.0, "audio_input": 40.0, "audio_output": 80.0}, "evidence": {"meter_family": "gpt-4o-aud-1217-* glbl Tokens"}},
+        {"model": "gpt-4o-mini-audio-preview", "display_name": "GPT-4o Mini Audio Preview", "lifecycle": "preview", "versions": ["2024-12-17"], "pricing": {"text_input": 0.15, "text_output": 0.6, "audio_input": 10.0, "audio_output": 20.0}, "evidence": {"meter_family": "gpt4omini-aud1217* glbl Tokens"}},
+        {"model": "gpt-4o-realtime-preview", "display_name": "GPT-4o Realtime Preview", "lifecycle": "ga", "versions": ["2025-06-03", "2024-12-17"], "pricing": {"text_input": 5.0, "cached_text_input": 2.5, "text_output": 20.0, "audio_input": 40.0, "cached_audio_input": 2.5, "audio_output": 80.0}, "evidence": {"meter_family": "gpt-4o-rt-*-0603 * glbl Tokens"}},
+        {"model": "gpt-4o-mini-realtime-preview", "display_name": "GPT-4o Mini Realtime Preview", "lifecycle": "preview", "versions": ["2024-12-17"], "pricing": {"text_input": 0.6, "cached_text_input": 0.3, "text_output": 2.4, "audio_input": 10.0, "cached_audio_input": 0.3, "audio_output": 20.0}, "evidence": {"meter_family": "gpt4omini-rt-*1217 * glbl Tokens"}},
+        {"model": "gpt-audio", "display_name": "GPT Audio", "lifecycle": "ga", "versions": ["2025-08-28"], "pricing": {"text_input": 2.5, "text_output": 10.0, "audio_input": 40.0, "audio_output": 80.0}, "evidence": {"meter_family": "gpt aud 0828 * glbl Tokens"}},
+        {"model": "gpt-audio-mini", "display_name": "GPT Audio Mini", "lifecycle": "ga", "versions": ["2025-10-06"], "pricing": {"text_input": 0.6, "text_output": 2.4, "audio_input": 10.0, "audio_output": 20.0}, "evidence": {"meter_family": "gpt aud mini * glbl Tokens"}},
+        {"model": "gpt-audio-1.5", "display_name": "GPT Audio 1.5", "lifecycle": "ga", "versions": ["2026-02-23"], "pricing": {"text_input": 2.5, "text_output": 10.0, "audio_input": 32.0, "audio_output": 64.0}, "evidence": {"meter_family": "gpt aud 1.5 * Gl 1M Tokens"}},
+        {"model": "gpt-realtime", "display_name": "GPT Realtime", "lifecycle": "ga", "versions": ["2025-08-28"], "pricing": {"text_input": 4.0, "cached_text_input": 0.4, "text_output": 16.0, "audio_input": 32.0, "cached_audio_input": 0.4, "audio_output": 64.0, "image_input": 5.0}, "evidence": {"meter_family": "gpt rt * 0828 * glbl Tokens"}},
+        {"model": "gpt-realtime-mini", "display_name": "GPT Realtime Mini", "lifecycle": "ga", "versions": ["2025-12-15", "2025-10-06"], "pricing": {"text_input": 0.6, "cached_text_input": 0.06, "text_output": 2.4, "audio_input": 10.0, "cached_audio_input": 0.3, "audio_output": 20.0, "image_input": 0.8}, "evidence": {"meter_family": "gpt rt * mn * 1215 * 1M Tokens"}},
+        {"model": "gpt-realtime-1.5", "display_name": "GPT Realtime 1.5", "lifecycle": "ga", "versions": ["2026-02-23"], "pricing": {"text_input": 4.0, "cached_text_input": 0.4, "text_output": 16.0, "audio_input": 32.0, "cached_audio_input": 0.4, "audio_output": 64.0, "image_input": 5.0}, "evidence": {"meter_family": "gpt rt 1.5 * Gl 1M Tokens"}},
+        {"model": "gpt-realtime-translate", "display_name": "GPT Realtime Translate", "lifecycle": "ga", "versions": ["2026-05-06"], "pricing_unit": "USD per audio hour", "pricing": {"audio_hour": 2.04}, "evidence": {"meter_family": "gpt-realtime-translate Opt Gl Unit"}},
+        {"model": "gpt-realtime-whisper", "display_name": "GPT Realtime Whisper", "lifecycle": "ga", "versions": ["2026-05-06"], "pricing_unit": "USD per audio hour", "pricing": {"audio_hour": 1.02}, "evidence": {"meter_family": "gpt-realtime-whisper Opt Gl Unit"}},
+        {"model": "gpt-live-transcribe", "display_name": "GPT Live Transcribe", "lifecycle": "ga", "versions": ["2026-07-29"], "pricing_unit": "USD per audio hour", "pricing": {"audio_hour": 1.02}, "evidence": {"meter_family": "gpt-live-transcribe Gl Unit"}},
+        {"model": "gpt-realtime-2", "display_name": "GPT Realtime 2", "lifecycle": "ga", "versions": ["2026-05-07"], "pricing": {"text_input": 4.0, "cached_text_input": 0.4, "text_output": 24.0, "audio_input": 32.0, "cached_audio_input": 0.4, "audio_output": 64.0, "image_input": 5.0}, "evidence": {"meter_family": "gpt-realtime-2 * Gl 1M Tokens"}},
+        {"model": "gpt-realtime-2.1", "display_name": "GPT Realtime 2.1", "lifecycle": "ga", "versions": ["2026-07-07"], "pricing": {"text_input": 4.0, "cached_text_input": 0.4, "text_output": 24.0, "audio_input": 32.0, "cached_audio_input": 0.4, "audio_output": 64.0, "image_input": 5.0}, "evidence": {"meter_family": "gpt-realtime-2.1 * Gl 1M Tokens"}},
+        {"model": "gpt-realtime-2.1-mini", "display_name": "GPT Realtime 2.1 Mini", "lifecycle": "preview", "versions": ["2026-07-07"], "pricing": {"text_input": 0.6, "cached_text_input": 0.06, "text_output": 2.4, "audio_input": 10.0, "cached_audio_input": 0.3, "audio_output": 20.0, "image_input": 0.8}, "evidence": {"meter_family": "gpt-realtime-2.1-mini * Gl 1M Tokens"}},
+        {"model": "whisper", "display_name": "Whisper", "lifecycle": "ga", "versions": [], "pricing_unit": "USD per audio hour", "pricing": {"audio_hour": 0.36}, "evidence": {"meter_family": "Speech-to-Text-Batch-Whisper-glbl Unit"}},
+        {"model": "gpt-transcribe", "display_name": "GPT Transcribe", "lifecycle": "ga", "versions": [], "pricing_unit": "USD per audio hour", "pricing": {"audio_hour": 0.27}, "evidence": {"meter_family": "gpt-transcribe Gl Unit"}},
+        {"model": "gpt-4o-transcribe", "display_name": "GPT-4o Transcribe", "lifecycle": "preview", "versions": ["2025-03-20"], "pricing": {"text_input": 2.5, "text_output": 10.0, "audio_input": 6.0}, "evidence": {"meter_family": "gpt-4o-transcribe-* glbl Tokens"}},
+        {"model": "gpt-4o-mini-transcribe", "display_name": "GPT-4o Mini Transcribe", "lifecycle": "preview", "versions": ["2025-12-15", "2025-03-20"], "pricing": {"text_input": 1.25, "text_output": 5.0, "audio_input": 3.0}, "evidence": {"meter_family": "gpt-4o-mini-transcribe-* glbl Tokens"}},
+        {"model": "gpt-4o-transcribe-diarize", "display_name": "GPT-4o Transcribe Diarize", "lifecycle": "preview", "versions": ["2025-10-15"], "pricing": {"text_input": 2.5, "text_output": 10.0, "audio_input": 6.0}, "evidence": {"meter_family": "gpt 4o tcrb d * glbl Tokens"}},
+        {"model": "tts", "display_name": "TTS", "lifecycle": "preview", "versions": [], "pricing_unit": "USD per 1M characters", "pricing": {"characters": 15.0}, "evidence": {"meter_family": "Speech-Text to Speech-global Characters"}},
+        {"model": "tts-hd", "display_name": "TTS HD", "lifecycle": "preview", "versions": [], "pricing_unit": "USD per 1M characters", "pricing": {"characters": 30.0}, "evidence": {"meter_family": "Speech-Text to Speech HD-global Characters"}},
+        {"model": "gpt-4o-mini-tts", "display_name": "GPT-4o Mini TTS", "lifecycle": "ga", "versions": ["2025-12-15", "2025-03-20"], "pricing": {"text_input": 0.6, "audio_output": 12.0}, "evidence": {"meter_family": "gpt4o mn tts * gl 1215 1M Tokens"}}
+      ]
+    },
+    {
+      "provider": "azure_openai",
+      "modality_group": "specialized",
+      "defaults": {
+        "coordinator_capable": false,
+        "selector_eligible": false,
+        "pricing_unit": "USD per 1M tokens",
+        "capabilities": {"agent_service_only": true}
+      },
+      "models": [
+        {"model": "o3-deep-research", "display_name": "o3 Deep Research", "lifecycle": "agent-service-only", "versions": ["2025-06-26"], "pricing": {"input": 10.0, "cached_input": 2.5, "output": 40.0}, "evidence": {"meter_family": "o3-deep research 0626-* glbl 1M Tokens"}}
+      ]
+    },
+    {
+      "provider": "anthropic",
+      "modality_group": "text",
+      "defaults": {
+        "coordinator_capable": true,
+        "selector_eligible": true,
+        "tokenizer": "cl100k_base",
+        "capabilities": {"text": true, "vision": true, "reasoning": true, "tools": true, "caching": true}
+      },
+      "models": [
+        {"model": "claude-mythos-5", "display_name": "Claude Mythos 5", "lifecycle": "gated-research-preview", "context_window": 1000000, "max_output_tokens": 128000, "selector_eligible": false, "pricing": {"input": 10.0, "cached_input": 1.0, "cache_write_5m": 12.5, "cache_write_1h": 20.0, "output": 50.0}, "deployment": {"hosting": "Anthropic infrastructure", "authentication": "Microsoft Entra ID only"}},
+        {"model": "claude-fable-5", "display_name": "Claude Fable 5", "lifecycle": "preview", "context_window": 1000000, "max_output_tokens": 128000, "pricing": {"input": 10.0, "cached_input": 1.0, "cache_write_5m": 12.5, "cache_write_1h": 20.0, "output": 50.0}, "deployment": {"hosting": "Anthropic infrastructure"}},
+        {"model": "claude-mythos-preview", "display_name": "Claude Mythos Preview", "lifecycle": "gated-research-preview", "context_window": 1000000, "max_output_tokens": 128000, "selector_eligible": false, "pricing": {}, "deployment": {"hosting": "Anthropic infrastructure", "authentication": "Microsoft Entra ID only"}, "evidence": {"status": "unavailable", "reason": "No separate model-specific rate is published; Mythos 5 pricing is not inherited."}},
+        {"model": "claude-opus-5", "display_name": "Claude Opus 5", "lifecycle": "ga", "context_window": 1000000, "max_output_tokens": 128000, "pricing": {"input": 5.0, "cached_input": 0.5, "cache_write_5m": 6.25, "cache_write_1h": 10.0, "output": 25.0}, "deployment": {"hosting": "Azure or Anthropic infrastructure"}},
+        {"model": "claude-opus-4-8", "display_name": "Claude Opus 4.8", "lifecycle": "ga", "context_window": 1000000, "max_output_tokens": 128000, "pricing": {"input": 5.0, "cached_input": 0.5, "cache_write_5m": 6.25, "cache_write_1h": 10.0, "output": 25.0}, "deployment": {"hosting": "Azure or Anthropic infrastructure"}},
+        {"model": "claude-opus-4-7", "display_name": "Claude Opus 4.7", "lifecycle": "ga", "context_window": 1000000, "max_output_tokens": 128000, "pricing": {"input": 5.0, "cached_input": 0.5, "cache_write_5m": 6.25, "cache_write_1h": 10.0, "output": 25.0}, "deployment": {"hosting": "Anthropic infrastructure"}},
+        {"model": "claude-opus-4-6", "display_name": "Claude Opus 4.6", "lifecycle": "ga", "context_window": 1000000, "max_output_tokens": 128000, "pricing": {"input": 5.0, "cached_input": 0.5, "cache_write_5m": 6.25, "cache_write_1h": 10.0, "output": 25.0}, "deployment": {"hosting": "Anthropic infrastructure"}},
+        {"model": "claude-opus-4-5", "display_name": "Claude Opus 4.5", "lifecycle": "ga", "context_window": 200000, "max_output_tokens": 64000, "pricing": {"input": 5.0, "cached_input": 0.5, "cache_write_5m": 6.25, "cache_write_1h": 10.0, "output": 25.0}, "deployment": {"hosting": "Anthropic infrastructure"}},
+        {"model": "claude-sonnet-5", "display_name": "Claude Sonnet 5", "lifecycle": "ga", "context_window": 1000000, "max_output_tokens": 128000, "pricing": {"input": 2.0, "cached_input": 0.2, "cache_write_5m": 2.5, "cache_write_1h": 4.0, "output": 10.0}, "deployment": {"hosting": "Azure or Anthropic infrastructure"}},
+        {"model": "claude-sonnet-4-6", "display_name": "Claude Sonnet 4.6", "lifecycle": "ga", "context_window": 1000000, "max_output_tokens": 128000, "pricing": {"input": 3.0, "cached_input": 0.3, "cache_write_5m": 3.75, "cache_write_1h": 6.0, "output": 15.0}, "deployment": {"hosting": "Anthropic infrastructure"}},
+        {"model": "claude-sonnet-4-5", "display_name": "Claude Sonnet 4.5", "lifecycle": "ga", "context_window": 200000, "max_output_tokens": 64000, "pricing": {"input": 3.0, "cached_input": 0.3, "cache_write_5m": 3.75, "cache_write_1h": 6.0, "output": 15.0}, "deployment": {"hosting": "Anthropic infrastructure"}},
+        {"model": "claude-haiku-4-5", "display_name": "Claude Haiku 4.5", "lifecycle": "ga", "context_window": 200000, "max_output_tokens": 64000, "pricing": {"input": 1.0, "cached_input": 0.1, "cache_write_5m": 1.25, "cache_write_1h": 2.0, "output": 5.0}, "deployment": {"hosting": "Azure or Anthropic infrastructure"}}
+      ]
+    }
+  ]
+}

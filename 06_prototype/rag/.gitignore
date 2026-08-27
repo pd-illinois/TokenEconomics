@@ -2,3 +2,4 @@
 data/
 # RAG live telemetry output
 telemetry_rag.jsonl
+captured_trajectories/

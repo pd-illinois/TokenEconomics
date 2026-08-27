@@ -2,6 +2,7 @@
 # The simulated demo (`python demo.py`) needs NONE of these.
 
 openai>=1.40.0                 # Azure OpenAI / Foundry chat completions
+azure-ai-projects>=2.5.0       # Foundry project, agent, conversations, and Responses API
 azure-identity>=1.17.0         # DefaultAzureCredential (Entra ID / az login)
 python-dotenv>=1.0.0           # load .env
 

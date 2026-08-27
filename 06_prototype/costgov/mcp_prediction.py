@@ -15,6 +15,8 @@ import anyio
 from mcp import ClientSession, StdioServerParameters
 from mcp.client.stdio import stdio_client
 
+from costgov.model_release import find_released_offering, load_model_release
+
 
 class McpPredictionError(RuntimeError):
     """Raised when the predictor MCP process cannot return structured output."""
@@ -30,7 +32,36 @@ class McpPredictorClient:
         if not description:
             raise ValueError("description is required")
         arguments, intake = self._build_arguments(description, overrides or {})
-        return anyio.run(self._predict, description, arguments, intake)
+        catalog = load_model_release(self.root)
+        offering = find_released_offering(
+            catalog, intake["provider"], intake["model"]
+        )
+        result = anyio.run(self._predict, description, arguments, intake)
+        release_evidence = {
+            "schema_version": catalog["schema_version"],
+            "release_version": catalog["release_version"],
+            "offering_key": f"{intake['provider']}:{intake['model']}",
+            "status": "released" if offering else "unreleased",
+        }
+        if offering:
+            release_evidence.update({
+                "pricing": offering["pricing"],
+                "pricing_unit": offering["pricing_unit"],
+                "deployment": offering["deployment"],
+                "evidence": offering["evidence"],
+                "pricing_url": offering["pricing_url"],
+                "model_catalog_url": offering["model_catalog_url"],
+            })
+            prediction = result["prediction"]
+            prediction["pricing_version"] = catalog["release_version"]
+            prediction["sources"] = {
+                **(prediction.get("sources") or {}),
+                "pricing_url": offering["pricing_url"],
+                "model_catalog_url": offering["model_catalog_url"],
+            }
+        result["model_release"] = release_evidence
+        result["intake"]["model_release"] = release_evidence
+        return result
 
     def analyze(self, description: str) -> dict:
         description = description.strip()
@@ -39,29 +70,10 @@ class McpPredictorClient:
         return anyio.run(self._analyze, description)
 
     def model_catalog(self) -> dict:
-        predictor_root = self.root / "FutureTokenPredictor"
-        if not predictor_root.exists():
-            raise McpPredictionError("FutureTokenPredictor runtime is unavailable")
-        environment = os.environ.copy()
-        environment["PYTHONPATH"] = str(predictor_root / "src")
-        command = (
-            "import json; "
-            "from future_token_predictor.model_catalog import build_model_catalog; "
-            "print(json.dumps(build_model_catalog()))"
-        )
         try:
-            result = subprocess.run(
-                [sys.executable, "-c", command],
-                cwd=predictor_root,
-                env=environment,
-                capture_output=True,
-                text=True,
-                timeout=self.timeout_seconds,
-                check=True,
-            )
-            return json.loads(result.stdout)
-        except (subprocess.SubprocessError, json.JSONDecodeError) as exc:
-            raise McpPredictionError(f"FutureTokenPredictor catalog failed: {exc}") from exc
+            return load_model_release(self.root)
+        except (OSError, ValueError, json.JSONDecodeError) as exc:
+            raise McpPredictionError(f"Foundry model release failed: {exc}") from exc
 
     @staticmethod
     def _build_arguments(description: str, overrides: dict) -> tuple[dict, dict]:

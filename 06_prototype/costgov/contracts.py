@@ -80,6 +80,21 @@ class ExecutionContext:
     request_id: Optional[str] = None
     trace_id: Optional[str] = None
     report_id: Optional[str] = None
+    task_id: Optional[str] = None
+    trajectory_id: Optional[str] = None
+    task_created_at: Optional[str] = None
+    trajectory_started_at: Optional[str] = None
+    workload_id: Optional[str] = None
+    workload_version: Optional[str] = None
+    segment_id: Optional[str] = None
+    segment_version: Optional[str] = None
+    prediction_receipt_id: Optional[str] = None
+    prediction_receipt_hash: Optional[str] = None
+    policy_id: Optional[str] = None
+    policy_hash: Optional[str] = None
+    policy_source: Optional[str] = None
+    policy_label: Optional[str] = None
+    policy_etag: Optional[str] = None
 
 
 @dataclass(frozen=True)
@@ -136,3 +151,6 @@ class ReconciliationResult:
     actual_tokens_per_task: float
     forecast_error_pct: Optional[float] = None
     detail: str = ""
+    segment_id: str = ""
+    task_ids: tuple[str, ...] = ()
+    trajectory_ids: tuple[str, ...] = ()

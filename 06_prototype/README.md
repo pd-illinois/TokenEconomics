@@ -48,12 +48,24 @@ run, and reconciliation result created from that workspace remains associated wi
 ID. Report manifests are stored under `studio_reports/<report-id>/report.json` and can be
 renamed, saved, and reopened after a server restart without duplicating child artifacts.
 
-Plan sessions survive server restarts under `studio_plans/<plan-id>/session.json`. A
-completed plan writes one immutable receipt to `studio_plans/<plan-id>/receipts/`; the
-receipt snapshots normalized intake, predictor output, separate infrastructure status,
-pricing provenance, and a SHA-256 identity. Govern handoff references that receipt and
-evaluates it against the exact TokenGov policy revision loaded from Azure App
-Configuration. Studio fails closed if that policy or its required label cannot be read.
+Plan sessions survive server restarts under `studio_plans/<plan-id>/session.json`. Plan
+first resolves one of nine delivery experiences through `consumption-models.v1`, then
+composes only the applicable FutureTokenPredictor model/token forecast and commercial
+subscription, entitlement, Microsoft Copilot Credit, GitHub AI Credit, or resource-meter
+forecast. A completed plan writes one immutable schema-5 receipt to
+`studio_plans/<plan-id>/receipts/`; the receipt snapshots normalized intake, the resolved
+meter stack, independent subforecasts, exclusions, pricing provenance,
+`trajectory-envelope.v1` workload bindings, and a SHA-256 identity. Govern handoff
+references that receipt and evaluates it against the exact TokenGov policy revision
+loaded from Azure App Configuration. Studio fails closed if that policy or its required
+label cannot be read.
+
+Studio's current Foundry catalog is release `2026-08-25.2` in
+`data/model_catalogs/foundry-model-release.v2.json`. It lists supported OpenAI
+and Anthropic Foundry models across modalities, but enables only
+coordinator-capable offerings with verified model-specific input/output prices.
+Catalog-only entries remain visible with their exclusion reason. Historical
+release files and receipts remain immutable.
 
 ## Deploy the TokenGov policy authority
 
@@ -128,7 +140,10 @@ deterministically. Costs/latencies are illustrative, not real prices.
   workload.json        # simulated live support traffic
   costgov/
     contracts.py       # SHARED: forecast/execution/actual schemas
+    trajectory_contracts.py # SHARED: framework-neutral task/trajectory envelope
     prediction.py      # CONTROL PLANE: predictor adapter        -> Python package / MCP
+    consumption_models.py # PLAN: nine delivery experiences + meter stacks
+    commercial_planning.py # PLAN: Copilot/GitHub/commercial forecast composition
     policy.py          # CONTROL PLANE: forecast-driven admission
     models.py          # DATA PLANE: model layer (cheap/premium) -> Foundry Model Router / AOAI / Anthropic
     cache.py           # DATA PLANE: semantic cache               -> APIM llm-semantic-cache / GPTCache
@@ -144,6 +159,9 @@ deterministically. Costs/latencies are illustrative, not real prices.
   studio.py            # local HTTP API and asynchronous run service
   studio.html          # five-view operator interface
   FutureTokenPredictor/# nested predictor repository
+  rag/
+    foundry_trajectory_adapter.py # WORKLOAD EDGE: Foundry response items -> generic trajectory
+    capture_foundry_trajectory.py # LIVE PROOF: admitted Entra-authenticated agent invocation
   demo.py              # the 5-act end-to-end runner
 ```
 

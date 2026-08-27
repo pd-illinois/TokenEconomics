@@ -170,6 +170,27 @@
     header { display: flex; justify-content: space-between; gap: 20px; align-items: center; margin: 0 calc(clamp(20px, 4vw, 56px) * -1) 28px; padding: 16px clamp(20px, 4vw, 56px); border-bottom: 1px solid var(--cp-border); background: var(--cp-surface); }
     h1 { margin: 0 0 6px; font-size: 25px; letter-spacing: 0; }
     .subtitle { color: var(--cp-text-muted); margin: 0; }
+    .description-label { display: inline-flex; align-items: center; gap: 7px; width: fit-content; }
+    .description-help { position: relative; display: inline-flex; }
+    .description-help > button {
+      width: 20px; height: 20px; padding: 0; border: 1px solid var(--cp-border-strong);
+      border-radius: 50%; background: var(--cp-surface); color: var(--cp-text-muted);
+      cursor: help; font-size: 12px; font-weight: 700; line-height: 1;
+    }
+    .description-help > button:hover, .description-help > button:focus-visible {
+      border-color: var(--cp-accent); color: var(--cp-accent); outline: 2px solid var(--cp-accent-soft);
+    }
+    .description-help [role="tooltip"] {
+      position: absolute; z-index: 20; left: 28px; top: -8px; width: min(380px, 70vw);
+      padding: 10px 12px; border: 1px solid var(--cp-border); border-radius: var(--fl-radius);
+      background: var(--cp-panel-strong); color: var(--cp-text); box-shadow: var(--cp-shadow);
+      font-size: 12px; font-weight: 400; line-height: 1.45; visibility: hidden; opacity: 0;
+      transform: translateY(3px); transition: opacity var(--fl-duration), transform var(--fl-duration);
+    }
+    .description-help:hover [role="tooltip"],
+    .description-help:focus-within [role="tooltip"] {
+      visibility: visible; opacity: 1; transform: translateY(0);
+    }
     .status { display: inline-flex; align-items: center; gap: 8px; font-size: 13px; color: var(--cp-text-muted); }
     .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--cp-success); }
     .view { display: none; }
@@ -211,6 +232,7 @@
     .empty { color: var(--cp-text-muted); padding: 30px 0; text-align: center; }
     .composer { display: grid; gap: 10px; margin-bottom: 16px; }
     .composer textarea { width: 100%; min-height: 112px; resize: vertical; border: 1px solid var(--cp-border-strong); border-radius: var(--fl-radius); padding: 12px; background: var(--cp-surface); color: var(--cp-text); font: inherit; line-height: 1.45; }
+    .prompt-example { color: var(--cp-text-muted); font-size: 12px; line-height: 1.45; }
     .composer-actions { display: flex; justify-content: flex-end; }
     .intake-grid { display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 10px; }
     .field { display: grid; gap: 5px; color: var(--cp-text-muted); font-size: 12px; }
@@ -346,10 +368,11 @@
     body.console-ui .experience-card:has(input:checked) { background: var(--cp-accent-soft); }
     body.console-ui .meter-badge,
     body.console-ui .badge { border-radius: 3px; }
-    body.console-ui .flow { gap: 0; border: 1px solid var(--cp-border-strong); border-radius: var(--fl-radius); overflow: hidden; }
-    body.console-ui .flow div { border: 0; border-right: 1px solid var(--cp-border); border-left: 0; border-radius: 0; background: var(--cp-bg-elevated); text-transform: uppercase; letter-spacing: .08em; }
-    body.console-ui .flow div:first-child { background: var(--cp-accent-soft); color: var(--cp-accent); }
+    body.console-ui .flow { isolation: isolate; gap: 0; border: 1px solid var(--cp-border-strong); border-radius: var(--fl-radius); overflow: hidden; background: var(--cp-surface); }
+    body.console-ui .flow div { position: relative; z-index: 1; border: 0; border-right: 1px solid var(--cp-border); border-left: 0; border-radius: 0; background: var(--cp-bg-elevated); background-image: none; text-transform: uppercase; letter-spacing: .08em; }
+    body.console-ui .flow div:first-child { background: linear-gradient(var(--cp-accent-soft), var(--cp-accent-soft)), var(--cp-bg-elevated); color: var(--cp-accent); }
     body.console-ui .flow div:last-child { border-right: 0; }
+    body.console-ui .experience-card:has(input:checked) { background: linear-gradient(var(--cp-accent-soft), var(--cp-accent-soft)), var(--cp-surface); }
     body.console-ui input,
     body.console-ui textarea,
     body.console-ui select,
@@ -396,9 +419,16 @@
         <div class="toolbar"><div><h2>AI workload forecast</h2><p class="subtitle">Start with the work and delivery experience; Studio resolves each independent subscription, credit, token, and resource meter.</p></div></div>
         <div class="flow"><div>1. Forecast</div><div>2. Admit policy</div><div>3. Execute</div><div>4. Evaluate</div><div>5. Reconcile</div></div>
         <div class="panel composer">
-          <label for="plan-prompt"><strong>Describe the work you want AI to complete</strong></label>
+          <div class="description-label">
+            <label for="plan-prompt"><strong>Describe the work you want AI to complete</strong></label>
+            <span class="description-help">
+              <button type="button" aria-label="How to describe the use case" aria-describedby="description-help-text">i</button>
+              <span id="description-help-text" role="tooltip">Describe the audience, expected outcome, frequency, systems or information used, and important agent or workflow steps. Use the controls below for model, scale, topology, modalities, and tools. Selected fields override conflicting values in the description.</span>
+            </span>
+          </div>
           <span class="subtitle">Include the audience, expected outcome, frequency, and systems or information the work needs.</span>
           <textarea id="plan-prompt"></textarea>
+          <span class="prompt-example" id="plan-prompt-example"></span>
           <fieldset class="experience-fieldset">
             <legend>How will this work be delivered?</legend>
             <div class="experience-grid" id="experience-grid"><div class="empty">Loading versioned delivery experiences...</div></div>
@@ -445,6 +475,11 @@
             <label class="field">Calls per user / day<input id="plan-calls" type="number" min="1" value="10"></label>
           </div>
           <div class="model-details" id="plan-model-details">Loading pricing and capability metadata from FutureTokenPredictor.</div>
+          <details class="agent-model-editor">
+            <summary>All supported OpenAI and Anthropic Foundry models</summary>
+            <p class="subtitle">Models are grouped by modality with versioned public pricing evidence. Only coordinator-capable models can be selected for forecasts.</p>
+            <div id="foundry-model-catalog"><div class="empty">Loading the released Foundry catalog...</div></div>
+          </details>
           <div id="plan-analysis" class="panel empty">Analyze the description to review inferred topology, modalities, tools, evidence, and unresolved questions before estimating.</div>
           <details class="agent-model-editor">
             <summary>Use a different model for each agent</summary>
@@ -531,7 +566,7 @@
         || localStorage.getItem(UI_MODE_KEY)
         || "standard"
     );
-    const state = { report: null, plan: null, analysis: null, handoff: null, run: null, effectivePolicy: null, policyChanges: [], modelCatalog: [], consumptionCatalog: null };
+    const state = { report: null, plan: null, analysis: null, handoff: null, run: null, effectivePolicy: null, policyChanges: [], modelCatalog: [], modelRelease: null, consumptionCatalog: null };
     const modelRoutes = new Set(["foundry", "copilot_studio_byom", "foundry_work_iq"]);
     const titles = { plan: "Plan", govern: "Govern", runs: "Runs", observe: "Observe", reconcile: "Reconcile" };
     document.querySelectorAll(".tab").forEach(button => button.addEventListener("click", () => {
@@ -578,6 +613,27 @@
         return;
       }
       target.innerHTML = `<h3 class="section-title">Consumption model · ${escapeHtml(stack.display_name)}</h3><div class="meter-badges">${stack.layers.map(layer => `<span class="meter-badge">${escapeHtml(layer.family.replaceAll("_", " "))} · ${escapeHtml(layer.unit)}</span>`).join("")}</div><p class="subtitle">${escapeHtml(stack.description)}</p>`;
+    }
+    const workloadExamples = {
+      included: "Help sales managers prepare a concise weekly account brief that summarizes pipeline changes, customer commitments, and next actions using Outlook email, Teams meetings, SharePoint files, and Dynamics 365 opportunity data.",
+      cowork: "Help finance operations analysts produce a reconciled month-end variance package every month by reviewing Excel workbooks, SharePoint evidence, prior close commentary, and exported ERP transaction reports.",
+      agent_builder: "Help employees get cited answers to HR policy questions on demand using approved benefits, leave, travel, and workplace-policy documents stored in SharePoint.",
+      copilot_studio: "Help customer service representatives triage each incoming support case, retrieve the relevant approved knowledge article, and draft a response using Dynamics 365 Customer Service, Dataverse, and the support knowledge base.",
+      work_iq: "Help account teams generate a daily customer follow-up brief and proposed actions using authorized Microsoft 365 email, calendar, Teams meeting, file, and task context through Work IQ APIs.",
+      foundry: "Help risk analysts produce a cited product-risk summary for approximately 500 requests per day by retrieving controlled documents from Azure AI Search and Blob Storage and invoking approved internal APIs.",
+      github_copilot: "Help software engineering teams review every pull request, suggest relevant tests, explain failed GitHub Actions checks, and propose code changes using repository code, issues, pull-request context, and workflow logs.",
+      copilot_studio_byom: "Help support representatives handle each complex service request through a Copilot Studio agent that uses Dataverse case data and approved knowledge, then invokes a separately metered Foundry model for advanced reasoning.",
+      foundry_work_iq: "Help legal operations teams produce an action-and-risk brief after each customer meeting by combining authorized Work IQ email, calendar, Teams, and SharePoint context with a separately metered Foundry model.",
+    };
+    function updateWorkloadExample(route) {
+      const prompt = document.getElementById("plan-prompt");
+      const example = workloadExamples[route] || "";
+      const previousGeneratedSample = prompt.dataset.generatedSample || "";
+      const canReplace = !prompt.value.trim() || prompt.value === previousGeneratedSample;
+      prompt.placeholder = example;
+      document.getElementById("plan-prompt-example").textContent = example ? `Sample: ${example}` : "";
+      prompt.dataset.generatedSample = example;
+      if (canReplace) prompt.value = example;
     }
     function collectPurchasePortfolio(prefix, product, fixedCost) {
       return {
@@ -705,6 +761,7 @@
       document.getElementById("github-route-fields").hidden = route !== "github_copilot";
       document.getElementById("plan-button").textContent = needsModel ? "Analyze workload" : "Build forecast";
       state.analysis = null;
+      updateWorkloadExample(route);
       renderConsumptionSummary(route);
       refreshEvidencePreview();
     }
@@ -728,20 +785,41 @@
         document.getElementById("plan-model-details").textContent = catalog.error || "FutureTokenPredictor model catalog is unavailable.";
         return;
       }
+      state.modelRelease = catalog;
       state.modelCatalog = catalog.offerings || [];
-      const grouped = state.modelCatalog.reduce((groups, offering) => {
+      const coordinatorOfferings = state.modelCatalog.filter(offering => offering.selector_eligible !== false);
+      const grouped = coordinatorOfferings.reduce((groups, offering) => {
         if (!groups.has(offering.provider_name)) groups.set(offering.provider_name, []);
         groups.get(offering.provider_name).push(offering);
         return groups;
       }, new Map());
-      select.innerHTML = Array.from(grouped, ([providerName, offerings]) => `<optgroup label="${escapeHtml(providerName)}">${offerings.map(offering => `<option value="${escapeHtml(offering.key)}" data-model="${escapeHtml(offering.model)}" data-provider="${escapeHtml(offering.provider)}"${offering.key === "azure_openai:gpt-4.1" ? " selected" : ""}>${escapeHtml(offering.model)}</option>`).join("")}</optgroup>`).join("");
+      select.innerHTML = Array.from(grouped, ([providerName, offerings]) => `<optgroup label="${escapeHtml(providerName)}">${offerings.map(offering => `<option value="${escapeHtml(offering.key)}" data-model="${escapeHtml(offering.model)}" data-provider="${escapeHtml(offering.provider)}"${offering.key === catalog.default_key ? " selected" : ""}>${escapeHtml(offering.display_name || offering.model)}</option>`).join("")}</optgroup>`).join("");
       select.disabled = false;
       document.getElementById("add-agent-model-button").disabled = false;
       document.getElementById("plan-button").disabled = false;
+      renderFoundryModelCatalog();
       renderSelectedModel();
     }
+    function renderFoundryModelCatalog() {
+      const target = document.getElementById("foundry-model-catalog");
+      const grouped = state.modelCatalog.reduce((groups, offering) => {
+        const modality = offering.modality_group || offering.modality || "text";
+        if (!groups.has(modality)) groups.set(modality, []);
+        groups.get(modality).push(offering);
+        return groups;
+      }, new Map());
+      target.innerHTML = Array.from(grouped, ([modality, offerings]) => {
+        const rows = offerings.map(offering => {
+          const prices = Object.entries(offering.pricing || {}).map(([name, value]) => `${escapeHtml(name.replaceAll("_", " "))}: ${money(value)}`).join(" · ");
+          const eligibility = offering.selector_eligible !== false ? "Coordinator eligible" : offering.coordinator_capable ? "Coordinator capable · not selectable" : "Catalog only";
+          const unavailableReason = offering.evidence?.reason || "";
+          return `<tr><td><strong>${escapeHtml(offering.display_name || offering.model)}</strong><br><code>${escapeHtml(offering.model)}</code></td><td>${escapeHtml(offering.provider_name)}</td><td>${escapeHtml(eligibility)}</td><td>${prices || "Price unavailable"}${unavailableReason ? `<br><small>${escapeHtml(unavailableReason)}</small>` : ""}<br><small>${escapeHtml(offering.pricing_unit || "")}</small></td><td>${escapeHtml(offering.lifecycle || "unspecified")}</td></tr>`;
+        }).join("");
+        return `<div class="panel"><h3 class="section-title">${escapeHtml(modality.replaceAll("_", " "))}</h3><table><thead><tr><th>Model</th><th>Provider</th><th>Plan use</th><th>Public pricing</th><th>Lifecycle</th></tr></thead><tbody>${rows}</tbody></table></div>`;
+      }).join("");
+    }
     function modelOptions(selectedKey = "") {
-      return state.modelCatalog.map(offering => `<option value="${escapeHtml(offering.key)}" data-model="${escapeHtml(offering.model)}" data-provider="${escapeHtml(offering.provider)}"${offering.key === selectedKey ? " selected" : ""}>${escapeHtml(offering.provider_name)} · ${escapeHtml(offering.model)}</option>`).join("");
+      return state.modelCatalog.filter(offering => offering.selector_eligible !== false).map(offering => `<option value="${escapeHtml(offering.key)}" data-model="${escapeHtml(offering.model)}" data-provider="${escapeHtml(offering.provider)}"${offering.key === selectedKey ? " selected" : ""}>${escapeHtml(offering.provider_name)} · ${escapeHtml(offering.model)}</option>`).join("");
     }
     function addAgentModelRow(values = {}) {
       const list = document.getElementById("agent-model-list");
@@ -770,15 +848,19 @@
     function renderSelectedModel() {
       const select = document.getElementById("plan-model"), selected = select.selectedOptions[0];
       const offering = state.modelCatalog.find(item => item.key === selected?.value);
-      if (!offering) return;
+      if (!offering) {
+        document.getElementById("plan-model-details").innerHTML = `<span class="warning"><strong>Historical model selection.</strong> This exact provider/model offering is not in the active release and cannot inherit current pricing.</span>`;
+        return;
+      }
       const capabilities = Object.entries(offering.capabilities).filter(([, enabled]) => enabled).map(([name]) => name);
+      const pricingUrl = safeUrl(offering.pricing_url);
       const policy = state.effectivePolicy?.policy?.admission;
       const policyStatus = !policy
         ? `<span>Checking Govern policy...</span>`
         : policy.allowed_providers.includes(offering.provider) && policy.allowed_models.includes(offering.model)
           ? `<span class="success">Govern policy eligible</span>`
           : `<span class="policy-rejected">Current Govern policy will reject this offering</span>`;
-      document.getElementById("plan-model-details").innerHTML = `<span><strong>${escapeHtml(offering.provider_name)}</strong></span><span>Input ${money(offering.pricing.input)} / 1M</span><span>Output ${money(offering.pricing.output)} / 1M</span><span>${number(offering.context_window)} context</span><span>${capabilities.length ? escapeHtml(capabilities.join(" · ")) : "text"}</span>${offering.capabilities.reasoning ? `<span>${escapeHtml(String(offering.reasoning_multiplier))}× reasoning estimate</span>` : ""}${policyStatus}`;
+      document.getElementById("plan-model-details").innerHTML = `<span><strong>${escapeHtml(offering.provider_name)}</strong></span><span>Input ${money(offering.pricing.input)} / 1M</span><span>Output ${money(offering.pricing.output)} / 1M</span><span>${escapeHtml(offering.deployment?.type || "Deployment unspecified")}</span><span>Release ${escapeHtml(state.modelRelease?.release_version || "unknown")}</span><span>${number(offering.context_window)} context</span><span>${capabilities.length ? escapeHtml(capabilities.join(" · ")) : "text"}</span>${pricingUrl ? `<span><a href="${pricingUrl}" target="_blank" rel="noreferrer">Exact pricing evidence</a></span>` : ""}${policyStatus}`;
     }
     document.getElementById("plan-model").addEventListener("change", renderSelectedModel);
     function renderWorkloadAnalysis(analysis) {
@@ -810,7 +892,7 @@
     }
     document.getElementById("plan-prompt").addEventListener("input", () => {
       state.analysis = null;
-      document.getElementById("plan-button").textContent = "Analyze workload";
+      document.getElementById("plan-button").textContent = modelRoutes.has(selectedRoute()) ? "Analyze workload" : "Build forecast";
       document.getElementById("plan-analysis").className = "panel empty";
       document.getElementById("plan-analysis").textContent = "Description changed. Analyze again before estimating.";
     });
@@ -888,9 +970,9 @@
       document.getElementById("studio-shell").hidden = false;
       document.querySelector('.tab[data-view="plan"]').click();
       renderReportArtifacts(report);
-      if (report.artifacts?.plans?.length) await openPlan(report.artifacts.plans[0].id);
       await loadConsumptionCatalog();
       await loadModelCatalog();
+      if (report.artifacts?.plans?.length) await openPlan(report.artifacts.plans[0].id);
     }
     document.getElementById("save-report-button").addEventListener("click", async event => {
       event.target.disabled = true;
@@ -915,11 +997,117 @@
       document.getElementById("run-content").innerHTML = `<div class="empty">Runs are read-only in this release and will be enabled in v2.</div>`;
       document.getElementById("govern-content").innerHTML = `<div class="panel wide empty">Govern is read-only in this release and will be enabled in v2.</div>`;
     }
+    function selectRouteForPlan(plan) {
+      const route = plan?.route?.route_id || plan?.meter_stack?.route_id;
+      const input = Array.from(document.querySelectorAll('input[name="plan-route"]')).find(item => item.value === route);
+      if (!input) return;
+      input.checked = true;
+      updateRouteFields();
+    }
+    function restoreInput(id, value) {
+      if (value === undefined || value === null) return;
+      const input = document.getElementById(id);
+      if (!input) return;
+      if (input.type === "checkbox") input.checked = Boolean(value);
+      else input.value = String(value);
+    }
+    function restoreModelSelection(intake) {
+      if (!intake.model || !intake.provider) return;
+      const select = document.getElementById("plan-model");
+      const key = `${intake.provider}:${intake.model}`;
+      let option = Array.from(select.options).find(item => item.value === key);
+      if (!option) {
+        option = document.createElement("option");
+        option.value = key;
+        option.dataset.model = intake.model;
+        option.dataset.provider = intake.provider;
+        option.textContent = `${intake.model} (historical or no longer released)`;
+        select.prepend(option);
+      }
+      select.value = key;
+      renderSelectedModel();
+    }
+    function restoreAgentModels(assignments) {
+      const list = document.getElementById("agent-model-list");
+      list.innerHTML = "";
+      assignments.forEach(assignment => addAgentModelRow({
+        ...assignment,
+        key: `${assignment.provider}:${assignment.model}`,
+      }));
+    }
+    function restorePlanInputs(plan) {
+      const intake = plan.intake || {};
+      const commercial = intake.commercial || {};
+      const portfolio = commercial.purchase_portfolio || {};
+      const prior = commercial.scenario_prior || {};
+      const entitlement = commercial.entitlement || {};
+      const event = commercial.events?.[0] || {};
+      const usage = commercial.token_usage || {};
+
+      document.getElementById("plan-prompt").value = plan.description || "";
+      restoreInput("plan-users", intake.users);
+      restoreInput("plan-calls", intake.calls_per_user_per_day);
+      restoreModelSelection(intake);
+      restoreAgentModels(intake.agent_models || []);
+
+      restoreInput("plan-seat-count", commercial.seat_assumptions?.seats);
+      restoreInput("plan-seat-price", commercial.seat_assumptions?.allocated_monthly_cost_per_user_usd);
+      restoreInput("plan-included-environment", commercial.environment || portfolio.environment);
+
+      restoreInput("plan-studio-meter", event.meter_id);
+      restoreInput("plan-studio-quantity", event.quantity);
+      restoreInput("plan-studio-audience", entitlement.audience_type);
+      restoreInput("plan-studio-license", entitlement.license_sku || "");
+      restoreInput("plan-studio-channel", entitlement.channel);
+      restoreInput("plan-studio-trigger", entitlement.trigger_type);
+      restoreInput("plan-studio-authenticated", entitlement.authenticated);
+      restoreInput("plan-ms-committed-credits", portfolio.committed_credits);
+      restoreInput("plan-ms-committed-cost", portfolio.committed_cost_usd);
+      restoreInput("plan-ms-fixed-cost", portfolio.fixed_seat_cost_usd);
+      restoreInput("plan-ms-payg", portfolio.payg_enabled);
+      restoreInput("plan-ms-payg-rate", portfolio.payg_rate_usd_per_credit);
+      restoreInput("plan-ms-environment", commercial.environment || portfolio.environment);
+
+      restoreInput("plan-scenario-segment", prior.segment);
+      restoreInput("plan-scenario-tasks", commercial.task_count);
+      restoreInput("plan-scenario-seed", commercial.seed);
+      restoreInput("plan-scenario-p50", prior.credits_per_task_p50);
+      restoreInput("plan-scenario-p95", prior.credits_per_task_p95);
+      restoreInput("plan-scenario-fixed-cost", portfolio.fixed_seat_cost_usd);
+      restoreInput("plan-scenario-committed-credits", portfolio.committed_credits);
+      restoreInput("plan-scenario-committed-cost", portfolio.committed_cost_usd);
+      restoreInput("plan-scenario-payg-rate", portfolio.payg_rate_usd_per_credit);
+      restoreInput("plan-scenario-payg", portfolio.payg_enabled);
+
+      restoreInput("plan-github-plan", commercial.plan_id);
+      restoreInput("plan-github-model", commercial.model_id);
+      restoreInput("plan-github-seats", commercial.seat_count);
+      restoreInput("plan-github-input", usage.input_tokens);
+      restoreInput("plan-github-cached", usage.cached_input_tokens);
+      restoreInput("plan-github-cache-write", usage.cache_write_tokens);
+      restoreInput("plan-github-output", usage.output_tokens);
+      restoreInput("plan-github-max-input-request", usage.max_input_tokens_per_request);
+      restoreInput("plan-github-seat-cost", commercial.fixed_seat_cost_usd);
+      restoreInput("plan-github-overage", commercial.additional_usage_enabled);
+
+      if (plan.analysis?.schema_version) {
+        state.analysis = plan.analysis;
+        renderWorkloadAnalysis(plan.analysis);
+        const confirmed = intake.confirmed_profile || plan.confirmed_profile || {};
+        restoreInput("analysis-topology", confirmed.agent_pattern);
+        restoreInput("analysis-agent-count", confirmed.multi_agent_count);
+        restoreInput("analysis-modalities", (confirmed.modalities || []).join(", "));
+        restoreInput("analysis-tools", (confirmed.tools || []).join(", "));
+      }
+      refreshEvidencePreview();
+    }
     async function openPlan(planId) {
       const response = await fetch(`/api/plans/${encodeURIComponent(planId)}/receipt`);
       if (response.ok) {
         const receipt = await response.json();
         state.plan = { ...receipt, status: "complete", receipt_hash: receipt.content_hash };
+        selectRouteForPlan(receipt);
+        restorePlanInputs(receipt);
         renderPlan(state.plan);
         return;
       }
@@ -976,6 +1164,10 @@
       const rows = (stack.layers || []).map(layer => `<tr><td>${escapeHtml(layer.layer_id.replaceAll("_", " "))}</td><td><span class="badge">${escapeHtml(layer.family.replaceAll("_", " "))}</span></td><td>${escapeHtml(layer.unit)}</td><td>${escapeHtml(layer.currency)}</td><td>${escapeHtml(layer.conditional ? "Conditional" : "Always applicable")}</td></tr>`).join("");
       return `<div class="panel"><h3 class="section-title">Resolved consumption model</h3><table><thead><tr><th>Layer</th><th>Family</th><th>Unit</th><th>Currency</th><th>Applicability</th></tr></thead><tbody>${rows}</tbody></table><p class="provenance-note">Meter-stack version ${escapeHtml(stack.version)}. Similar credit names remain independent currencies and are never converted without a sourced contract.</p></div>`;
     }
+    function trajectoryContractRows(contract) {
+      const workload = contract?.workload || {};
+      return `<tr><td>Trajectory contract</td><td><code>${escapeHtml(contract?.schema_version || "unavailable")}</code></td></tr><tr><td>Workload identity</td><td><code>${escapeHtml(workload.workload_id || "unavailable")}</code> · ${escapeHtml(workload.version || "unavailable")}</td></tr><tr><td>Segment schema</td><td><code>${escapeHtml(contract?.segment_schema_version || "unavailable")}</code></td></tr>`;
+    }
     function renderPlan(plan) {
       const planDescription = plan.description || plan.intake?.description || "";
       const prompt = document.getElementById("plan-prompt");
@@ -987,7 +1179,8 @@
       const defaults = p.missing_parameters?.length ? p.missing_parameters.map(item => `<li>Missing input: ${escapeHtml(item)}</li>`).join("") : "";
       const archetypeDefaults = Object.entries(tokenTrace.archetype_defaults || {}).map(([key, value]) => `<tr><td>${escapeHtml(key.replaceAll("_", " "))}</td><td>${number(value)}</td></tr>`).join("");
       const tier1Rows = Object.entries(tokenTrace.tier1_baseline || {}).map(([key, value]) => `<tr><td>${escapeHtml(key.replaceAll("_", " "))}</td><td>${number(value)}</td></tr>`).join("");
-      const costRows = (costTrace.components || []).map(item => `<tr><td>${escapeHtml(item.component)}</td><td>${number(item.tokens)}</td><td>${money(item.rate_per_million)} / 1M</td><td>${preciseMoney(item.cost_usd)}</td></tr>`).join("");
+      const pricingLabel = p.pricing_verified ? "" : " · unverified";
+      const costRows = (costTrace.components || []).map(item => `<tr><td>${escapeHtml(item.component)}</td><td>${number(item.tokens)}</td><td>${money(item.rate_per_million)} / 1M${pricingLabel}</td><td>${preciseMoney(item.cost_usd)}</td></tr>`).join("");
       const toolRows = (toolTrace.components_per_invocation || []).filter(item => item.quantity > 0).map(item => `<tr><td>${escapeHtml(item.component)}</td><td>${number(item.quantity)}</td><td>${preciseMoney(item.cost_usd)}</td></tr>`).join("");
       const sampleStatement = tokenTrace.sample_statement
         ? `<p><strong>Example text counted:</strong> “${escapeHtml(tokenTrace.sample_statement)}”</p>`
@@ -998,7 +1191,7 @@
         <code class="formula">${escapeHtml(method.blend_formula)}</code>
         <p><strong>Estimator rationale:</strong> ${escapeHtml(method.estimator_reasoning)}</p>` : "";
       const tokenCalculation = `${sampleStatement}<p><strong>Workload statement:</strong> ${escapeHtml(tokenTrace.workload_statement)}</p><p><strong>Tokenizer provenance:</strong> ${escapeHtml(tokenTrace.tokenizer)}; applied to this estimate: ${tokenTrace.tokenizer_applied ? "yes" : "no"}.</p><p><strong>Tier 1:</strong> ${escapeHtml(tokenTrace.archetype)} / ${escapeHtml(tokenTrace.complexity)} archetype defaults.</p><table class="calculation-table"><tbody>${archetypeDefaults}</tbody></table>${tokenTrace.document_formula ? `<code class="formula">Document input = ${escapeHtml(tokenTrace.document_formula)}</code>` : ""}${methodEvidence}<code class="formula">Final tokens = ${escapeHtml(tokenTrace.final_formula)} = ${number(tokens.total)}</code>`;
-      const priceCalculation = `<p><strong>Catalog pricing unit:</strong> ${escapeHtml(costTrace.pricing_unit)}</p><table class="calculation-table"><thead><tr><th>Component</th><th>Tokens</th><th>Rate</th><th>Cost</th></tr></thead><tbody>${costRows}</tbody></table><code class="formula">${escapeHtml(costTrace.formula)} = ${preciseMoney(costTrace.result_usd)}</code>`;
+      const priceCalculation = `${p.pricing_verified ? "" : `<div class="warning"><strong>Unverified price evidence.</strong> These rates are a modeled reference and do not substantiate the selected deployment.</div>`}<p><strong>Catalog pricing unit:</strong> ${escapeHtml(costTrace.pricing_unit)}</p><table class="calculation-table"><thead><tr><th>Component</th><th>Tokens</th><th>Rate</th><th>Cost</th></tr></thead><tbody>${costRows}</tbody></table><code class="formula">${escapeHtml(costTrace.formula)} = ${preciseMoney(costTrace.result_usd)}</code>`;
       const cache = scale.cache_assumptions || {};
       const dailyCalculation = `${priceCalculation}<code class="formula">Daily calls = ${number(scale.users)} users × ${number(scale.calls_per_user_per_day)} calls = ${number(scale.daily_calls)}</code><p><strong>Cache estimate:</strong> ${decimal(cache.system_prompt_share_of_text_input * 100, 1)}% system-prompt share, ${decimal(cache.cache_hit_rate_after_first_call * 100, 1)}% hit rate after each user’s first call, ${number(cache.cached_calls_per_day)} cached calls/day.</p><code class="formula">Cache repricing = ${money(cache.input_rate_per_million)} / 1M input → ${money(cache.cached_input_rate_per_million)} / 1M cached input; savings = ${money(cache.daily_cache_savings_usd)} / day</code><code class="formula">Daily = ${preciseMoney(costTrace.result_usd)} × ${number(scale.daily_calls)} × ${decimal(cache.cost_discount_factor, 6)} = ${money(scale.daily_result_usd)}</code><p>${escapeHtml(cache.note)}</p>`;
       const monthlyCalculation = `${dailyCalculation}<code class="formula">Monthly = ${money(scale.daily_result_usd)} × 30 days = ${money(scale.monthly_result_usd)}</code>`;
@@ -1011,8 +1204,11 @@
       const confirmedProfile = intake.confirmed_profile || {};
       const analysisPanel = analysis.schema_version ? `<div class="panel"><h3 class="section-title">Confirmed workload analysis</h3><table><tbody><tr><td>Analysis schema</td><td>${escapeHtml(analysis.schema_version)}</td></tr><tr><td>Rule set</td><td>${escapeHtml(analysis.rule_set_version)}</td></tr><tr><td>Description hash</td><td><code>${escapeHtml(analysis.description_hash)}</code></td></tr><tr><td>Inferred topology</td><td>${escapeHtml(analysis.topology?.selected)}</td></tr><tr><td>Confirmed topology</td><td>${escapeHtml(confirmedProfile.agent_pattern)}</td></tr><tr><td>Confirmed agent count</td><td>${number(confirmedProfile.multi_agent_count)}</td></tr><tr><td>Confirmed modalities</td><td>${escapeHtml((confirmedProfile.modalities || []).join(", "))}</td></tr><tr><td>Confirmed tools</td><td>${escapeHtml((confirmedProfile.tools || []).join(", ") || "None")}</td></tr></tbody></table><p class="provenance-note">This is versioned modeled intake evidence, not observed execution evidence.</p></div>` : "";
       const agentModelPanel = agentModels.length ? `<div class="panel"><h3 class="section-title">Per-agent model allocation</h3><table><thead><tr><th>Agent</th><th>Role</th><th>Provider / model</th><th>Turn share</th><th>Model cost / invocation</th><th>Pricing</th></tr></thead><tbody>${agentModels.map(item => `<tr><td><code>${escapeHtml(item.agent_id)}</code></td><td>${escapeHtml(item.role || "—")}</td><td>${escapeHtml(item.provider)} / ${escapeHtml(item.model)}</td><td>${decimal(item.allocation_share * 100, 1)}%</td><td>${preciseMoney(item.cost_per_invocation_usd)}</td><td>${item.pricing_verified ? "Verified" : "Unverified"}</td></tr>`).join("")}</tbody></table><p class="provenance-note">${escapeHtml(trace.agent_models?.assumption || "Per-agent costs use modeled token allocation, not observed runtime usage.")}</p></div>` : "";
-      const pricingUrl = safeUrl(p.sources?.pricing_url), catalogUrl = safeUrl(p.sources?.model_catalog_url);
-      document.getElementById("plan-content").innerHTML = `${renderMeterStack(plan.meter_stack)}
+      const modelRelease = plan.model_release || plan.intake?.model_release || {};
+      const pricingUrl = safeUrl(modelRelease.pricing_url || p.sources?.pricing_url), catalogUrl = safeUrl(modelRelease.model_catalog_url || p.sources?.model_catalog_url);
+      const pricingWarning = p.pricing_verified ? "" : `<div class="panel wide warning"><strong>Pricing is not verified for this model/deployment.</strong> The displayed rate components are historical modeled-reference values, not authoritative Foundry prices. Do not use them for admission or billing decisions.</div>`;
+      const releaseRows = modelRelease.release_version ? `<tr><td>Studio model release</td><td><code>${escapeHtml(modelRelease.release_version)}</code> · ${escapeHtml(modelRelease.status || "unknown")}</td></tr><tr><td>Released offering</td><td><code>${escapeHtml(modelRelease.offering_key || "unavailable")}</code></td></tr>` : `<tr><td>Studio model release</td><td>Not recorded in this historical receipt</td></tr>`;
+      document.getElementById("plan-content").innerHTML = `${renderMeterStack(plan.meter_stack)}${pricingWarning}
         <div class="grid">
           <div class="panel metric"><span>Tokens per workload invocation</span><strong>${number(tokens.total)}</strong>${calculation(tokenCalculation)}</div>
           <div class="panel metric"><span>Monthly model cost</span><strong>${money(p.monthly_cost.mean)}</strong>${calculation(monthlyCalculation)}</div>
@@ -1024,7 +1220,7 @@
         ${analysisPanel}
         ${agentModelPanel}
         <div class="panel"><h3 class="section-title">Non-model tool charges</h3><table><tbody><tr><td>Per invocation</td><td>${preciseMoney(toolTrace.per_invocation_usd)}</td></tr><tr><td>Daily</td><td>${money(toolTrace.daily_result_usd)}</td></tr><tr><td>Monthly</td><td>${money(toolTrace.monthly_result_usd)}</td></tr></tbody></table>${calculation(toolCalculation)}</div>
-        <div class="grid"><div class="panel"><h3 class="section-title">Workload and provenance</h3><table><tbody><tr><td>${agentModels.length ? "Default / coordinator model" : "Model"}</td><td>${escapeHtml(p.model)}</td></tr><tr><td>Provider</td><td>${escapeHtml(p.provider)}</td></tr><tr><td>Archetype</td><td>${escapeHtml(p.archetype)}</td></tr><tr><td>Users</td><td>${number(intake.users)}</td></tr><tr><td>Calls / user / day</td><td>${number(intake.calls_per_user_per_day)}</td></tr><tr><td>Prediction ID</td><td><code>${escapeHtml(p.prediction_id)}</code></td></tr><tr><td>Plan receipt</td><td><code>${escapeHtml(plan.receipt_id)}</code></td></tr><tr><td>Receipt hash</td><td><code>${escapeHtml(plan.receipt_hash?.slice(0, 16))}…</code></td></tr><tr><td>Bounds</td><td>${escapeHtml(bounds.method)} · ${number(bounds.samples)} samples</td></tr><tr><td>Pricing verified</td><td>${p.pricing_verified ? "Yes" : "No"}</td></tr>${pricingUrl ? `<tr><td>Pricing source</td><td><a href="${pricingUrl}" target="_blank" rel="noreferrer">Provider pricing</a></td></tr>` : ""}${catalogUrl ? `<tr><td>Model catalog</td><td><a href="${catalogUrl}" target="_blank" rel="noreferrer">Model reference</a></td></tr>` : ""}</tbody></table></div><div class="panel"><h3 class="section-title">Modeling assumptions</h3><ul class="assumptions">${modelingAssumptions}</ul></div><div class="panel wide warning"><strong>Azure infrastructure:</strong> Not included in any figure above. ${escapeHtml(plan.infrastructure.message)}</div><div class="panel wide"><div class="toolbar"><div><h3 class="section-title">Ready for policy admission</h3><span class="subtitle">Govern receives this exact receipt snapshot; it does not parse the narrative.</span></div><button class="primary" id="govern-handoff-button">Send to Govern</button></div></div></div>`;
+        <div class="grid"><div class="panel"><h3 class="section-title">Workload and provenance</h3><table><tbody><tr><td>${agentModels.length ? "Default / coordinator model" : "Model"}</td><td>${escapeHtml(p.model)}</td></tr><tr><td>Provider</td><td>${escapeHtml(p.provider)}</td></tr>${releaseRows}<tr><td>Archetype</td><td>${escapeHtml(p.archetype)}</td></tr><tr><td>Users</td><td>${number(intake.users)}</td></tr><tr><td>Calls / user / day</td><td>${number(intake.calls_per_user_per_day)}</td></tr><tr><td>Prediction ID</td><td><code>${escapeHtml(p.prediction_id)}</code></td></tr><tr><td>Plan receipt</td><td><code>${escapeHtml(plan.receipt_id)}</code></td></tr><tr><td>Receipt hash</td><td><code>${escapeHtml(plan.receipt_hash?.slice(0, 16))}…</code></td></tr>${trajectoryContractRows(plan.trajectory_contract)}<tr><td>Bounds</td><td>${escapeHtml(bounds.method)} · ${number(bounds.samples)} samples</td></tr><tr><td>Pricing verified</td><td>${p.pricing_verified ? "Yes" : "No"}</td></tr>${pricingUrl ? `<tr><td>Pricing source</td><td><a href="${pricingUrl}" target="_blank" rel="noreferrer">${p.pricing_verified ? "Exact release evidence" : "Reference only"}</a></td></tr>` : ""}${catalogUrl ? `<tr><td>Model catalog</td><td><a href="${catalogUrl}" target="_blank" rel="noreferrer">Model reference</a></td></tr>` : ""}</tbody></table></div><div class="panel"><h3 class="section-title">Modeling assumptions</h3><ul class="assumptions">${modelingAssumptions}</ul></div><div class="panel wide warning"><strong>Azure infrastructure:</strong> Not included in any figure above. ${escapeHtml(plan.infrastructure.message)}</div><div class="panel wide"><div class="toolbar"><div><h3 class="section-title">Ready for policy admission</h3><span class="subtitle">Govern receives this exact receipt snapshot; it does not parse the narrative.</span></div><button class="primary" id="govern-handoff-button">Send to Govern</button></div></div></div>`;
       const handoffButton = document.getElementById("govern-handoff-button");
       if (handoffButton) {
         handoffButton.disabled = true;
@@ -1046,7 +1242,7 @@
         : `<div class="panel metric"><span>Expected Microsoft Copilot Credits</span><strong>${number(commercial.total_copilot_credits)}</strong></div>`;
       const purchasePanel = purchase ? `<div class="panel"><h3 class="section-title">Purchase portfolio economics</h3><table><tbody><tr><td>Status</td><td>${escapeHtml(purchase.status)}</td></tr><tr><td>Retail view</td><td>${money(purchase.retail_cost_usd)}</td></tr><tr><td>Committed invoice cost</td><td>${money(purchase.invoice_committed_cost_usd)}</td></tr><tr><td>Incremental cash cost</td><td>${purchase.incremental_cash_cost_usd == null ? "Unfunded" : money(purchase.incremental_cash_cost_usd)}</td></tr><tr><td>Fixed allocation</td><td>${money(purchase.fixed_allocation_cost_usd)}</td></tr><tr><td>Amortized view</td><td>${purchase.amortized_cost_usd == null ? "—" : money(purchase.amortized_cost_usd)}</td></tr><tr><td>Unused commitment</td><td>${number(purchase.unused_commitment_credits)} credits</td></tr></tbody></table></div>` : "";
       const tokenPanel = plan.token_subforecast ? `<div class="panel"><h3 class="section-title">Independent model subforecast</h3><table><tbody><tr><td>Prediction</td><td><code>${escapeHtml(plan.token_subforecast.prediction_id)}</code></td></tr><tr><td>Provider / model</td><td>${escapeHtml(plan.token_subforecast.provider)} / ${escapeHtml(plan.token_subforecast.model)}</td></tr><tr><td>Annual model view</td><td>${money(plan.token_subforecast.cost_usd)}</td></tr></tbody></table><p class="provenance-note">Model tokens and Copilot Credits remain separate evidence domains.</p></div>` : "";
-      document.getElementById("plan-content").innerHTML = `${renderMeterStack(plan.meter_stack)}${github}${scenario}${lines ? `<div class="panel"><h3 class="section-title">Native meter calculation</h3><table><thead><tr><th>Feature</th><th>Quantity</th><th>Disposition</th><th>Billed credits</th></tr></thead><tbody>${lines}</tbody></table></div>` : ""}${purchasePanel}${tokenPanel}<div class="panel"><h3 class="section-title">Immutable meter-stack receipt</h3><table><tbody><tr><td>Route</td><td>${escapeHtml(plan.route.route_id)}</td></tr><tr><td>Evidence</td><td>${escapeHtml(commercial.evidence_status)}</td></tr><tr><td>Receipt schema</td><td>${escapeHtml(plan.schema_version || "4.0")}</td></tr><tr><td>Receipt</td><td><code>${escapeHtml(plan.receipt_id)}</code></td></tr><tr><td>SHA-256</td><td><code>${escapeHtml(plan.receipt_hash)}</code></td></tr></tbody></table><p class="provenance-note">Modeled planning evidence only. No admission, execution, accepted-task quality, calibrated tail-risk, or savings claim is made.</p></div>`;
+      document.getElementById("plan-content").innerHTML = `${renderMeterStack(plan.meter_stack)}${github}${scenario}${lines ? `<div class="panel"><h3 class="section-title">Native meter calculation</h3><table><thead><tr><th>Feature</th><th>Quantity</th><th>Disposition</th><th>Billed credits</th></tr></thead><tbody>${lines}</tbody></table></div>` : ""}${purchasePanel}${tokenPanel}<div class="panel"><h3 class="section-title">Immutable meter-stack receipt</h3><table><tbody><tr><td>Route</td><td>${escapeHtml(plan.route.route_id)}</td></tr><tr><td>Evidence</td><td>${escapeHtml(commercial.evidence_status)}</td></tr><tr><td>Receipt schema</td><td>${escapeHtml(plan.schema_version || "5.0")}</td></tr><tr><td>Receipt</td><td><code>${escapeHtml(plan.receipt_id)}</code></td></tr><tr><td>SHA-256</td><td><code>${escapeHtml(plan.receipt_hash)}</code></td></tr>${trajectoryContractRows(plan.trajectory_contract)}</tbody></table><p class="provenance-note">Modeled planning evidence only. Task and trajectory IDs are created only during admitted execution; no execution, accepted-task quality, calibrated tail-risk, or savings claim is made.</p></div>`;
     }
     async function handoffToGovern(event) {
       event.target.disabled = true;
@@ -1067,7 +1263,7 @@
       const costCheck = (handoff.checks || []).find(check => check.name === "model_cost_per_call");
       const unitHeadroom = costCheck && Number.isFinite(costCheck.expected - costCheck.actual) ? costCheck.expected - costCheck.actual : null;
       const checks = (handoff.checks || []).map(check => `<tr><td>${escapeHtml(check.name.replaceAll("_", " "))}</td><td><span class="badge ${check.passed ? "success" : "danger"}">${check.passed ? "passed" : "failed"}</span></td><td>${escapeHtml(JSON.stringify(check.actual))}</td><td>${escapeHtml(JSON.stringify(check.expected))}</td></tr>`).join("");
-      document.getElementById("govern-content").innerHTML = `<div class="panel metric"><span>Admission decision</span><strong>${escapeHtml(handoff.status)}</strong></div><div class="panel metric"><span>Monthly model exposure</span><strong>${monthly.mean == null ? "—" : money(monthly.mean)}</strong></div><div class="panel metric"><span>Annual model exposure</span><strong>${annual.mean == null ? "—" : money(annual.mean)}</strong></div><div class="panel metric"><span>Unit-cost headroom</span><strong class="${unitHeadroom != null && unitHeadroom >= 0 ? "headroom" : "danger"}">${unitHeadroom == null ? "—" : preciseMoney(unitHeadroom)}</strong></div><div class="panel wide"><h3 class="section-title">Effective decision binding</h3><table><tbody><tr><td>Policy</td><td><strong>${escapeHtml(policy.policy_id || "unavailable")}</strong> · ${escapeHtml(policy.version || "unavailable")}</td></tr><tr><td>Cost per call</td><td>${costPerCall.mean == null ? "—" : preciseMoney(costPerCall.mean)}</td></tr><tr><td>Mutation mode</td><td>${escapeHtml(mutation.mode || "not configured")}</td></tr><tr><td>Evaluated</td><td>${escapeHtml(formatDate(handoff.evaluated_at))}</td></tr></tbody></table></div><div class="panel wide"><h3 class="section-title">Authoritative policy provenance</h3><table><tbody><tr><td>Source</td><td>${escapeHtml(provenance.source || "unavailable")}</td></tr><tr><td>Endpoint</td><td><code>${escapeHtml(provenance.endpoint || "unavailable")}</code></td></tr><tr><td>Key / label</td><td><code>${escapeHtml(provenance.key || "unavailable")} / ${escapeHtml(provenance.label || "unavailable")}</code></td></tr><tr><td>ETag</td><td><code>${escapeHtml(provenance.etag || "unavailable")}</code></td></tr><tr><td>Policy SHA-256</td><td><code>${escapeHtml(policy.content_hash || "unavailable")}</code></td></tr></tbody></table></div>${checks ? `<div class="panel wide"><h3 class="section-title">Admission checks</h3><table><thead><tr><th>Check</th><th>Result</th><th>Actual</th><th>Policy requirement</th></tr></thead><tbody>${checks}</tbody></table></div>` : ""}<div class="panel wide"><h3 class="section-title">Immutable admission input</h3><table><tbody><tr><td>Report</td><td><code>${escapeHtml(handoff.report_id || state.report.report_id)}</code></td></tr><tr><td>Plan</td><td><code>${escapeHtml(handoff.plan_id)}</code></td></tr><tr><td>Receipt</td><td><code>${escapeHtml(handoff.receipt_id)}</code></td></tr>${handoff.receipt_hash ? `<tr><td>SHA-256</td><td><code>${escapeHtml(handoff.receipt_hash)}</code></td></tr>` : ""}</tbody></table><p>Execution is allowed only for an admitted receipt and remains pinned to this policy revision.</p></div>`;
+      document.getElementById("govern-content").innerHTML = `<div class="panel metric"><span>Admission decision</span><strong>${escapeHtml(handoff.status)}</strong></div><div class="panel metric"><span>Monthly model exposure</span><strong>${monthly.mean == null ? "—" : money(monthly.mean)}</strong></div><div class="panel metric"><span>Annual model exposure</span><strong>${annual.mean == null ? "—" : money(annual.mean)}</strong></div><div class="panel metric"><span>Unit-cost headroom</span><strong class="${unitHeadroom != null && unitHeadroom >= 0 ? "headroom" : "danger"}">${unitHeadroom == null ? "—" : preciseMoney(unitHeadroom)}</strong></div><div class="panel wide"><h3 class="section-title">Effective decision binding</h3><table><tbody><tr><td>Policy</td><td><strong>${escapeHtml(policy.policy_id || "unavailable")}</strong> · ${escapeHtml(policy.version || "unavailable")}</td></tr><tr><td>Cost per call</td><td>${costPerCall.mean == null ? "—" : preciseMoney(costPerCall.mean)}</td></tr><tr><td>Mutation mode</td><td>${escapeHtml(mutation.mode || "not configured")}</td></tr><tr><td>Evaluated</td><td>${escapeHtml(formatDate(handoff.evaluated_at))}</td></tr></tbody></table></div><div class="panel wide"><h3 class="section-title">Authoritative policy provenance</h3><table><tbody><tr><td>Source</td><td>${escapeHtml(provenance.source || "unavailable")}</td></tr><tr><td>Endpoint</td><td><code>${escapeHtml(provenance.endpoint || "unavailable")}</code></td></tr><tr><td>Key / label</td><td><code>${escapeHtml(provenance.key || "unavailable")} / ${escapeHtml(provenance.label || "unavailable")}</code></td></tr><tr><td>ETag</td><td><code>${escapeHtml(provenance.etag || "unavailable")}</code></td></tr><tr><td>Policy SHA-256</td><td><code>${escapeHtml(policy.content_hash || "unavailable")}</code></td></tr></tbody></table></div>${checks ? `<div class="panel wide"><h3 class="section-title">Admission checks</h3><table><thead><tr><th>Check</th><th>Result</th><th>Actual</th><th>Policy requirement</th></tr></thead><tbody>${checks}</tbody></table></div>` : ""}<div class="panel wide"><h3 class="section-title">Immutable admission input</h3><table><tbody><tr><td>Report</td><td><code>${escapeHtml(handoff.report_id || state.report.report_id)}</code></td></tr><tr><td>Plan</td><td><code>${escapeHtml(handoff.plan_id)}</code></td></tr><tr><td>Receipt</td><td><code>${escapeHtml(handoff.receipt_id)}</code></td></tr>${handoff.receipt_hash ? `<tr><td>SHA-256</td><td><code>${escapeHtml(handoff.receipt_hash)}</code></td></tr>` : ""}${trajectoryContractRows(handoff.trajectory_contract)}</tbody></table><p>Execution is allowed only for an admitted receipt and remains pinned to this policy revision.</p></div>`;
     }
     document.getElementById("run-button").addEventListener("click", async event => {
       document.getElementById("run-content").innerHTML = `<div class="empty">Runs are read-only in this release and will be enabled in v2.</div>`;
@@ -1094,7 +1290,7 @@
     }
     function renderRun() {
       const run = state.run, observed = run.observed;
-      document.getElementById("run-content").innerHTML = `<span class="badge success">completed</span> <code>${run.run_id}</code><p>${observed.requests} governed requests using policy <strong>${run.policy.version}</strong>.</p>`;
+      document.getElementById("run-content").innerHTML = `<span class="badge success">completed</span> <code>${run.run_id}</code><p>${observed.requests} governed requests using policy <strong>${run.policy.version}</strong>.</p><div class="panel"><h3 class="section-title">Trajectory evidence</h3><table><tbody>${trajectoryContractRows(run.trajectory_contract)}<tr><td>Persisted trajectories</td><td>${number((run.trajectory_evidence || []).length)}</td></tr><tr><td>Evaluation joins</td><td>${number((run.evaluation_outcomes || []).length)}</td></tr></tbody></table><p class="provenance-note">Simulated runtime evidence. Each task is content-hashed and reopens through the same framework-neutral envelope.</p></div>`;
       document.getElementById("metrics").innerHTML = `<div class="panel metric"><span>Observed cost</span><strong>${money(observed.cost_usd)}</strong></div><div class="panel metric"><span>Quality</span><strong>${number(observed.quality)}</strong></div><div class="panel metric"><span>Cache hits</span><strong>${number(observed.cache_hits)}</strong></div><div class="panel metric"><span>Average latency</span><strong>${number(observed.avg_latency_ms)} ms</strong></div><div class="panel metric"><span>Input tokens</span><strong>${number(observed.input_tokens)}</strong></div><div class="panel metric"><span>Output tokens</span><strong>${number(observed.output_tokens)}</strong></div><div class="panel wide"><strong>Worst-segment quality</strong><table><tbody>${Object.entries(observed.quality_by_segment).map(([key, value]) => `<tr><td>${key}</td><td>${number(value)}</td></tr>`).join("")}</tbody></table></div>`;
       document.getElementById("reconcile-content").innerHTML = `<table><thead><tr><th>Prediction</th><th>Status</th><th>Completed tasks</th><th>Actual tokens/task</th><th>Error</th></tr></thead><tbody>${run.reconciliation.map(item => `<tr><td><code>${item.prediction_id}</code></td><td class="success">${item.status}</td><td>${item.completed_tasks}</td><td>${number(item.actual_tokens_per_task)}</td><td>${number(item.forecast_error_pct)}%</td></tr>`).join("")}</tbody></table>`;
     }

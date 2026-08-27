@@ -192,6 +192,22 @@ class TestOpenAIProvider:
                    "gpt-image-1", "gpt-audio", "gpt-oss-120b", "sora-2"]:
             assert m in models, f"{m} not in list_models()"
 
+    @pytest.mark.parametrize("model_id,input_price,output_price", [
+        ("gpt-chat-latest", 5.0, 30.0),
+        ("gpt-5.5", 5.0, 30.0),
+        ("gpt-4-turbo", 10.0, 30.0),
+        ("gpt-4.5-preview", 70.0, 150.0),
+        ("codex-mini", 1.5, 6.0),
+        ("o3-pro", 20.0, 80.0),
+    ])
+    def test_current_foundry_coordinators_have_exact_azure_prices(
+        self, prov, model_id, input_price, output_price
+    ):
+        assert prov.get_model_info(model_id) is not None
+        pricing = prov.get_pricing(model_id)
+        assert pricing.input == input_price
+        assert pricing.output == output_price
+
 
 # ── Anthropic Provider ───────────────────────────────────────────────────
 
@@ -225,6 +241,23 @@ class TestAnthropicProvider:
 
     def test_reasoning_multiplier_is_1(self, prov):
         assert prov.get_reasoning_multiplier("claude-sonnet-4") == 1.0
+
+    @pytest.mark.parametrize("model_id,input_price,output_price", [
+        ("claude-fable-5", 10.0, 50.0),
+        ("claude-opus-4-8", 5.0, 25.0),
+        ("claude-opus-4-7", 5.0, 25.0),
+        ("claude-opus-4-6", 5.0, 25.0),
+        ("claude-opus-4-5", 5.0, 25.0),
+        ("claude-sonnet-4-6", 3.0, 15.0),
+        ("claude-sonnet-4-5", 3.0, 15.0),
+    ])
+    def test_current_foundry_claude_models_use_documented_ccu_rates(
+        self, prov, model_id, input_price, output_price
+    ):
+        assert prov.get_model_info(model_id) is not None
+        pricing = prov.get_pricing(model_id)
+        assert pricing.input == input_price
+        assert pricing.output == output_price
 
 
 # ── Google Provider ──────────────────────────────────────────────────────

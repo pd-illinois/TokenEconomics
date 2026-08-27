@@ -22,6 +22,7 @@ class ReconciliationService:
                     completed_tasks=0,
                     actual_tokens_per_task=0.0,
                     detail="run and prediction were already reconciled",
+                    segment_id=forecast.segment,
                 ))
                 continue
 
@@ -38,6 +39,7 @@ class ReconciliationService:
                     completed_tasks=0,
                     actual_tokens_per_task=0.0,
                     detail="no completed tasks found",
+                    segment_id=forecast.segment,
                 ))
                 continue
 
@@ -59,6 +61,15 @@ class ReconciliationService:
                 actual_tokens_per_task=outcome.actual_tokens_per_task,
                 forecast_error_pct=outcome.forecast_error_pct,
                 detail=outcome.detail,
+                segment_id=forecast.segment,
+                task_ids=tuple(
+                    record.task_id for record in matched if record.task_id
+                ),
+                trajectory_ids=tuple(
+                    record.trajectory_id
+                    for record in matched
+                    if record.trajectory_id
+                ),
             ))
             if status in {"recorded", "already_recorded"}:
                 self._processed.add(key)

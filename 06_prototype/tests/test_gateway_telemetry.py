@@ -30,6 +30,19 @@ def test_gateway_preserves_execution_identity_and_usage(tmp_path):
         request_id="request-001",
         trace_id="0123456789abcdef0123456789abcdef",
         report_id="RPT-TEST-001",
+        task_id="task-001",
+        trajectory_id="trajectory-001",
+        workload_id="support-workload",
+        workload_version="workload.v1",
+        segment_id="factual_lookup",
+        segment_version="segment.v1",
+        prediction_receipt_id="receipt-001",
+        prediction_receipt_hash="a" * 64,
+        policy_id="tokengov",
+        policy_hash="b" * 64,
+        policy_source="azure_app_configuration",
+        policy_label="production",
+        policy_etag="etag-1",
     )
 
     result = gateway.handle("tenant-a", "Where is my order", "easy", execution)
@@ -42,6 +55,8 @@ def test_gateway_preserves_execution_identity_and_usage(tmp_path):
     assert result.input_tokens > 0
     assert result.output_tokens > 0
     assert telemetry.sampled[0]["prediction_id"] == 42
+    assert telemetry.sampled[0]["task_id"] == "task-001"
+    assert telemetry.sampled[0]["trajectory_id"] == "trajectory-001"
 
     path = tmp_path / "telemetry.jsonl"
     telemetry.dump_jsonl(str(path))
@@ -49,6 +64,9 @@ def test_gateway_preserves_execution_identity_and_usage(tmp_path):
     assert row["report_id"] == "RPT-TEST-001"
     assert row["policy_version"] == "policy-v1"
     assert row["input_tokens"] == result.input_tokens
+    assert row["workload_id"] == "support-workload"
+    assert row["prediction_receipt_id"] == "receipt-001"
+    assert row["policy_etag"] == "etag-1"
 
 
 def test_cache_hit_keeps_identity_with_zero_new_usage():

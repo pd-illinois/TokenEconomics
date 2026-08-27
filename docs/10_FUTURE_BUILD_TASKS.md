@@ -4,6 +4,49 @@
 
 This backlog translates the constitutional implementation plan into dependency-ordered work. It is the execution queue, not a replacement for `decision.md`. Update task status and evidence links as work completes; do not mark a task complete from UI presence alone.
 
+## Task status summary
+
+This table indexes every task with an explicit status in this backlog. The detailed task sections and their evidence remain authoritative.
+
+| Task | Work item | Parent | Status |
+|---|---|---|---|
+| TE-001 | Inventory the deployed agentic RAG boundary | - | **Complete** |
+| TE-001.5 | Release-harden Studio Plan and FutureTokenPredictor | - | **Complete** |
+| MODELREL-01 | Curate and version Foundry model/pricing releases | TE-001.5 | **Complete** |
+| TE-001.6 | Add Copilot commercial-meter forecasting to Plan | - | **Complete** |
+| CPLAN-01 | Freeze commercial contracts and rate fixtures | TE-001.6 | **Complete** |
+| CPLAN-02 | Implement fail-closed rate-card loading | TE-001.6 | **Complete** |
+| CPLAN-03 | Implement entitlement decisions | TE-001.6 | **Complete** |
+| CPLAN-04 | Add deterministic Copilot Studio forecasting | TE-001.6 | **Complete** |
+| CPLAN-05 | Compose Foundry/BYOM and Work IQ hybrids | TE-001.6 | **Complete** |
+| CPLAN-06 | Add fixed-seat and purchase-portfolio economics | TE-001.6 | **Complete** |
+| CPLAN-07 | Add Cowork and variable Work IQ scenario forecasts | TE-001.6 | **Complete** |
+| CPLAN-08 | Make Studio Plan route-first | TE-001.6 | **Complete** |
+| CPLAN-09 | Introduce immutable receipt schema 3.0 | TE-001.6 | **Complete** |
+| CPLAN-10 | Complete TE-001.6 release evidence | TE-001.6 | **Complete** |
+| TE-001.7 | Add experience-led meter-stack and GitHub Copilot forecasting | - | **Complete** |
+| MSTACK-01 | Define and validate product meter stacks | TE-001.7 | **Complete** |
+| MSTACK-02 | Add GitHub Copilot commercial forecasting | TE-001.7 | **Complete** |
+| MSTACK-03 | Make Studio intake experience-led | TE-001.7 | **Complete** |
+| MSTACK-04 | Persist immutable meter-stack receipts | TE-001.7 | **Complete** |
+| MSTACK-05 | Complete TE-001.7 release evidence | TE-001.7 | **Complete** |
+| TE-002 | Define the task/trajectory envelope | - | **Complete** |
+| TE-003 | Build the RAG workload adapter | - | **Complete** |
+| TE-004 | Create the experiment manifest | - | **Ready** |
+| A365-01 | Define external agent-governance evidence | Agent 365 track | **Ready** |
+| TE-005 | Define accepted-task outcomes | - | **Not started** |
+| TE-006 | Implement the multi-meter trajectory ledger | - | **Not started** |
+| TE-007 | Add accepted-task economics to Observe | - | **Not started** |
+| TE-008 | Define immutable policy candidates | - | **Not started** |
+| TE-009 | Add decision-grade quality and tail constraints | - | **Not started** |
+| TE-010 | Integrate candidate selection into Govern | - | **Not started** |
+| TE-011 | Persist evaluation decision state | - | **Not started** |
+| TE-012 | Implement the reviewed publisher handoff | - | **Not started** |
+| TE-013 | Prove bounded regression response on RAG | - | **Not started** |
+| TE-014 | Reconcile acceptance, multi-meter actuals, and tail coverage | - | **Not started** |
+| TE-015 | Demonstrate forecast learning | - | **Not started** |
+| TE-016 | Run the portability test | - | **Not started** |
+
 ## Status vocabulary
 
 - **Complete:** implementation and acceptance checks pass with evidence.
@@ -15,12 +58,18 @@ This backlog translates the constitutional implementation plan into dependency-o
 
 The following foundations already exist and should be extended rather than rebuilt:
 
-- FutureTokenPredictor-backed model/workload forecast and immutable Plan receipts.
+- Delivery-experience-first Plan forecasting with immutable schema-5 receipts across subscriptions, included usage, Microsoft Copilot Credits, GitHub AI Credits, Foundry model tokens, resource meters, and hybrid meter stacks. FutureTokenPredictor remains the model/workload and token-price authority; commercial meters remain parallel evidence.
+- A versioned Studio Foundry release catalog limits coordinator and per-agent selectors to explicitly released OpenAI-on-Azure and Anthropic-on-Foundry offerings. Each entry pins deployment context, exact public rate dimensions, effective/retrieval dates, and first-party pricing/model citations; broad FutureTokenPredictor provider capability remains an internal catalog.
 - Fail-closed Azure App Configuration policy authority with exact version, hash, label, and ETag provenance.
 - Deterministic Govern admission and separately authorized draft policy changes.
 - Policy-bound offline runs, segment quality, telemetry, and completed-task reconciliation.
 - Experimental policy selection and evaluation reaction logic that are not connected to the Studio/Azure authority path.
-- A live grounded RAG benchmark over a five-book Azure AI Search index plus a deployed Microsoft Foundry prompt agent connected to a Foundry IQ knowledge base through managed-identity MCP. The agent boundary is inventoried; policy-bound trajectory capture is not yet implemented.
+- A live grounded RAG benchmark over a five-book Azure AI Search index plus a deployed Microsoft Foundry prompt agent connected to a Foundry IQ knowledge base through managed-identity MCP. TE-003 now preserves one measured policy-bound trajectory with exact prediction, policy, conversation, response, retrieval, model-usage, citation, and integrity evidence.
+- Agent 365 research now defines an optional external identity, governance, security, and observability integration track. No Agent 365 runtime, API, telemetry, billing, or enforcement integration has yet been implemented or production-validated.
+
+**Post-TE-001 roadmap scope rule:** Later tasks must operate on the resolved versioned meter stack rather than assume every workload is a Foundry token workload. Native quantities, commercial currencies, entitlements, purchase sources, model tokens, resource usage, and USD allocations remain separate evidence. No task may convert Microsoft Copilot Credits, GitHub AI Credits, tokens, seats, or resource units into one another without a versioned sourced rule. The deployed RAG workload remains the first end-to-end control-loop proof; it does not by itself validate all nine delivery experiences.
+
+**Agent 365 integration rule:** Treat Microsoft Agent 365, Entra Agent ID, Defender, and Purview as external authorities for their documented identity, inventory, access, security, compliance, lifecycle, and operational-activity facts. TokenEconomics remains authoritative for forecasts, economic comparison/admission, explicit accepted-task outcomes, native-meter reconciliation, and learning. Agent 365 evidence must carry source, maturity, coverage, freshness, retention, and immutable correlation; registry presence or an HTTP-successful telemetry export is not proof of runtime enforcement, complete ingestion, accepted-task quality, or billable usage.
 
 ## Milestone 1: Reference workload contract
 
@@ -31,6 +80,8 @@ The following foundations already exist and should be extended rather than rebui
 **Deliverable:** A deployment-neutral integration note covering the agent entry point, task identity, retrieval/tool calls, model calls, retries/iterations, traces, evaluation path, authentication, and available cost signals. Record resource identifiers separately from reusable contracts.
 
 **Evidence:** [Agentic RAG integration boundary](11_AGENTIC_RAG_INTEGRATION_BOUNDARY.md). Search configuration, corpus ingestion, grounded generation, post-hoc evaluation, local request correlation, and Application Insights export are verified. Foundry agent version 2 completed one inspectable Responses API trajectory through MCP tool discovery, `knowledge_base_retrieve`, cited final synthesis, and response completion. Missing policy, evaluation, cost, retry, and acceptance joins remain explicit inputs to later tasks.
+
+**Consolidated milestone evidence:** [`16_TE_001_VALIDATION_RESULTS.md`](16_TE_001_VALIDATION_RESULTS.md) records the measured test, browser, package, integration-boundary, modeled-calculation, defect, and remaining-gap evidence for TE-001, TE-001.5, TE-001.6, and TE-001.7.
 
 **Business outcome:** TokenEconomics now has a verified reference-workload entry point and observed step boundary rather than an assumed agent architecture. This proves where business requests, grounded retrieval, model synthesis, citations, identity, usage, and completion evidence originate. It does not yet provide a Studio-visible governed trajectory or demonstrate savings, acceptance, policy enforcement, or reconciliation for the deployed agent.
 
@@ -109,6 +160,22 @@ A broader 34-case enterprise-agent regression then used reproducibly randomized 
 - The reviewed release candidate is captured in an identified Git revision, and the unrelated local Studio screenshot is excluded from release scope.
 
 **Constitution alignment:** This strengthens `predict` and produces test, build, receipt, and release-manifest evidence. It preserves the control-plane role of Plan, immutable history, explicit model-call scope, and honest modeled/measured labels. Segment-level acceptance, policy authority, complete trajectory quality, response, reconciliation, and learning remain outside this release slice and are not weakened or claimed complete.
+
+#### MODELREL-01 - Curate and version Foundry model/pricing releases
+
+**Status:** Complete
+**Parent:** TE-001.5
+**Lifecycle:** predict
+
+**Evidence:** [`foundry-model-release.v2.json`](../06_prototype/data/model_catalogs/foundry-model-release.v2.json) is the current Studio release; [`foundry-model-release.v1.json`](../06_prototype/data/model_catalogs/foundry-model-release.v1.json) remains immutable historical provenance. Release `2026-08-25.2` expands the catalog to 98 sourced offerings: 86 OpenAI-on-Azure and 12 Anthropic-on-Foundry, grouped into text, embeddings, image, video, audio, and specialized modalities. The full catalog is visible, while only 50 coordinator-capable entries with verified model-specific input/output prices and compatible deployment paths are enabled in default/coordinator and per-agent selectors. Catalog presence, coordinator capability, and selector eligibility are separate fields; unavailable prices carry explicit reasons and are never inherited from adjacent models.
+
+OpenAI rates pin Azure Retail Prices API Global Standard meters, dimensions, and effective dates; Anthropic rates pin its Foundry-specific CCU contract, cache-read/write dimensions, and Microsoft availability/billing references. FutureTokenPredictor now uses the same exact prices for every selectable model, including corrected `o3-pro` ($20/$80 per million input/output tokens), `gpt-4.5-preview` ($70/$150), canonical hyphenated Claude Foundry IDs, and non-rounded cache rates. A cross-repository regression fails if any selectable release entry lacks predictor metadata or differs on any price dimension. New receipts retain the exact release, offering, pricing snapshot, deployment context, and source evidence; historical receipts are not repriced or rewritten.
+
+**Report correction:** Studio now loads delivery and model catalogs before reopening a receipt, selects the route recorded by the immutable receipt, and therefore reopens Foundry report `RPT-20260825-3C4ABA0C` as `foundry` rather than defaulting to the first Microsoft Copilot experience. Historical unverified pricing is not rewritten; the report renders a prominent unverified-reference warning and labels its source as reference-only.
+
+**Catalog presentation:** Studio groups all released offerings by modality, labels coordinator-capable but non-selectable entries separately from catalog-only models, displays modality-specific pricing units, and shows the explicit evidence reason when pricing is unavailable.
+
+**Alignment:** This change consumes measured public pricing/model-availability evidence and produces a versioned modeled model-call release snapshot. It does not price complete tasks or trajectories, alter segment-level quality controls, create calibrated tail-risk evidence, change Azure policy authority, or claim reconciliation, production validation, quality, or savings. Historical receipts remain immutable.
 
 ### TE-001.6 - Add Copilot commercial-meter forecasting to Plan
 
@@ -372,10 +439,18 @@ The software and browser results are measured. Product terms and published rates
 
 ### TE-002 - Define the task/trajectory envelope
 
-**Status:** Blocked by urgent release gate
+**Status:** Complete
 **Depends on:** TE-001, TE-001.5, TE-001.6, TE-001.7
 **Lifecycle:** predict, execute, evaluate, reconcile
 **Deliverable:** Versioned framework-neutral contracts for workload, task, trajectory, segment, step, policy binding, prediction binding, and timestamps.
+
+**Start evidence (2026-08-20):** Red-first validation recorded the missing contract module. The first implementation slice now defines stable workload, task, trajectory, run, trace, segment, prediction, policy, and step identities; exact prediction receipt and Azure policy provenance bindings; UTC timestamp ordering; generic retrieval, model, tool, cache, retry, and iteration steps; canonical serialization; and content-hashed append-only persistence. Ten focused tests pass, including exact round trip, all six step kinds, duplicate/orphan rejection, fail-closed policy provenance, hashed path-safe storage, temporal validation, concurrent duplicate-write rejection, atomic temp cleanup, and tamper detection. The complete Studio suite passes 115/115.
+
+**Completion evidence (2026-08-20):** New Plan receipts use schema `5.0` and bind `trajectory-envelope.v1`, stable workload identity, and segment-schema version. Govern adds the exact prediction-receipt hash and fail-closed Azure policy revision, label, and ETag. Execution context, gateway telemetry, sampled evaluation outcomes, reconciliation records, persisted trajectory envelopes, and Studio evidence views retain the same workload, task, trajectory, segment, receipt, and policy identities. `data/contracts/trajectory-envelope.v1.schema.json` publishes the framework-neutral JSON Schema compatibility boundary, while Python validation additionally enforces temporal ordering, parent ordering, unique evidence keys, and content-hash integrity. The focused TE-002 and release-boundary set passes 21/21; the complete Studio suite passes 118/118; the Plan-only release contains 55 allowlisted files, verifies every hash, and imports in isolation.
+
+**Development alignment gate:** TE-002 advances the contract and evidence boundary across `predict -> execute -> evaluate -> reconcile`. It consumes immutable schema-5 prediction receipts and exact fail-closed policy provenance, and produces content-hashed trajectory envelopes, identity-bound telemetry, per-task raw evaluation outcomes, and reconciliation joins. Model-call evidence remains distinct from the complete task/trajectory envelope. Segment identity is preserved without claiming an accepted-task outcome, modeled percentiles are not described as calibrated tail risk, workload-specific RAG translation remains outside reusable TokenGov core, and historical receipt schemas 1.0-4.0 remain readable without reinterpretation.
+
+**Remaining constitutional gaps after TE-002:** TE-002 does not complete policy comparison across candidates, production admission, real deployed workload execution, accepted-task quality, user response evidence, tenant billing reconciliation, forecast learning, or calibrated budget-breach probability. The current orchestrator proof is simulated; TE-003 must supply the first real deployed RAG adapter and trajectory outside `costgov/`.
 
 **Acceptance:**
 
@@ -385,29 +460,76 @@ The software and browser results are measured. Product terms and published rates
 
 ### TE-003 - Build the RAG workload adapter
 
-**Status:** Not started
+**Status:** Complete
 **Depends on:** TE-002
 **Lifecycle:** execute
-**Deliverable:** An adapter outside `costgov/` that translates the deployed agent's traces/events into the trajectory envelope and carries an admitted policy binding into execution.
+**Deliverable:** An adapter outside `costgov/` that translates the deployed Foundry agent's traces/events into the trajectory envelope, carries an admitted policy binding into execution, and emits the direct-token and resource-meter evidence available from that workload. If Agent 365 is licensed and available for the reference agent, also preserve its agent/blueprint identity and OpenTelemetry correlation as optional external evidence; Agent 365 availability is not a prerequisite for the core RAG trajectory proof.
+
+**Start evidence (2026-08-21):** `rag/foundry_trajectory_adapter.py` now validates the complete admitted `trajectory-envelope.v1` binding before creating a Foundry conversation, invokes a pinned prompt-agent version through the official project Responses API, translates MCP discovery, `knowledge_base_retrieve`, final model response, provider token usage, and citations into generic ordered steps, hashes rather than copies retrieved corpus output, and appends the resulting envelope through `TrajectoryStore`. `rag/capture_foundry_trajectory.py` provides the Entra-authenticated live command. Four focused adapter tests plus the twelve existing trajectory contract/integration tests pass (16/16). The tests use simulated provider objects and therefore prove translation and fail-closed behavior, not live execution.
+
+**Completion evidence (2026-08-25):** A new proof environment in subscription `a91cc1ba-bd19-43a7-90ea-120794c0fbc6` uses resource group `rg-tokeneconomics`, Foundry project `ai-project-tokeneconomics-te003`, agent `tokengov-books-rag-agent:1`, Foundry IQ knowledge base `books-knowledge-base`, and Azure App Configuration authority `appcs-xbk6ickycmp22`. Script `scripts/run_te003_live_test.py` created schema-5 report `RPT-20260825-3C4ABA0C`, admitted receipt `plan_f5504c8d0c6ee9bea293` under policy `tokengov-te003-live-proof:2026-08-25.2` at label `te003-live-v2` and ETag `4QngvGCIxXB3E8h240XjR3FuxMpcZXe9Ac2Jt977IhU`, invoked the pinned hosted agent, and reopened trajectory `trajectory-605b9b868a5d45068d20c45e7973590b` with content hash `06095b9d2ea884c454755c1c64f941bd75301df19f2ac90c66c7894ead12fd2b`.
+
+The measured trajectory contains ordered agent-response, MCP discovery, reasoning, `knowledge_base_retrieve`, and cited model-synthesis steps. Foundry reported 11,530 input tokens, 138 output tokens, and 11,668 total tokens. Search/resource-meter cost and model cost remain explicitly unavailable/unpriced in the trajectory. The associated Plan forecast records `pricing_verified: false` and warns that the deployment is absent from local pricing catalogs. Azure policy revision `2026-08-25.2` therefore permits unverified pricing for this execution-binding proof; its passed model-cost ceiling is not decision-grade Luna price validation. An earlier report that exposed the false `pricing_verified` claim remains immutable historical evidence and is excluded from TE-003 acceptance.
+
+Red-first predictor work corrected catalog presence being mislabeled as verified price evidence. The complete predictor test module passes 21/21 through its required evidence runner, and the focused TE-003/trajectory/release-boundary set passes 28/28. These tests and the live report prove the adapter acceptance criteria, not accepted-task quality or complete economics.
+
+**Development alignment gate:** This slice advances deployed-workload `execute` only. It consumes an immutable schema-5 prediction binding, exact fail-closed Azure policy provenance, stable workload/task/trajectory/segment identities, and a pinned Foundry agent reference. It produces an append-only Foundry/RAG reference envelope with provider-reported model tokens and explicit unavailable/unpriced retrieval, resource, and model-cost fields. Model and retrieval steps remain distinct from the complete trajectory; segment identity is preserved without inventing accepted-task quality; no modeled percentile is treated as calibrated tail risk; and all Foundry, MCP, Search, and corpus translation remains under `rag/`, outside reusable `costgov/`.
+
+**Remaining constitutional gaps after TE-003:** This is one measured factual-lookup execution, not a representative experiment or production validation. TE-004 must pin the complete experiment manifest; TE-005 and later work must add explicit acceptance outcomes, segment-level sample sufficiency, end-to-end multi-meter cost, candidate comparison, calibrated budget-risk evidence, bounded response, billing reconciliation, and predictor learning. Agent 365 remains optional and was not required or integrated for this proof.
 
 **Acceptance:**
 
 - At least one real deployed RAG trajectory is captured end to end.
 - The adapter does not copy corpus, prompt, or retrieval implementation into TokenGov core.
 - An invalid or absent policy binding fails closed.
+- The result is labeled as the Foundry/RAG reference proof, not evidence that Microsoft Copilot, Cowork, Copilot Studio, Work IQ, or GitHub Copilot telemetry has been integrated.
+- Any Agent 365 export distinguishes attempted transport, HTTP acceptance, verified ingestion, downstream visibility, and unavailable coverage; none is treated as authoritative model or commercial billing evidence.
 
 ### TE-004 - Create the experiment manifest
 
-**Status:** Not started
+**Status:** Ready
 **Depends on:** TE-001, TE-002
 **Lifecycle:** predict, compare policy, reconcile
-**Deliverable:** An immutable manifest that pins workload, corpus/index, retrieval, prompt/agent, golden set, evaluator, model catalog, pricing, policy candidate, and infrastructure revisions.
+**Deliverable:** An immutable manifest that pins workload, corpus/index, retrieval, prompt/agent, golden set, evaluator, model catalog, pricing, resolved meter stack, commercial rate cards, entitlement and purchase-allocation contracts, billing period, policy candidate, infrastructure revisions, and any applicable external agent-governance evidence contract and capability-maturity revision.
 
 **Acceptance:**
 
 - Baseline and candidate runs can prove they used the same representative task set and all intentionally shared revisions.
 - Any intentional arm difference is machine-readable.
 - Historical manifests remain readable after later revisions.
+- Non-applicable evidence is explicit; a commercial-only or hybrid workload is not forced to invent a model, corpus, or evaluator revision.
+- Agent 365, Entra, Defender, or Purview evidence is optional unless the candidate explicitly requires it; required evidence pins freshness, source authority, maturity, coverage, and fail behavior.
+
+## Cross-cutting track: Microsoft Agent 365 integration
+
+This track runs beside the Foundry/RAG proof and does not replace TE-003 through TE-016. Its first-party research basis is the Microsoft [Agent 365 overview](https://learn.microsoft.com/en-us/microsoft-agent-365/overview), [service description](https://learn.microsoft.com/en-us/office365/servicedescriptions/microsoft-agent-365/microsoft-agent-365), and [observability concepts](https://learn.microsoft.com/en-us/microsoft-agent-365/developer/observability-concepts); decision D41 records the durable project boundary.
+
+### A365-01 - Define external agent-governance evidence
+
+**Status:** Ready
+**Depends on:** TE-002
+**Lifecycle:** predict, compare policy, admit, execute, observe, respond, reconcile
+**Deliverable:** Versioned `agent365-evidence.v1`, `external-governance-posture.v1`, and correlation-profile contracts that reference Agent 365 evidence from the framework-neutral trajectory without adding Microsoft-specific required fields to TokenGov core.
+
+**Acceptance:**
+
+- The contracts preserve Agent 365 trace, conversation, session, agent identity, blueprint, platform, channel, and span references alongside TokenEconomics workload, task, trajectory, run, step, segment, prediction, and policy identities.
+- Every record carries source, event and collection timestamps, maturity, coverage, freshness, retention deadline, ingestion-verification state, immutable hash/reference, and explicit unavailable fields.
+- One Agent 365 message/reply run can map into a longer TokenEconomics task/trajectory without forcing one-to-one identity.
+- Agent 365-specific collection and translation remain outside `costgov/`.
+
+### Conditional Agent 365 follow-on gate
+
+Do not schedule separate Agent 365 runtime, Govern, Observe, or Reconcile milestones yet. After A365-01, reconsider a real connector only as part of TE-016's portability proof or a later evidence-backed amendment. Proceed only when all of the following are true:
+
+- a licensed tenant and supported reference-agent identity/runtime are available;
+- the required registry, observability, posture, or lifecycle APIs are documented and accessible;
+- downstream telemetry ingestion can be verified rather than inferred from HTTP success;
+- evidence can be retained in TokenEconomics before Agent 365's documented 30-day expiry;
+- the integration answers a TokenEconomics economic, quality, or reconciliation question that existing Azure/Application Insights evidence cannot answer more directly;
+- Studio can summarize or link to Agent 365 posture without recreating an Agent 365, Defender, or Purview administration console.
+
+If the gate passes, amend TE-016 or create a new dated task and decision. Until then, Agent 365 remains an optional architecture connector and commercial subscription layer, not an active implementation dependency.
 
 ## Milestone 2: Acceptance and end-to-end economics
 
@@ -424,31 +546,36 @@ The software and browser results are measured. Product terms and published rates
 - Acceptance cannot be inferred by silently treating mean quality as a probability.
 - Human-review and automated-evaluator outcomes can be represented separately.
 
-### TE-006 - Implement the trajectory cost ledger
+### TE-006 - Implement the multi-meter trajectory ledger
 
 **Status:** Not started
 **Depends on:** TE-002, TE-003
 **Lifecycle:** execute, observe
-**Deliverable:** An append-only ledger for model, retrieval/tool, evaluation, observability, and allocatable infrastructure costs by task, trajectory, step, segment, tenant, and policy revision.
+**Deliverable:** An append-only usage-and-cost ledger for subscriptions, included usage, Microsoft Copilot Credits, GitHub AI Credits, model tokens, resource meters, retrieval/tool activity, evaluation, observability, Agent 365 per-user licensing where applicable, and allocatable infrastructure by task, trajectory, step, segment, tenant, product, environment, and policy revision. Agent 365 operational/security evidence is correlated but remains distinct from authoritative commercial meter and invoice evidence.
 
 **Acceptance:**
 
-- Each amount includes source, pricing revision, currency, quantity, and calculation method.
+- Each entry includes meter family, native unit and currency, quantity, entitlement disposition, purchase source, evidence source, pricing/rate-card revision, billing period, and calculation or allocation method.
+- Microsoft Copilot Credits, GitHub AI Credits, tokens, seats, resource units, and USD allocations remain distinct ledger dimensions; aggregation occurs only where a versioned sourced conversion or allocation supports it.
+- Included or zero-rated use remains recorded with its usage quantity and entitlement evidence rather than disappearing as a zero-cost event.
 - Unknown or excluded costs remain explicit rather than becoming zero.
 - Aggregates reconcile to source telemetry within documented tolerances.
+- Agent 365 spans or activity can corroborate that work occurred but cannot supply a missing native quantity, rate, credit conversion, or invoice amount.
 
 ### TE-007 - Add accepted-task economics to Observe
 
 **Status:** Not started
 **Depends on:** TE-005, TE-006
 **Lifecycle:** observe
-**Deliverable:** APIs and UI for completion rate, acceptance rate, total cost, cost per completed task, and cost per accepted task by segment and policy revision.
+**Deliverable:** APIs and UI for completion rate, acceptance rate, native meter consumption, entitlement and overage disposition, committed-capacity utilization, total allocatable cost, cost coverage, cost per completed task, and cost per accepted task by segment, product, environment, meter stack, and policy revision. For Agent 365-enabled workloads, add separately labeled inventory/identity, activity, telemetry coverage, security/compliance, and adoption evidence.
 
 **Acceptance:**
 
 - Denominators and inconclusive outcomes are visible.
 - Segment views cannot be replaced by an aggregate-only result.
 - The UI labels measured, modeled, and incomplete economics accurately.
+- Native currencies are displayed independently; a combined USD total appears only for components with sourced pricing or allocation evidence, with uncovered components visible.
+- Operational completion, adoption, Defender/Purview events, explicit task acceptance, and economic outcomes remain separate dimensions.
 
 ## Milestone 3: Policy-conditioned planning and decisions
 
@@ -457,39 +584,44 @@ The software and browser results are measured. Product terms and published rates
 **Status:** Not started
 **Depends on:** TE-002, TE-004
 **Lifecycle:** compare policy
-**Deliverable:** Candidate revisions that pin model/routing, cache, context, retry/iteration, budget, and evaluation controls plus provenance.
+**Deliverable:** Candidate revisions that pin only applicable and enforceable controls: model/routing, cache, context, retry/iteration, evaluation, monetary budget, native-meter caps, committed-capacity thresholds, bounded overage actions, and optional external agent-governance posture requirements, plus meter-stack and authority provenance.
 
 **Acceptance:**
 
 - Candidates are comparable without mutating the active Azure policy.
 - Candidate identity is carried through forecasts, simulations, evaluations, and decisions.
 - Unsupported controls fail validation.
+- Each control declares its authority and capability. Subscription assignments, tenant entitlements, commercial commitments, or external product settings remain evidence or reviewed recommendations unless an authorized integration exists.
+- Agent 365 posture requirements declare source, freshness, maturity, enforcement coverage, and `satisfied | failed | inconclusive | unavailable`; they are not represented as Azure-publishable TokenGov controls.
 
 ### TE-009 - Add decision-grade quality and tail constraints
 
 **Status:** Not started
 **Depends on:** TE-005, TE-008
 **Lifecycle:** compare policy, evaluate
-**Deliverable:** Segment sample/confidence evidence plus explicit budget $B$, tolerance $\epsilon$, and forecast $P(C_{\text{task}}>B)$ for each candidate.
+**Deliverable:** Segment sample/confidence evidence plus explicit monetary budget $B$, tolerance $\epsilon$, and forecast $P(C_{\text{task}}>B)$ for each candidate, with separate native-meter exhaustion, committed-capacity, or overage-risk constraints where those are decision relevant.
 
 **Acceptance:**
 
 - Insufficient segment evidence produces `inconclusive`, not automatic eligibility.
 - P95 is never substituted for breach probability without a documented distribution calculation.
 - Reconciliation can later report empirical breach and coverage rates against the same values.
+- Native-credit or resource-capacity risk is not presented as monetary tail risk unless a versioned rate or allocation contract supports the conversion.
 
 ### TE-010 - Integrate candidate selection into Govern
 
 **Status:** Not started
 **Depends on:** TE-006, TE-008, TE-009
 **Lifecycle:** compare policy, admit
-**Deliverable:** Govern comparison and decision evidence that selects the least expected-cost eligible candidate or states that none satisfies all constraints.
+**Deliverable:** Govern comparison and decision evidence that selects the least expected allocatable-cost eligible candidate, or states that none satisfies all economic, quality, tail, native-meter, and applicable external agent-governance constraints, or that evidence coverage is insufficient for a decision.
 
 **Acceptance:**
 
 - Expected cost is policy-conditioned and uses a consistent task/trajectory unit.
 - Every segment quality constraint and the chance constraint are visible in the decision.
 - Selection produces a new immutable decision; it does not overwrite prior admissions.
+- Comparisons retain the resolved meter stack and show native quantities, entitlement disposition, capacity/overage risk, sourced USD components, and uncovered components without cross-currency conflation.
+- External Agent 365/Entra/Defender/Purview posture is source-attributed and separately evaluated; it does not replace TokenGov's final economic/quality admission or exact Azure policy binding.
 
 ## Milestone 4: Authorized feedback loop
 
@@ -498,13 +630,15 @@ The software and browser results are measured. Product terms and published rates
 **Status:** Not started
 **Depends on:** TE-005, TE-009
 **Lifecycle:** evaluate, respond
-**Deliverable:** Durable sample-sufficiency, breach, hysteresis, optimization-eligibility, reversion, and recovery state by workload segment and policy revision.
+**Deliverable:** Durable sample-sufficiency, breach, hysteresis, optimization-eligibility, reversion, and recovery state by workload segment and policy revision, with separately sourced Agent 365/Entra/Defender/Purview events and external response-state references where applicable.
 
 **Acceptance:**
 
 - Restarting a service does not reset consecutive-breach history.
 - Every transition cites the evaluation evidence that caused it.
 - Bounded route/action ladders and recovery conditions are explicit.
+- Response actions are scoped by meter family and authority; TokenGov does not silently mutate tenant licenses, credit purchases, or external product controls.
+- Blocking, identity restriction, DLP, tool blocking, unpublish, or other external security/lifecycle actions require their own authorized identity, capability proof, outcome evidence, and rollback/recovery semantics.
 
 ### TE-012 - Implement the reviewed publisher handoff
 
@@ -518,6 +652,8 @@ The software and browser results are measured. Product terms and published rates
 - Studio and runtime identities cannot publish policy.
 - Publication failure leaves the prior policy authoritative.
 - Approval, rollout, verification, and rollback evidence are durable.
+- The publisher changes only the authoritative TokenGov policy surface. Commercial licensing, capacity purchases, and external product administration remain separately authorized actions or recommendations.
+- Agent 365, Entra, Defender, Purview, and Intune administration remains outside the TokenGov Azure publisher identity.
 
 ### TE-013 - Prove bounded regression response on RAG
 
@@ -534,44 +670,50 @@ The software and browser results are measured. Product terms and published rates
 
 ## Milestone 5: Reconciliation and learning proof
 
-### TE-014 - Reconcile acceptance, tail coverage, and actual cost
+### TE-014 - Reconcile acceptance, multi-meter actuals, and tail coverage
 
 **Status:** Not started
 **Depends on:** TE-005, TE-006, TE-009, TE-013
 **Lifecycle:** reconcile
-**Deliverable:** Idempotent reconciliation of end-to-end actual cost, accepted-task economics, forecast error, budget breaches, and percentile/chance-constraint coverage.
+**Deliverable:** Idempotent reconciliation of end-to-end accepted-task economics, native meter actuals, entitlement disposition, committed/included/PAYG allocation, sourced invoice or billing exports, model/resource cost, forecast error, budget or capacity breaches, percentile/chance-constraint coverage, and optional Agent 365 identity/activity/security evidence.
 
 **Acceptance:**
 
 - Re-running reconciliation does not duplicate calibration writes.
 - Incomplete trajectories remain incomplete and are not treated as zero-cost successes.
-- Results retain experiment, prediction, candidate, active policy, pricing, and evaluator provenance.
+- Results retain experiment, prediction, candidate, active policy, meter-stack, rate-card, entitlement, purchase-source, billing-period, pricing, and evaluator provenance.
+- Missing tenant, product, invoice, or usage sources leave reconciliation explicitly partial; native currencies are not collapsed merely because they share a nominal cent value.
+- Agent 365 activity remains corroborating operational evidence and never replaces authoritative native commercial meter, price, entitlement, or invoice evidence.
 
-### TE-015 - Demonstrate predictor learning
+### TE-015 - Demonstrate forecast learning
 
 **Status:** Not started
 **Depends on:** TE-014
 **Lifecycle:** learn, predict
-**Deliverable:** A before/after experiment showing correlated representative actuals recorded in FutureTokenPredictor and their effect on a subsequent forecast.
+**Deliverable:** A before/after experiment showing correlated representative actuals routed to the correct learning boundary: model-token and workload actuals to FutureTokenPredictor; native-credit, entitlement, purchase-allocation, seat, and resource-meter actuals to versioned commercial forecast calibration outside FutureTokenPredictor; accepted outcomes to quality calibration; and Agent 365 operational/security/adoption evidence to separate workload, risk, and governance analysis.
 
 **Acceptance:**
 
 - Historical forecasts remain unchanged.
 - The new forecast identifies the calibration evidence it used.
 - Improvement or non-improvement is reported honestly using a predefined error metric.
+- Commercial credits or product entitlements are never converted into token-training observations, and token actuals do not rewrite commercial rate cards.
+- Agent 365 operational completion or adoption never becomes an implicit accepted-task label.
 
 ### TE-016 - Run the portability test
 
 **Status:** Not started
 **Depends on:** TE-015
 **Lifecycle:** full lifecycle
-**Deliverable:** Integrate a materially different second workload through the same contracts and document any core-schema changes required.
+**Deliverable:** Integrate a materially different second workload with an authoritative non-Foundry or hybrid meter source through the same contracts and document any core-schema changes required. Prefer an Agent 365-correlated Copilot Studio + Foundry or Foundry + Work IQ workload when tenant telemetry and documented APIs are available; otherwise select another route with source-verifiable commercial usage and label unavailable Agent 365 integrations as blocked.
 
 **Acceptance:**
 
 - No RAG-specific core field is required.
 - Workload-specific evaluation and adapters remain outside `costgov/`.
 - Any contract amendment follows the constitutional decision process.
+- The second workload proves that native credits, entitlements, purchase sources, or hybrid meters can reconcile without being converted into Foundry tokens or Microsoft Copilot Credits.
+- If Agent 365 is used, the portability proof also preserves identity/activity correlation without making Agent 365 the runtime, economic, quality, or billing authority.
 
 ## UI implementation rule
 
@@ -579,14 +721,14 @@ Do not build future-state cards or controls before the backing contracts and dec
 
 | View | Current constitutional role | Add only after |
 |---|---|---|
-| Plan | Model/workload invocation forecast and immutable receipt | TE-002, TE-004, TE-008 for trajectory and candidate forecasts |
-| Govern | Authoritative Azure admission, policy explanation, and draft changes | TE-009, TE-010, TE-011 for candidate decisions and outcome state |
-| Runs | Policy-bound offline reference execution | TE-003 for deployed RAG trajectories |
-| Observe | Completed-request cost and segment quality | TE-005 through TE-007 for accepted-task economics |
-| Reconcile | Completed-task predictor calibration | TE-009, TE-014 for acceptance and distribution coverage |
+| Plan | Delivery-experience forecast, resolved meter stack, model/commercial subforecasts, and immutable receipt | TE-004, TE-008 for experiment and candidate forecasts |
+| Govern | Authoritative Azure admission, policy explanation, and draft changes | TE-009, TE-010, TE-011 for candidate decisions and outcome state; optional external posture only after the Agent 365 follow-on gate |
+| Runs | Policy-bound offline reference execution | TE-003 for deployed RAG trajectories; optional Agent 365 correlation only under TE-016 or a later approved task |
+| Observe | Completed-request quality plus native-meter and allocatable-cost evidence | TE-005 through TE-007 for accepted-task economics and meter coverage; link or summarize external security/adoption evidence only after it proves decision value |
+| Reconcile | Completed-task multi-meter reconciliation and forecast calibration | TE-009, TE-014, TE-015 for acceptance, distribution coverage, and split learning; Agent 365 remains corroborating evidence if later integrated |
 
 The five-view structure is aligned and does not need replacement. The work is to strengthen the evidence flowing through it.
 
 ## Next executable action
 
-Complete TE-001.5 before starting TE-002. Isolate the Plan-only runtime and publish dependency closure, establish scoped coverage and stress baselines, add missing red-first boundary/regression/UI tests, and produce a clean-revision release candidate containing only the allowlisted Studio Plan and FutureTokenPredictor files.
+Start TE-003 by capturing one real policy-bound Foundry/RAG trajectory through `trajectory-envelope.v1`. Emit every available model-token, retrieval/tool, and resource-meter signal without claiming that this proves the other eight delivery experiences. In parallel, design TE-004's experiment manifest and A365-01's external-evidence/correlation contracts. Do not block the RAG proof on Agent 365 licensing or preview capability: record Agent 365 integration as unavailable or blocked until a supported tenant/runtime path is verified, and never treat telemetry transport success as ingestion, accepted-task, or billing proof.

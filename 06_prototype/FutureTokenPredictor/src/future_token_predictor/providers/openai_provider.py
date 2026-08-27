@@ -50,8 +50,14 @@ def _oai(
 # --- Model catalog (sourced from Azure OpenAI docs, July 2025) ---
 
 _MODELS: dict[str, ModelInfo] = {
+    # ── GPT-5.6 ──
+    "gpt-5.6-sol":       _oai("gpt-5.6-sol",   1_050_000, 128_000, reasoning=True),
+    "gpt-5.6-terra":     _oai("gpt-5.6-terra", 1_050_000, 128_000, reasoning=True),
+    "gpt-5.6-luna":      _oai("gpt-5.6-luna",  1_050_000, 128_000, reasoning=True),
+
     # ── GPT-5.5 ──
     "gpt-5.5":           _oai("gpt-5.5",       1_050_000, 128_000),
+    "gpt-chat-latest":   _oai("gpt-chat-latest", 400_000, 128_000),
 
     # ── GPT-5.4 family ──
     "gpt-5.4":           _oai("gpt-5.4",       1_050_000, 128_000),
@@ -91,6 +97,8 @@ _MODELS: dict[str, ModelInfo] = {
     # ── GPT-4o ──
     "gpt-4o":            _oai("gpt-4o",          128_000,  16_384, audio=True),
     "gpt-4o-mini":       _oai("gpt-4o-mini",     128_000,  16_384),
+    "gpt-4-turbo":       _oai("gpt-4-turbo",     128_000,   4_096),
+    "gpt-4.5-preview":   _oai("gpt-4.5-preview", 128_000,  16_384),
 
     # ── o-series (reasoning) ──
     "o3":                _oai("o3",               200_000, 100_000, reasoning=True, reasoning_mult=5.0),
@@ -128,55 +136,71 @@ _MODELS: dict[str, ModelInfo] = {
     "computer-use-preview": _oai("computer-use-preview", 128_000, 16_384, caching=False),
 }
 
-# Static pricing fallback (USD per 1M tokens, Global Standard, July 2025)
+# Static pricing fallback (USD per 1M tokens).
 _PRICING: dict[str, PricingTier] = {
-    # GPT-5.5
-    # (pricing not yet published at time of writing)
+    # GPT-5.6 short-context Global Standard. Azure Retail Prices API,
+    # effective July/August 2026.
+    "gpt-5.6-sol": PricingTier(
+        input=5.00, output=30.00, cached_input=0.50, cache_write=6.25,
+    ),
+    "gpt-5.6-terra": PricingTier(
+        input=2.00, output=12.00, cached_input=0.20, cache_write=2.50,
+    ),
+    "gpt-5.6-luna": PricingTier(
+        input=0.20, output=1.20, cached_input=0.02, cache_write=0.25,
+    ),
+
+    # GPT-5.5 short-context Global Standard
+    "gpt-5.5":          PricingTier(input=5.00, output=30.00, cached_input=0.50),
+    "gpt-chat-latest":  PricingTier(input=5.00, output=30.00, cached_input=0.50),
 
     # GPT-5.4 family
     "gpt-5.4":          PricingTier(input=2.50, output=15.00, cached_input=0.25),
     "gpt-5.4-pro":      PricingTier(input=30.00, output=180.00),
-    "gpt-5.4-mini":     PricingTier(input=0.75, output=4.50, cached_input=0.08),
+    "gpt-5.4-mini":     PricingTier(input=0.75, output=4.50, cached_input=0.075),
     "gpt-5.4-nano":     PricingTier(input=0.20, output=1.25, cached_input=0.02),
 
     # GPT-5.3
-    "gpt-5.3-codex":    PricingTier(input=1.75, output=14.00, cached_input=0.18),
-    "gpt-5.3-chat":     PricingTier(input=1.75, output=14.00, cached_input=0.18),
+    "gpt-5.3-codex":    PricingTier(input=1.75, output=14.00, cached_input=0.175),
+    "gpt-5.3-chat":     PricingTier(input=1.75, output=14.00, cached_input=0.175),
 
     # GPT-5.2
-    "gpt-5.2":          PricingTier(input=1.75, output=14.00, cached_input=0.18),
-    "gpt-5.2-codex":    PricingTier(input=1.75, output=14.00, cached_input=0.18),
-    "gpt-5.2-chat":     PricingTier(input=1.75, output=14.00, cached_input=0.18),
+    "gpt-5.2":          PricingTier(input=1.75, output=14.00, cached_input=0.175),
+    "gpt-5.2-codex":    PricingTier(input=1.75, output=14.00, cached_input=0.175),
+    "gpt-5.2-chat":     PricingTier(input=1.75, output=14.00, cached_input=0.175),
 
     # GPT-5.1
-    "gpt-5.1":          PricingTier(input=1.25, output=10.00, cached_input=0.13),
-    "gpt-5.1-chat":     PricingTier(input=1.25, output=10.00, cached_input=0.13),
-    "gpt-5.1-codex":    PricingTier(input=1.25, output=10.00, cached_input=0.13),
-    "gpt-5.1-codex-mini": PricingTier(input=0.25, output=2.00, cached_input=0.03),
-    "gpt-5.1-codex-max": PricingTier(input=1.25, output=10.00, cached_input=0.13),
+    "gpt-5.1":          PricingTier(input=1.25, output=10.00, cached_input=0.125),
+    "gpt-5.1-chat":     PricingTier(input=1.25, output=10.00, cached_input=0.125),
+    "gpt-5.1-codex":    PricingTier(input=1.25, output=10.00, cached_input=0.125),
+    "gpt-5.1-codex-mini": PricingTier(input=0.25, output=2.00, cached_input=0.025),
+    "gpt-5.1-codex-max": PricingTier(input=1.25, output=10.00, cached_input=0.125),
 
     # GPT-5 family
-    "gpt-5":            PricingTier(input=1.25, output=10.00, cached_input=0.13),
+    "gpt-5":            PricingTier(input=1.25, output=10.00, cached_input=0.125),
     "gpt-5-pro":        PricingTier(input=15.00, output=120.00),
-    "gpt-5-mini":       PricingTier(input=0.25, output=2.00, cached_input=0.03),
-    "gpt-5-nano":       PricingTier(input=0.05, output=0.40, cached_input=0.01),
-    "gpt-5-chat":       PricingTier(input=1.25, output=10.00, cached_input=0.13),
-    "gpt-5-codex":      PricingTier(input=1.25, output=10.00, cached_input=0.13),
+    "gpt-5-mini":       PricingTier(input=0.25, output=2.00, cached_input=0.025),
+    "gpt-5-nano":       PricingTier(input=0.05, output=0.40, cached_input=0.005),
+    "gpt-5-chat":       PricingTier(input=1.25, output=10.00, cached_input=0.125),
+    "gpt-5-codex":      PricingTier(input=1.25, output=10.00, cached_input=0.125),
 
     # GPT-4.1 family
     "gpt-4.1":          PricingTier(input=2.00, output=8.00, cached_input=0.50),
     "gpt-4.1-mini":     PricingTier(input=0.40, output=1.60, cached_input=0.10),
-    "gpt-4.1-nano":     PricingTier(input=0.10, output=0.40, cached_input=0.03),
+    "gpt-4.1-nano":     PricingTier(input=0.10, output=0.40, cached_input=0.025),
 
     # GPT-4o
     "gpt-4o":           PricingTier(input=2.50, output=10.00, cached_input=1.25),
     "gpt-4o-mini":      PricingTier(input=0.15, output=0.60, cached_input=0.075),
+    "gpt-4-turbo":      PricingTier(input=10.00, output=30.00),
+    "gpt-4.5-preview":  PricingTier(input=70.00, output=150.00, cached_input=40.00),
 
     # o-series
     "o3":               PricingTier(input=2.00, output=8.00, cached_input=0.50),
-    "o3-pro":           PricingTier(input=10.00, output=40.00, cached_input=2.50),
+    "o3-pro":           PricingTier(input=20.00, output=80.00),
     "o3-mini":          PricingTier(input=1.10, output=4.40, cached_input=0.55),
-    "o4-mini":          PricingTier(input=1.10, output=4.40, cached_input=0.28),
+    "o4-mini":          PricingTier(input=1.10, output=4.40, cached_input=0.275),
+    "codex-mini":       PricingTier(input=1.50, output=6.00, cached_input=0.375),
     "o1":               PricingTier(input=15.00, output=60.00, cached_input=7.50),
     "o1-mini":          PricingTier(input=1.10, output=4.40, cached_input=0.55),
 

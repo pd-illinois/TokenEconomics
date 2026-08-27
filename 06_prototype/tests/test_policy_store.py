@@ -139,7 +139,7 @@ def test_admission_rejects_unverified_or_over_ceiling_prediction():
 def test_admission_rejects_unknown_receipt_schema_before_hash_projection():
     with pytest.raises(PolicyLoadError, match="unsupported receipt schema"):
         admit_receipt(
-            {"schema_version": "5.0"},
+            {"schema_version": "6.0"},
             LoadedPolicy(_policy(), {"source": "azure_app_configuration"}),
         )
 

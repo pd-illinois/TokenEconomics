@@ -229,6 +229,8 @@ class PlanStudioHandler(SimpleHTTPRequestHandler):
                 plan_id=session["plan_id"],
                 receipt_id=receipt["receipt_id"],
                 receipt_hash=receipt["content_hash"],
+                schema_version=receipt["schema_version"],
+                trajectory_contract=receipt["trajectory_contract"],
                 created_at=receipt["created_at"],
             )
             return self._json(result, 201)

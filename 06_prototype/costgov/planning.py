@@ -13,6 +13,13 @@ from pathlib import Path
 from uuid import uuid4
 
 from .contracts import PlanReceipt
+from .trajectory_contracts import (
+    PolicyBinding,
+    PredictionBinding,
+    TRAJECTORY_SCHEMA_VERSION,
+    TrajectoryContractBinding,
+    WorkloadIdentity,
+)
 
 if TYPE_CHECKING:
     from .policy_store import LoadedPolicy
@@ -20,6 +27,7 @@ if TYPE_CHECKING:
 SCHEMA_VERSION = "2.0"
 COMMERCIAL_SCHEMA_VERSION = "3.0"
 METER_STACK_SCHEMA_VERSION = "4.0"
+TRAJECTORY_RECEIPT_SCHEMA_VERSION = "5.0"
 _plan_lock = threading.RLock()
 
 
@@ -40,6 +48,16 @@ class PlanStore:
     def create_session(self, report_id: str, description: str, parameters: dict) -> dict:
         plan_id = str(uuid4())
         timestamp = _now()
+        trajectory_contract = TrajectoryContractBinding(
+            schema_version=TRAJECTORY_SCHEMA_VERSION,
+            workload=WorkloadIdentity(
+                workload_id=f"workload-{plan_id}",
+                version=str(parameters.get("workload_version") or "plan-workload.v1"),
+            ),
+            segment_schema_version=str(
+                parameters.get("segment_schema_version") or "segment.v1"
+            ),
+        )
         session = {
             "plan_id": plan_id,
             "report_id": report_id,
@@ -52,6 +70,7 @@ class PlanStore:
             "receipt_id": None,
             "receipt_hash": None,
             "govern_handoff": None,
+            "trajectory_contract": trajectory_contract.to_dict(),
         }
         self._write_session(session)
         return session
@@ -95,7 +114,7 @@ class PlanStore:
         clarifications = analysis.get("clarifications", [])
         exclusions = analysis.get("exclusions", [])
         schema_version = (
-            METER_STACK_SCHEMA_VERSION
+            TRAJECTORY_RECEIPT_SCHEMA_VERSION
             if result.get("meter_stack")
             else COMMERCIAL_SCHEMA_VERSION
             if result.get("route")
@@ -116,7 +135,11 @@ class PlanStore:
             "prediction": result["prediction"],
             "infrastructure": result["infrastructure"],
         }
-        if schema_version in {COMMERCIAL_SCHEMA_VERSION, METER_STACK_SCHEMA_VERSION}:
+        if schema_version in {
+            COMMERCIAL_SCHEMA_VERSION,
+            METER_STACK_SCHEMA_VERSION,
+            TRAJECTORY_RECEIPT_SCHEMA_VERSION,
+        }:
             snapshot.update(
                 route=result["route"],
                 commercial=result["commercial"],
@@ -125,10 +148,19 @@ class PlanStore:
                 hybrid=result.get("hybrid"),
                 acceptance_assumption=result.get("acceptance_assumption"),
             )
-        if schema_version == METER_STACK_SCHEMA_VERSION:
+        if schema_version in {
+            METER_STACK_SCHEMA_VERSION,
+            TRAJECTORY_RECEIPT_SCHEMA_VERSION,
+        }:
             snapshot["meter_stack"] = result["meter_stack"]
+        if schema_version == TRAJECTORY_RECEIPT_SCHEMA_VERSION:
+            snapshot["trajectory_contract"] = session["trajectory_contract"]
         content_hash = hashlib.sha256(_canonical(snapshot).encode("utf-8")).hexdigest()
-        if schema_version in {COMMERCIAL_SCHEMA_VERSION, METER_STACK_SCHEMA_VERSION}:
+        if schema_version in {
+            COMMERCIAL_SCHEMA_VERSION,
+            METER_STACK_SCHEMA_VERSION,
+            TRAJECTORY_RECEIPT_SCHEMA_VERSION,
+        }:
             receipt_payload = {
                 "receipt_id": f"plan_{content_hash[:20]}",
                 **snapshot,
@@ -227,6 +259,31 @@ class PlanStore:
         receipt = self.get_receipt(plan_id)
         admission = admit_receipt(receipt, policy)
         prediction = receipt["prediction"]
+        prediction_binding = PredictionBinding(
+            prediction_id=str(prediction["prediction_id"]),
+            receipt_id=receipt["receipt_id"],
+            schema_version=receipt["schema_version"],
+            content_hash=receipt["content_hash"],
+        )
+        provenance = admission["policy"]["provenance"]
+        policy_binding = PolicyBinding(
+            policy_id=admission["policy"]["policy_id"],
+            version=admission["policy"]["version"],
+            content_hash=admission["policy"]["content_hash"],
+            source=provenance["source"],
+            label=provenance["label"],
+            etag=provenance["etag"],
+        )
+        base_contract = TrajectoryContractBinding.from_dict(
+            receipt["trajectory_contract"]
+        )
+        trajectory_contract = TrajectoryContractBinding(
+            schema_version=base_contract.schema_version,
+            workload=base_contract.workload,
+            segment_schema_version=base_contract.segment_schema_version,
+            prediction_binding=prediction_binding,
+            policy_binding=policy_binding,
+        )
         handoff = {
             "handoff_id": str(uuid4()),
             "report_id": session["report_id"],
@@ -248,6 +305,7 @@ class PlanStore:
             "mutation": admission["mutation"],
             "evaluated_at": admission["evaluated_at"],
             "infrastructure_status": receipt["infrastructure"]["status"],
+            "trajectory_contract": trajectory_contract.to_dict(),
         }
         session.update(status="handed_off", govern_handoff=handoff, updated_at=_now())
         self._write_session(session)

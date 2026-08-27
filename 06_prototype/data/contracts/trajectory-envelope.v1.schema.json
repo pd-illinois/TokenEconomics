@@ -1,0 +1,271 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://tokeneconomics.local/contracts/trajectory-envelope.v1.schema.json",
+  "title": "TokenEconomics trajectory envelope v1",
+  "description": "Framework-neutral immutable task-trajectory evidence. Temporal ordering, parent ordering, and content-hash verification are enforced by costgov.trajectory_contracts.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "trajectory_id",
+    "run_id",
+    "trace_id",
+    "task",
+    "prediction_binding",
+    "policy_binding",
+    "status",
+    "started_at",
+    "ended_at",
+    "recorded_at",
+    "steps"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "trajectory-envelope.v1"
+    },
+    "trajectory_id": {
+      "$ref": "#/$defs/stableId"
+    },
+    "run_id": {
+      "$ref": "#/$defs/stableId"
+    },
+    "trace_id": {
+      "$ref": "#/$defs/stableId"
+    },
+    "task": {
+      "$ref": "#/$defs/taskIdentity"
+    },
+    "prediction_binding": {
+      "$ref": "#/$defs/predictionBinding"
+    },
+    "policy_binding": {
+      "$ref": "#/$defs/policyBinding"
+    },
+    "status": {
+      "enum": ["running", "completed", "failed", "cancelled"]
+    },
+    "started_at": {
+      "$ref": "#/$defs/utcTimestamp"
+    },
+    "ended_at": {
+      "oneOf": [
+        {"$ref": "#/$defs/utcTimestamp"},
+        {"type": "null"}
+      ]
+    },
+    "recorded_at": {
+      "$ref": "#/$defs/utcTimestamp"
+    },
+    "steps": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "#/$defs/stepEvidence"
+      }
+    }
+  },
+  "$defs": {
+    "stableId": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$"
+    },
+    "sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "utcTimestamp": {
+      "type": "string",
+      "format": "date-time",
+      "pattern": "(Z|[+]00:00)$"
+    },
+    "evidenceField": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["key", "value"],
+      "properties": {
+        "key": {
+          "$ref": "#/$defs/stableId"
+        },
+        "value": {}
+      }
+    },
+    "workloadIdentity": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["workload_id", "version"],
+      "properties": {
+        "workload_id": {
+          "$ref": "#/$defs/stableId"
+        },
+        "version": {
+          "$ref": "#/$defs/stableId"
+        }
+      }
+    },
+    "segmentIdentity": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["segment_id", "version", "attributes"],
+      "properties": {
+        "segment_id": {
+          "$ref": "#/$defs/stableId"
+        },
+        "version": {
+          "$ref": "#/$defs/stableId"
+        },
+        "attributes": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/evidenceField"
+          }
+        }
+      }
+    },
+    "taskIdentity": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "task_id",
+        "report_id",
+        "workload",
+        "segment",
+        "created_at"
+      ],
+      "properties": {
+        "task_id": {
+          "$ref": "#/$defs/stableId"
+        },
+        "report_id": {
+          "$ref": "#/$defs/stableId"
+        },
+        "workload": {
+          "$ref": "#/$defs/workloadIdentity"
+        },
+        "segment": {
+          "$ref": "#/$defs/segmentIdentity"
+        },
+        "created_at": {
+          "$ref": "#/$defs/utcTimestamp"
+        }
+      }
+    },
+    "predictionBinding": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "prediction_id",
+        "receipt_id",
+        "schema_version",
+        "content_hash"
+      ],
+      "properties": {
+        "prediction_id": {
+          "$ref": "#/$defs/stableId"
+        },
+        "receipt_id": {
+          "$ref": "#/$defs/stableId"
+        },
+        "schema_version": {
+          "$ref": "#/$defs/stableId"
+        },
+        "content_hash": {
+          "$ref": "#/$defs/sha256"
+        }
+      }
+    },
+    "policyBinding": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "policy_id",
+        "version",
+        "content_hash",
+        "source",
+        "label",
+        "etag"
+      ],
+      "properties": {
+        "policy_id": {
+          "$ref": "#/$defs/stableId"
+        },
+        "version": {
+          "$ref": "#/$defs/stableId"
+        },
+        "content_hash": {
+          "$ref": "#/$defs/sha256"
+        },
+        "source": {
+          "$ref": "#/$defs/stableId"
+        },
+        "label": {
+          "type": "string",
+          "minLength": 1
+        },
+        "etag": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "stepEvidence": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "step_id",
+        "sequence",
+        "kind",
+        "status",
+        "operation",
+        "started_at",
+        "ended_at",
+        "parent_step_id",
+        "attempt",
+        "evidence"
+      ],
+      "properties": {
+        "step_id": {
+          "$ref": "#/$defs/stableId"
+        },
+        "sequence": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "kind": {
+          "enum": ["retrieval", "model", "tool", "cache", "retry", "iteration"]
+        },
+        "status": {
+          "enum": ["started", "completed", "failed", "skipped"]
+        },
+        "operation": {
+          "type": "string",
+          "minLength": 1
+        },
+        "started_at": {
+          "$ref": "#/$defs/utcTimestamp"
+        },
+        "ended_at": {
+          "oneOf": [
+            {"$ref": "#/$defs/utcTimestamp"},
+            {"type": "null"}
+          ]
+        },
+        "parent_step_id": {
+          "oneOf": [
+            {"$ref": "#/$defs/stableId"},
+            {"type": "null"}
+          ]
+        },
+        "attempt": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "evidence": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/evidenceField"
+          }
+        }
+      }
+    }
+  }
+}

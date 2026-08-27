@@ -1,0 +1,269 @@
+{
+  "schema_version": "foundry-model-release.v1",
+  "release_version": "2026-08-25.1",
+  "released_at": "2026-08-25T00:00:00Z",
+  "default_key": "azure_openai:gpt-5.6-luna",
+  "scope": "Microsoft Foundry coordinator and per-agent model selection",
+  "selection_rule": "Studio exposes only explicitly released OpenAI and Anthropic offerings with exact public pricing evidence.",
+  "pricing_claim": "Public list-price forecast inputs. Contract discounts, taxes, provisioned throughput, regional/data-zone uplifts, long-context tiers, and complete task/resource costs remain separate evidence.",
+  "offerings": [
+    {
+      "key": "azure_openai:gpt-5.6-luna",
+      "model": "gpt-5.6-luna",
+      "display_name": "GPT-5.6 Luna",
+      "provider": "azure_openai",
+      "provider_name": "OpenAI on Azure",
+      "pricing": {
+        "input": 0.2,
+        "cached_input": 0.02,
+        "cache_write": 0.25,
+        "output": 1.2
+      },
+      "pricing_unit": "USD per 1M tokens",
+      "context_window": 1050000,
+      "max_output_tokens": 128000,
+      "tokenizer": "o200k_base",
+      "reasoning_multiplier": 1.0,
+      "capabilities": {
+        "vision": true,
+        "audio": false,
+        "reasoning": true,
+        "caching": true
+      },
+      "deployment": {
+        "family": "Microsoft Foundry Models sold by Azure",
+        "type": "Global Standard",
+        "geography": "Global",
+        "context_tier": "short_context",
+        "invoice_meter": "Azure OpenAI token meters"
+      },
+      "pricing_url": "https://prices.azure.com/api/retail/prices?$filter=contains(productName,%20%27OpenAI%27)",
+      "model_catalog_url": "https://azure.microsoft.com/en-us/pricing/details/azure-openai/",
+      "evidence": {
+        "status": "verified",
+        "price_source": "Azure Retail Prices API",
+        "price_effective_at": "2026-08-01T00:00:00Z",
+        "source_retrieved_at": "2026-08-25T00:00:00Z",
+        "meters": {
+          "input": "5.6 luna ShortCo Inp Std Gl",
+          "cached_input": "5.6 luna ShortCo Cd Inp Std Gl",
+          "cache_write": "5.6 luna ShortCo Cd Wr Std Gl",
+          "output": "5.6 luna ShortCo Opt Std Gl"
+        }
+      }
+    },
+    {
+      "key": "azure_openai:gpt-5.6-terra",
+      "model": "gpt-5.6-terra",
+      "display_name": "GPT-5.6 Terra",
+      "provider": "azure_openai",
+      "provider_name": "OpenAI on Azure",
+      "pricing": {
+        "input": 2.0,
+        "cached_input": 0.2,
+        "cache_write": 2.5,
+        "output": 12.0
+      },
+      "pricing_unit": "USD per 1M tokens",
+      "context_window": 1050000,
+      "max_output_tokens": 128000,
+      "tokenizer": "o200k_base",
+      "reasoning_multiplier": 1.0,
+      "capabilities": {
+        "vision": true,
+        "audio": false,
+        "reasoning": true,
+        "caching": true
+      },
+      "deployment": {
+        "family": "Microsoft Foundry Models sold by Azure",
+        "type": "Global Standard",
+        "geography": "Global",
+        "context_tier": "short_context",
+        "invoice_meter": "Azure OpenAI token meters"
+      },
+      "pricing_url": "https://prices.azure.com/api/retail/prices?$filter=contains(productName,%20%27OpenAI%27)",
+      "model_catalog_url": "https://azure.microsoft.com/en-us/pricing/details/azure-openai/",
+      "evidence": {
+        "status": "verified",
+        "price_source": "Azure Retail Prices API",
+        "price_effective_at": "2026-08-01T00:00:00Z",
+        "source_retrieved_at": "2026-08-25T00:00:00Z",
+        "meters": {
+          "input": "5.6 terra ShortCo Inp Std Gl",
+          "cached_input": "5.6 terra ShortCo Cd Inp Std Gl",
+          "cache_write": "5.6 terra ShortCo Cd Wr Std Gl",
+          "output": "5.6 terra ShortCo Opt Std Gl"
+        }
+      }
+    },
+    {
+      "key": "azure_openai:gpt-5.6-sol",
+      "model": "gpt-5.6-sol",
+      "display_name": "GPT-5.6 Sol",
+      "provider": "azure_openai",
+      "provider_name": "OpenAI on Azure",
+      "pricing": {
+        "input": 5.0,
+        "cached_input": 0.5,
+        "cache_write": 6.25,
+        "output": 30.0
+      },
+      "pricing_unit": "USD per 1M tokens",
+      "context_window": 1050000,
+      "max_output_tokens": 128000,
+      "tokenizer": "o200k_base",
+      "reasoning_multiplier": 1.0,
+      "capabilities": {
+        "vision": true,
+        "audio": false,
+        "reasoning": true,
+        "caching": true
+      },
+      "deployment": {
+        "family": "Microsoft Foundry Models sold by Azure",
+        "type": "Global Standard",
+        "geography": "Global",
+        "context_tier": "short_context",
+        "invoice_meter": "Azure OpenAI token meters"
+      },
+      "pricing_url": "https://prices.azure.com/api/retail/prices?$filter=contains(productName,%20%27OpenAI%27)",
+      "model_catalog_url": "https://azure.microsoft.com/en-us/pricing/details/azure-openai/",
+      "evidence": {
+        "status": "verified",
+        "price_source": "Azure Retail Prices API",
+        "price_effective_at": "2026-07-01T00:00:00Z",
+        "source_retrieved_at": "2026-08-25T00:00:00Z",
+        "meters": {
+          "input": "5.6 sol ShortCo Inp Std Gl",
+          "cached_input": "5.6 sol ShortCo Cd Inp Std Gl",
+          "cache_write": "5.6 sol ShortCo Cd Wr Std Gl",
+          "output": "5.6 sol ShortCo Opt Std Gl"
+        }
+      }
+    },
+    {
+      "key": "anthropic:claude-sonnet-5",
+      "model": "claude-sonnet-5",
+      "display_name": "Claude Sonnet 5",
+      "provider": "anthropic",
+      "provider_name": "Anthropic on Microsoft Foundry",
+      "pricing": {
+        "input": 2.0,
+        "cached_input": 0.2,
+        "cache_write_5m": 2.5,
+        "cache_write_1h": 4.0,
+        "output": 10.0
+      },
+      "pricing_unit": "USD per 1M tokens before CCU conversion",
+      "context_window": 1000000,
+      "max_output_tokens": 128000,
+      "tokenizer": "cl100k_base",
+      "reasoning_multiplier": 1.0,
+      "capabilities": {
+        "vision": true,
+        "audio": false,
+        "reasoning": true,
+        "caching": true
+      },
+      "deployment": {
+        "family": "Microsoft Foundry Models from partners and community",
+        "type": "Global Standard",
+        "geography": "Global",
+        "hosting": "Hosted on Azure",
+        "invoice_meter": "Claude Consumption Units at 100 CCU per USD"
+      },
+      "pricing_url": "https://platform.claude.com/docs/en/about-claude/pricing#claude-in-microsoft-foundry-pricing",
+      "model_catalog_url": "https://learn.microsoft.com/azure/foundry/foundry-models/concepts/claude-models#available-claude-models",
+      "evidence": {
+        "status": "verified",
+        "price_source": "Anthropic Claude in Microsoft Foundry pricing",
+        "price_effective_at": "2026-08-25T00:00:00Z",
+        "source_retrieved_at": "2026-08-25T00:00:00Z",
+        "billing_source": "https://learn.microsoft.com/azure/foundry/foundry-models/concepts/claude-models-billing"
+      }
+    },
+    {
+      "key": "anthropic:claude-opus-5",
+      "model": "claude-opus-5",
+      "display_name": "Claude Opus 5",
+      "provider": "anthropic",
+      "provider_name": "Anthropic on Microsoft Foundry",
+      "pricing": {
+        "input": 5.0,
+        "cached_input": 0.5,
+        "cache_write_5m": 6.25,
+        "cache_write_1h": 10.0,
+        "output": 25.0
+      },
+      "pricing_unit": "USD per 1M tokens before CCU conversion",
+      "context_window": 1000000,
+      "max_output_tokens": 128000,
+      "tokenizer": "cl100k_base",
+      "reasoning_multiplier": 1.0,
+      "capabilities": {
+        "vision": true,
+        "audio": false,
+        "reasoning": true,
+        "caching": true
+      },
+      "deployment": {
+        "family": "Microsoft Foundry Models from partners and community",
+        "type": "Global Standard",
+        "geography": "Global",
+        "hosting": "Hosted on Azure",
+        "invoice_meter": "Claude Consumption Units at 100 CCU per USD"
+      },
+      "pricing_url": "https://platform.claude.com/docs/en/about-claude/pricing#claude-in-microsoft-foundry-pricing",
+      "model_catalog_url": "https://learn.microsoft.com/azure/foundry/foundry-models/concepts/claude-models#available-claude-models",
+      "evidence": {
+        "status": "verified",
+        "price_source": "Anthropic Claude in Microsoft Foundry pricing",
+        "price_effective_at": "2026-08-25T00:00:00Z",
+        "source_retrieved_at": "2026-08-25T00:00:00Z",
+        "billing_source": "https://learn.microsoft.com/azure/foundry/foundry-models/concepts/claude-models-billing"
+      }
+    },
+    {
+      "key": "anthropic:claude-haiku-4-5",
+      "model": "claude-haiku-4-5",
+      "display_name": "Claude Haiku 4.5",
+      "provider": "anthropic",
+      "provider_name": "Anthropic on Microsoft Foundry",
+      "pricing": {
+        "input": 1.0,
+        "cached_input": 0.1,
+        "cache_write_5m": 1.25,
+        "cache_write_1h": 2.0,
+        "output": 5.0
+      },
+      "pricing_unit": "USD per 1M tokens before CCU conversion",
+      "context_window": 200000,
+      "max_output_tokens": 64000,
+      "tokenizer": "cl100k_base",
+      "reasoning_multiplier": 1.0,
+      "capabilities": {
+        "vision": true,
+        "audio": false,
+        "reasoning": true,
+        "caching": true
+      },
+      "deployment": {
+        "family": "Microsoft Foundry Models from partners and community",
+        "type": "Global Standard",
+        "geography": "Global",
+        "hosting": "Hosted on Azure",
+        "invoice_meter": "Claude Consumption Units at 100 CCU per USD"
+      },
+      "pricing_url": "https://platform.claude.com/docs/en/about-claude/pricing#claude-in-microsoft-foundry-pricing",
+      "model_catalog_url": "https://learn.microsoft.com/azure/foundry/foundry-models/concepts/claude-models#available-claude-models",
+      "evidence": {
+        "status": "verified",
+        "price_source": "Anthropic Claude in Microsoft Foundry pricing",
+        "price_effective_at": "2026-08-25T00:00:00Z",
+        "source_retrieved_at": "2026-08-25T00:00:00Z",
+        "billing_source": "https://learn.microsoft.com/azure/foundry/foundry-models/concepts/claude-models-billing"
+      }
+    }
+  ]
+}

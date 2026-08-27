@@ -52,6 +52,21 @@ class Result:
     cached_tokens: float = 0.0
     reasoning_tokens: float = 0.0
     document_tokens: float = 0.0
+    task_id: str | None = None
+    trajectory_id: str | None = None
+    task_created_at: str | None = None
+    trajectory_started_at: str | None = None
+    workload_id: str | None = None
+    workload_version: str | None = None
+    segment_id: str | None = None
+    segment_version: str | None = None
+    prediction_receipt_id: str | None = None
+    prediction_receipt_hash: str | None = None
+    policy_id: str | None = None
+    policy_hash: str | None = None
+    policy_source: str | None = None
+    policy_label: str | None = None
+    policy_etag: str | None = None
 
 
 class Gateway:
@@ -93,6 +108,27 @@ class Gateway:
             "prediction_id": execution.prediction_id if execution else None,
             "segment": execution.segment if execution else difficulty,
             "policy_version": execution.policy_version if execution else "",
+            "task_id": execution.task_id if execution else None,
+            "trajectory_id": execution.trajectory_id if execution else None,
+            "task_created_at": execution.task_created_at if execution else None,
+            "trajectory_started_at": (
+                execution.trajectory_started_at if execution else None
+            ),
+            "workload_id": execution.workload_id if execution else None,
+            "workload_version": execution.workload_version if execution else None,
+            "segment_id": execution.segment_id if execution else difficulty,
+            "segment_version": execution.segment_version if execution else None,
+            "prediction_receipt_id": (
+                execution.prediction_receipt_id if execution else None
+            ),
+            "prediction_receipt_hash": (
+                execution.prediction_receipt_hash if execution else None
+            ),
+            "policy_id": execution.policy_id if execution else None,
+            "policy_hash": execution.policy_hash if execution else None,
+            "policy_source": execution.policy_source if execution else None,
+            "policy_label": execution.policy_label if execution else None,
+            "policy_etag": execution.policy_etag if execution else None,
         }
 
         # 2. semantic cache lookup (in-path; adds a small embedding latency tax)

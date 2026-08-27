@@ -415,8 +415,8 @@ class TestProviderLiveIntegration:
         respx.get("https://api.anthropic.com/v1/models").mock(
             return_value=httpx.Response(200, json={
                 "data": [{
-                    "id": "claude-opus-5",
-                    "display_name": "Claude Opus 5",
+                    "id": "claude-opus-6-preview",
+                    "display_name": "Claude Opus 6 Preview",
                     "max_input_tokens": 500000,
                     "max_tokens": 64000,
                     "capabilities": {
@@ -428,7 +428,7 @@ class TestProviderLiveIntegration:
         )
         from future_token_predictor.providers.anthropic_provider import AnthropicProvider
         prov = AnthropicProvider()
-        info = prov.get_model_info("claude-opus-5")
+        info = prov.get_model_info("claude-opus-6-preview")
         assert info is not None
         assert info.context_window == 500000
 

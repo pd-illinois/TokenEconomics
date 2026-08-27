@@ -19,9 +19,13 @@
     "costgov/consumption_models.py",
     "costgov/github_forecasting.py",
     "costgov/mcp_prediction.py",
+    "costgov/model_release.py",
     "costgov/planning.py",
     "costgov/reports.py",
-    "data/commercial"
+    "costgov/trajectory_contracts.py",
+    "data/contracts/trajectory-envelope.v1.schema.json",
+    "data/commercial",
+    "data/model_catalogs"
   ],
   "exclude": [
     ".env",

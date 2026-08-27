@@ -41,5 +41,6 @@ release/
 
 # Editor and OS metadata
 .vscode/
+.playwright-mcp/
 .DS_Store
 Thumbs.db
