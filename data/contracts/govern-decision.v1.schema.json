@@ -1,0 +1,36 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://tokeneconomics.local/contracts/govern-decision.v1.schema.json",
+  "title": "TokenEconomics Govern decision",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "decision_id",
+    "experiment_id",
+    "experiment_revision",
+    "observation_unit",
+    "created_at",
+    "outcome",
+    "candidate_constraint_hashes",
+    "candidates",
+    "reason_code",
+    "mutation_performed"
+  ],
+  "properties": {
+    "schema_version": {"const": "govern-decision.v1"},
+    "decision_id": {"type": "string", "minLength": 1},
+    "experiment_id": {"type": "string", "minLength": 1},
+    "experiment_revision": {"type": "string", "minLength": 1},
+    "observation_unit": {"const": "completed_task"},
+    "created_at": {"type": "string", "format": "date-time"},
+    "outcome": {"enum": ["selected", "none_eligible", "inconclusive"]},
+    "selected_candidate_id": {"type": ["string", "null"]},
+    "selected_candidate_version": {"type": ["string", "null"]},
+    "selected_candidate_content_hash": {"type": ["string", "null"], "pattern": "^[0-9a-f]{64}$"},
+    "candidate_constraint_hashes": {"type": "array", "minItems": 1, "items": {"type": "string", "pattern": "^[0-9a-f]{64}$"}},
+    "candidates": {"type": "array", "minItems": 1, "items": {"type": "object"}},
+    "reason_code": {"type": "string", "minLength": 1},
+    "mutation_performed": {"const": false}
+  },
+  "additionalProperties": false
+}

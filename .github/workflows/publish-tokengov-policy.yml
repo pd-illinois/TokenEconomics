@@ -1,0 +1,82 @@
+name: Publish reviewed TokenGov policy
+
+on:
+  workflow_dispatch:
+    inputs:
+      policy_path:
+        description: Versioned policy JSON under data/policies
+        required: true
+        type: string
+      expected_etag:
+        description: Reviewed ETag of the currently authoritative policy
+        required: true
+        type: string
+      action:
+        description: Publication intent
+        required: true
+        type: choice
+        options:
+          - publish
+          - rollback
+
+permissions:
+  contents: read
+  id-token: write
+
+concurrency:
+  group: tokengov-production-policy
+  cancel-in-progress: false
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Validate reviewed policy artifact
+        run: >-
+          python scripts/publish_tokengov_policy.py
+          "${{ inputs.policy_path }}"
+          --expected-etag "${{ inputs.expected_etag }}"
+          --action "${{ inputs.action }}"
+          --endpoint "https://appcs-xbk6ickycmp22.azconfig.io"
+          --key "tokengov:policy"
+          --label "te003-live-v2"
+          --validate-only
+
+  publish:
+    if: github.ref == 'refs/heads/main'
+    needs: validate
+    runs-on: ubuntu-latest
+    environment: tokengov-production
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install publisher dependencies
+        run: pip install --disable-pip-version-check azure-appconfiguration azure-identity
+      - uses: azure/login@v2
+        with:
+          client-id: ${{ vars.AZURE_CLIENT_ID }}
+          tenant-id: ${{ vars.AZURE_TENANT_ID }}
+          subscription-id: ${{ vars.AZURE_SUBSCRIPTION_ID }}
+      - name: Publish with ETag concurrency and verify
+        run: >-
+          python scripts/publish_tokengov_policy.py
+          "${{ inputs.policy_path }}"
+          --expected-etag "${{ inputs.expected_etag }}"
+          --action "${{ inputs.action }}"
+          --endpoint "https://appcs-xbk6ickycmp22.azconfig.io"
+          --key "tokengov:policy"
+          --label "te003-live-v2"
+          --output publication-evidence.json
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: tokengov-publication-evidence-${{ github.run_id }}
+          path: publication-evidence.json
+          if-no-files-found: warn
+          retention-days: 90

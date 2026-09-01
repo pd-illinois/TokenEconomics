@@ -1,0 +1,65 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://tokeneconomics.dev/contracts/accepted-task-economics.v1.schema.json",
+  "title": "TokenEconomics accepted-task economics projection",
+  "$comment": "A deterministic read-only projection over verified trajectory, acceptance, and multi-meter ledger evidence. Runtime invariants and denominator joins are enforced by costgov.observe_economics.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "run_id",
+    "report_id",
+    "evidence_classification",
+    "evidence_basis",
+    "overall",
+    "dimensions",
+    "committed_capacity",
+    "external_operational_evidence",
+    "projection_hash"
+  ],
+  "properties": {
+    "schema_version": {"const": "accepted-task-economics.v1"},
+    "run_id": {"$ref": "#/$defs/nonEmpty"},
+    "report_id": {"$ref": "#/$defs/nonEmpty"},
+    "evidence_classification": {"$ref": "#/$defs/nonEmpty"},
+    "evidence_basis": {"type": "object"},
+    "overall": {"$ref": "#/$defs/taskSummary"},
+    "dimensions": {
+      "type": "object",
+      "required": ["segments", "products", "environments", "meter_stacks", "policy_candidates"],
+      "properties": {
+        "segments": {"type": "array", "items": {"type": "object"}},
+        "products": {"type": "array", "items": {"type": "object"}},
+        "environments": {"type": "array", "items": {"type": "object"}},
+        "meter_stacks": {"type": "array", "items": {"type": "object"}},
+        "policy_candidates": {"type": "array", "items": {"type": "object"}}
+      }
+    },
+    "committed_capacity": {"type": "object"},
+    "external_operational_evidence": {"type": "object"},
+    "projection_hash": {"$ref": "#/$defs/sha256"}
+  },
+  "$defs": {
+    "nonEmpty": {"type": "string", "minLength": 1},
+    "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "taskSummary": {
+      "type": "object",
+      "required": [
+        "operational_completion",
+        "acceptance",
+        "quality",
+        "economics",
+        "native_meters",
+        "entitlement_dispositions"
+      ],
+      "properties": {
+        "operational_completion": {"type": "object"},
+        "acceptance": {"type": "object"},
+        "quality": {"type": "object"},
+        "economics": {"type": "object"},
+        "native_meters": {"type": "array", "items": {"type": "object"}},
+        "entitlement_dispositions": {"type": "array", "items": {"type": "object"}}
+      }
+    }
+  }
+}

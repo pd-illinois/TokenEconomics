@@ -493,7 +493,7 @@
         <div id="plan-content" class="result-stack"><div class="panel empty">Submit a workload to inspect token usage, model cost, assumptions, and prediction provenance.</div></div>
       </section>
       <section class="view" id="govern">
-        <div class="toolbar"><div><h2>Policy governance</h2><p class="subtitle">Read-only in v1. Interactive Govern workflows will be released in v2.</p></div><button class="primary" id="propose-policy-button" disabled>Propose change (v2)</button></div>
+        <div class="toolbar"><div><h2>Policy governance</h2><p class="subtitle">Decision-grade comparison over immutable complete-task evidence. Policy publication remains externally reviewed.</p></div><div class="form-actions"><button class="secondary" id="propose-policy-button">Draft change</button><button class="primary" id="evaluate-runs-button" disabled>Evaluate completed runs</button></div></div>
         <div class="segmented" role="tablist" aria-label="Govern work areas">
           <button class="govern-tab active" data-govern-pane="decision">Decision</button>
           <button class="govern-tab" data-govern-pane="policy">Effective policy</button>
@@ -526,8 +526,8 @@
         <div class="panel"><div id="run-content" class="empty">No run loaded.</div></div>
       </section>
       <section class="view" id="observe">
-        <div class="toolbar"><div><h2>Observed economics</h2><p class="subtitle">Read-only in v1. Observability views will be released in v2.</p></div></div>
-        <div class="grid" id="metrics"><div class="panel wide empty">Observe is read-only in this release and will be enabled in v2.</div></div>
+        <div class="toolbar"><div><h2>Observed economics</h2><p class="subtitle">Read-only accepted-task economics over immutable trajectory, acceptance, and native-meter evidence.</p></div></div>
+        <div class="grid" id="metrics"><div class="panel wide empty">Open a completed run to inspect accepted-task economics.</div></div>
       </section>
       <section class="view" id="reconcile">
         <div class="toolbar"><div><h2>Forecast feedback</h2><p class="subtitle">Read-only in v1. Reconciliation workflows will be released in v2.</p></div></div>
@@ -566,7 +566,7 @@
         || localStorage.getItem(UI_MODE_KEY)
         || "standard"
     );
-    const state = { report: null, plan: null, analysis: null, handoff: null, run: null, effectivePolicy: null, policyChanges: [], modelCatalog: [], modelRelease: null, consumptionCatalog: null };
+    const state = { report: null, plan: null, analysis: null, handoff: null, run: null, observe: null, effectivePolicy: null, policyChanges: [], governDecisions: [], modelCatalog: [], modelRelease: null, consumptionCatalog: null };
     const modelRoutes = new Set(["foundry", "copilot_studio_byom", "foundry_work_iq"]);
     const titles = { plan: "Plan", govern: "Govern", runs: "Runs", observe: "Observe", reconcile: "Reconcile" };
     document.querySelectorAll(".tab").forEach(button => button.addEventListener("click", () => {
@@ -591,13 +591,18 @@
     }
     document.querySelectorAll(".govern-tab").forEach(button => button.addEventListener("click", () => showGovernPane(button.dataset.governPane)));
     async function loadGovernWorkspace() {
-      const [policyResponse, changesResponse] = await Promise.all([fetch("/api/policy"), fetch("/api/policy-change-requests")]);
+      const [policyResponse, changesResponse, decisionsResponse] = await Promise.all([fetch("/api/policy"), fetch("/api/policy-change-requests"), fetch("/api/govern/decisions")]);
       const effective = await policyResponse.json();
       const changes = await changesResponse.json();
+      const decisions = await decisionsResponse.json();
       state.policyChanges = changes.change_requests || [];
+      state.governDecisions = decisions.decisions || [];
       if (policyResponse.ok) { state.effectivePolicy = effective; renderEffectivePolicy(effective); renderSelectedModel(); }
       else document.getElementById("effective-policy-content").innerHTML = `<div class="danger">${escapeHtml(effective.error || "Policy unavailable")}</div>`;
       renderPolicyChanges();
+      const decisionIds = new Set((state.report?.artifacts?.govern_decisions || []).map(item => item.id));
+      const decision = state.governDecisions.find(item => decisionIds.has(item.decision_id));
+      if (decision) renderGovernDecision(decision);
     }
     function selectedRoute() {
       return document.querySelector('input[name="plan-route"]:checked')?.value || "";
@@ -962,7 +967,7 @@
       const response = await fetch(`/api/reports/${encodeURIComponent(reportId)}`);
       const report = await response.json();
       if (!response.ok) throw new Error(report.error || "Report could not be opened");
-      state.report = report; state.plan = null; state.handoff = null; state.run = null;
+      state.report = report; state.plan = null; state.handoff = null; state.run = null; state.observe = null;
       document.getElementById("active-report-id").textContent = report.report_id;
       document.getElementById("active-report-title").value = report.title;
       document.getElementById("report-save-status").textContent = `Opened ${formatDate(report.updated_at)}`;
@@ -972,6 +977,7 @@
       renderReportArtifacts(report);
       await loadConsumptionCatalog();
       await loadModelCatalog();
+      await loadGovernWorkspace();
       if (report.artifacts?.plans?.length) await openPlan(report.artifacts.plans[0].id);
     }
     document.getElementById("save-report-button").addEventListener("click", async event => {
@@ -994,8 +1000,18 @@
       const planRows = plans.map(plan => `<tr><td><button class="link-button open-plan-button" data-plan-id="${escapeHtml(plan.id)}">${escapeHtml(plan.id)}</button></td><td>${escapeHtml(plan.status)}</td><td>${escapeHtml(plan.prediction_id ?? "—")}</td></tr>`).join("");
       document.getElementById("plan-content").innerHTML = plans.length ? `<div class="panel"><div class="toolbar"><h3 class="section-title">Forecasts in this report</h3><span class="badge">${number(plans.length)} plan(s)</span></div><table><thead><tr><th>Plan ID</th><th>Status</th><th>Prediction ID</th></tr></thead><tbody>${planRows}</tbody></table></div>` : `<div class="panel empty">This report has no forecasts yet. Submit the workload above to create one.</div>`;
       document.querySelectorAll(".open-plan-button").forEach(button => button.addEventListener("click", () => openPlan(button.dataset.planId)));
-      document.getElementById("run-content").innerHTML = `<div class="empty">Runs are read-only in this release and will be enabled in v2.</div>`;
-      document.getElementById("govern-content").innerHTML = `<div class="panel wide empty">Govern is read-only in this release and will be enabled in v2.</div>`;
+      const runRows = runs.map(run => `<tr><td><button class="link-button open-run-button" data-run-id="${escapeHtml(run.id)}">${escapeHtml(run.id)}</button></td><td>${escapeHtml(run.status)}</td></tr>`).join("");
+      document.getElementById("run-content").innerHTML = runs.length ? `<div class="toolbar"><h3 class="section-title">Runs in this report</h3><span class="badge">read only</span></div><table><thead><tr><th>Run ID</th><th>Status</th></tr></thead><tbody>${runRows}</tbody></table>` : `<div class="empty">This report has no runs.</div>`;
+      document.querySelectorAll(".open-run-button").forEach(button => button.addEventListener("click", () => loadRun(button.dataset.runId)));
+      const completedRuns = runs.filter(run => run.status === "completed");
+      const evaluateButton = document.getElementById("evaluate-runs-button");
+      evaluateButton.disabled = completedRuns.length === 0;
+      evaluateButton.dataset.runIds = completedRuns.map(run => run.id).join(",");
+      if (handoffs.length) {
+        renderGovernHandoff(handoffs[handoffs.length - 1]);
+      } else {
+        document.getElementById("govern-content").innerHTML = `<div class="panel wide empty">Complete and admit a Plan, then evaluate completed candidate runs.</div>`;
+      }
     }
     function selectRouteForPlan(plan) {
       const route = plan?.route?.route_id || plan?.meter_stack?.route_id;
@@ -1265,6 +1281,30 @@
       const checks = (handoff.checks || []).map(check => `<tr><td>${escapeHtml(check.name.replaceAll("_", " "))}</td><td><span class="badge ${check.passed ? "success" : "danger"}">${check.passed ? "passed" : "failed"}</span></td><td>${escapeHtml(JSON.stringify(check.actual))}</td><td>${escapeHtml(JSON.stringify(check.expected))}</td></tr>`).join("");
       document.getElementById("govern-content").innerHTML = `<div class="panel metric"><span>Admission decision</span><strong>${escapeHtml(handoff.status)}</strong></div><div class="panel metric"><span>Monthly model exposure</span><strong>${monthly.mean == null ? "—" : money(monthly.mean)}</strong></div><div class="panel metric"><span>Annual model exposure</span><strong>${annual.mean == null ? "—" : money(annual.mean)}</strong></div><div class="panel metric"><span>Unit-cost headroom</span><strong class="${unitHeadroom != null && unitHeadroom >= 0 ? "headroom" : "danger"}">${unitHeadroom == null ? "—" : preciseMoney(unitHeadroom)}</strong></div><div class="panel wide"><h3 class="section-title">Effective decision binding</h3><table><tbody><tr><td>Policy</td><td><strong>${escapeHtml(policy.policy_id || "unavailable")}</strong> · ${escapeHtml(policy.version || "unavailable")}</td></tr><tr><td>Cost per call</td><td>${costPerCall.mean == null ? "—" : preciseMoney(costPerCall.mean)}</td></tr><tr><td>Mutation mode</td><td>${escapeHtml(mutation.mode || "not configured")}</td></tr><tr><td>Evaluated</td><td>${escapeHtml(formatDate(handoff.evaluated_at))}</td></tr></tbody></table></div><div class="panel wide"><h3 class="section-title">Authoritative policy provenance</h3><table><tbody><tr><td>Source</td><td>${escapeHtml(provenance.source || "unavailable")}</td></tr><tr><td>Endpoint</td><td><code>${escapeHtml(provenance.endpoint || "unavailable")}</code></td></tr><tr><td>Key / label</td><td><code>${escapeHtml(provenance.key || "unavailable")} / ${escapeHtml(provenance.label || "unavailable")}</code></td></tr><tr><td>ETag</td><td><code>${escapeHtml(provenance.etag || "unavailable")}</code></td></tr><tr><td>Policy SHA-256</td><td><code>${escapeHtml(policy.content_hash || "unavailable")}</code></td></tr></tbody></table></div>${checks ? `<div class="panel wide"><h3 class="section-title">Admission checks</h3><table><thead><tr><th>Check</th><th>Result</th><th>Actual</th><th>Policy requirement</th></tr></thead><tbody>${checks}</tbody></table></div>` : ""}<div class="panel wide"><h3 class="section-title">Immutable admission input</h3><table><tbody><tr><td>Report</td><td><code>${escapeHtml(handoff.report_id || state.report.report_id)}</code></td></tr><tr><td>Plan</td><td><code>${escapeHtml(handoff.plan_id)}</code></td></tr><tr><td>Receipt</td><td><code>${escapeHtml(handoff.receipt_id)}</code></td></tr>${handoff.receipt_hash ? `<tr><td>SHA-256</td><td><code>${escapeHtml(handoff.receipt_hash)}</code></td></tr>` : ""}${trajectoryContractRows(handoff.trajectory_contract)}</tbody></table><p>Execution is allowed only for an admitted receipt and remains pinned to this policy revision.</p></div>`;
     }
+    function renderGovernDecision(decision) {
+      const outcomeClass = decision.outcome === "selected" ? "success" : decision.outcome === "none_eligible" ? "danger" : "warning";
+      const candidatePanels = (decision.candidates || []).map(candidate => {
+        const rows = (candidate.segments || []).map(segment => `<tr><td>${escapeHtml(segment.segment_id)}</td><td><span class="badge ${segment.outcome === "eligible" ? "success" : segment.outcome === "ineligible" ? "danger" : "warning"}">${escapeHtml(segment.outcome)}</span></td><td>${number(segment.sample_count)}</td><td>${segment.acceptance_wilson_lower_bound == null ? "Unavailable" : decimal(segment.acceptance_wilson_lower_bound, 4)}</td><td>${segment.breach_probability_upper_bound == null ? "Unavailable" : decimal(segment.breach_probability_upper_bound, 4)}</td><td>${segment.expected_allocatable_cost_usd == null ? "Incomplete" : preciseMoney(segment.expected_allocatable_cost_usd)}</td><td>${escapeHtml(segment.reason_codes.join(", "))}</td></tr>`).join("");
+        return `<div class="panel wide"><div class="toolbar"><div><h3 class="section-title">${escapeHtml(candidate.candidate_id)} · ${escapeHtml(candidate.candidate_version)}</h3><p class="subtitle">${escapeHtml(candidate.evidence_classification)} complete-task evidence · ${escapeHtml(candidate.outcome)}</p></div><strong>${candidate.expected_allocatable_cost_usd == null ? "Incomplete cost coverage" : preciseMoney(candidate.expected_allocatable_cost_usd)}</strong></div><table><thead><tr><th>Segment</th><th>Outcome</th><th>Tasks</th><th>95% acceptance lower bound</th><th>95% breach upper bound</th><th>Expected allocatable USD</th><th>Reason</th></tr></thead><tbody>${rows}</tbody></table><p class="provenance-note">Budget ${money(candidate.segments?.[0]?.budget_usd)} per completed task; breach tolerance ${decimal(candidate.segments?.[0]?.breach_tolerance, 3)}. ${escapeHtml(candidate.probability_model)}</p></div>`;
+      }).join("");
+      const stateRows = (decision.state_transitions || []).map(item => `<tr><td>${escapeHtml(item.segment_id)}</td><td>${escapeHtml(item.previous_status)}</td><td><strong>${escapeHtml(item.status)}</strong></td><td>${escapeHtml(item.reason_code)}</td></tr>`).join("");
+      document.getElementById("govern-content").innerHTML = `<div class="panel metric"><span>Govern outcome</span><strong class="${outcomeClass}">${escapeHtml(decision.outcome)}</strong></div><div class="panel metric"><span>Selected candidate</span><strong>${escapeHtml(decision.selected_candidate_id || "None")}</strong></div><div class="panel metric"><span>Observation unit</span><strong>${escapeHtml(decision.observation_unit)}</strong></div><div class="panel metric"><span>Policy mutation</span><strong>${decision.mutation_performed ? "Performed" : "None"}</strong></div>${candidatePanels}${stateRows ? `<div class="panel wide"><h3 class="section-title">Durable response state</h3><table><thead><tr><th>Segment</th><th>Previous</th><th>Current</th><th>Reason</th></tr></thead><tbody>${stateRows}</tbody></table></div>` : ""}<div class="panel wide"><p class="provenance-note">Immutable decision <code>${escapeHtml(decision.decision_id)}</code> · SHA-256 <code>${escapeHtml(decision.content_hash)}</code>. Selection never publishes policy; reviewed publication uses a separate least-privilege identity.</p></div>`;
+    }
+    document.getElementById("evaluate-runs-button").addEventListener("click", async event => {
+      const runIds = (event.target.dataset.runIds || "").split(",").filter(Boolean);
+      if (!runIds.length) return;
+      event.target.disabled = true;
+      document.getElementById("govern-content").innerHTML = `<div class="panel wide empty">Verifying complete-task evidence and evaluating candidate constraints...</div>`;
+      const response = await fetch("/api/govern/decisions", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ run_ids: runIds }) });
+      const decision = await response.json();
+      if (response.ok) {
+        state.governDecisions.unshift(decision);
+        renderGovernDecision(decision);
+      } else {
+        document.getElementById("govern-content").innerHTML = `<div class="panel wide danger">${escapeHtml(decision.error || "Govern decision failed")}</div>`;
+      }
+      event.target.disabled = false;
+    });
     document.getElementById("run-button").addEventListener("click", async event => {
       document.getElementById("run-content").innerHTML = `<div class="empty">Runs are read-only in this release and will be enabled in v2.</div>`;
       return;
@@ -1279,19 +1319,62 @@
     async function poll(runId, button) {
       const response = await fetch(`/api/runs/${runId}`);
       const run = await response.json();
-      if (run.status === "completed") { state.run = run.result; renderRun(); button.disabled = false; return; }
+      if (run.status === "completed") { state.run = run.result; await renderRun(); button.disabled = false; return; }
       if (run.status === "failed") { document.getElementById("run-content").textContent = run.error; button.disabled = false; return; }
       setTimeout(() => poll(runId, button), 600);
     }
     async function loadRun(runId) {
       const response = await fetch(`/api/runs/${encodeURIComponent(runId)}`);
       const run = await response.json();
-      if (run.status === "completed") { state.run = run.result; renderRun(); document.querySelector('.tab[data-view="runs"]').click(); }
+      if (run.status === "completed") { state.run = run.result; await renderRun(); document.querySelector('.tab[data-view="runs"]').click(); }
     }
-    function renderRun() {
+    function nullableMoney(value) { return value == null ? "Unavailable" : money(value); }
+    function rate(value) { return value == null ? "Unavailable" : `${decimal(value * 100, 1)}%`; }
+    function observeDimensionRows(items, labelField) {
+      return items.map(item => {
+        const completion = item.operational_completion, acceptance = item.acceptance, economics = item.economics;
+        return `<tr><td>${escapeHtml(item[labelField])}</td><td>${number(completion.completed_tasks)} / ${number(completion.attempted_tasks)}</td><td>${number(acceptance.accepted)} / ${number(acceptance.evaluated_tasks)}</td><td>${number(acceptance.rejected)}</td><td>${number(acceptance.inconclusive)}</td><td>${nullableMoney(economics.priced_cost_per_accepted_task_usd)}</td><td>${escapeHtml(economics.coverage_status)}</td></tr>`;
+      }).join("");
+    }
+    function renderObserve(observe) {
+      const overall = observe.overall, completion = overall.operational_completion, acceptance = overall.acceptance, economics = overall.economics;
+      const nativeRows = overall.native_meters.map(item => `<tr><td>${escapeHtml(item.meter_family)}</td><td>${escapeHtml(item.meter_id)}</td><td>${item.known_quantity == null ? "Unavailable" : number(item.known_quantity)}</td><td>${escapeHtml(item.native_unit)}</td><td>${escapeHtml(item.native_currency)}</td><td>${escapeHtml(item.entitlement_dispositions.join(", "))}</td><td>${escapeHtml(item.evidence_statuses.join(", "))}</td></tr>`).join("");
+      const uncoveredRows = economics.uncovered_components.map(item => `<tr><td>${escapeHtml(item.meter_family)}</td><td>${escapeHtml(item.meter_id)}</td><td>${escapeHtml(item.native_currency)}</td><td>${number(item.entry_count)}</td><td>${escapeHtml(item.reasons.join(" "))}</td></tr>`).join("");
+      const segments = observe.dimensions.segments || [];
+      const products = observe.dimensions.products || [];
+      const environments = observe.dimensions.environments || [];
+      const meterStacks = observe.dimensions.meter_stacks || [];
+      const candidates = observe.dimensions.policy_candidates || [];
+      const dimensionTable = (title, items, field) => `<div class="panel wide"><h3 class="section-title">${title}</h3><table><thead><tr><th>${title.slice(0, -1)}</th><th>Completed / attempted</th><th>Accepted / evaluated</th><th>Rejected</th><th>Inconclusive</th><th>Priced USD / accepted</th><th>Coverage</th></tr></thead><tbody>${observeDimensionRows(items, field)}</tbody></table></div>`;
+      document.getElementById("metrics").innerHTML = `
+        <div class="panel wide ${economics.coverage_status === "complete" ? "" : "warning"}"><div class="toolbar"><div><h3 class="section-title">Evidence boundary</h3><p class="subtitle">${escapeHtml(observe.evidence_basis.claim)}</p></div><span class="badge">${escapeHtml(observe.evidence_classification)}</span></div><p>Combined USD includes only entries with sourced pricing or allocation evidence. Unpriced components remain visible and are not treated as zero.</p></div>
+        <div class="panel metric"><span>Completion rate</span><strong>${rate(completion.completion_rate)}</strong><small>${number(completion.completed_tasks)} completed / ${number(completion.attempted_tasks)} attempted</small></div>
+        <div class="panel metric"><span>Acceptance rate</span><strong>${rate(acceptance.acceptance_rate)}</strong><small>${number(acceptance.accepted)} accepted / ${number(acceptance.evaluated_tasks)} evaluated</small></div>
+        <div class="panel metric"><span>Rejected</span><strong>${number(acceptance.rejected)}</strong><small>Explicit outcomes</small></div>
+        <div class="panel metric"><span>Inconclusive</span><strong>${number(acceptance.inconclusive)}</strong><small>Never folded into accepted</small></div>
+        <div class="panel metric"><span>Priced allocatable USD</span><strong>${nullableMoney(economics.priced_allocatable_cost_usd)}</strong><small>${escapeHtml(economics.coverage_status)} coverage</small></div>
+        <div class="panel metric"><span>Priced USD / completed task</span><strong>${nullableMoney(economics.priced_cost_per_completed_task_usd)}</strong><small>Priced components only</small></div>
+        <div class="panel metric"><span>Priced USD / accepted task</span><strong>${nullableMoney(economics.priced_cost_per_accepted_task_usd)}</strong><small>${acceptance.accepted ? "Priced components only" : "No accepted-task denominator"}</small></div>
+        <div class="panel metric"><span>Automated quality</span><strong>${overall.quality.mean_automated_score == null ? "Unavailable" : decimal(overall.quality.mean_automated_score, 3)}</strong><small>${number(overall.quality.scored_tasks)} scored tasks; separate from acceptance</small></div>
+        <div class="panel wide"><h3 class="section-title">Native meter consumption</h3><table><thead><tr><th>Family</th><th>Meter</th><th>Known quantity</th><th>Native unit</th><th>Native currency</th><th>Entitlement / overage</th><th>Evidence</th></tr></thead><tbody>${nativeRows}</tbody></table></div>
+        ${dimensionTable("Segments", segments, "segment_id")}
+        ${dimensionTable("Products", products, "product")}
+        ${dimensionTable("Environments", environments, "environment")}
+        ${dimensionTable("Meter stacks", meterStacks, "meter_stack_id")}
+        ${dimensionTable("Policy candidates", candidates, "policy_candidate_id")}
+        <div class="panel wide ${uncoveredRows ? "warning" : ""}"><h3 class="section-title">Uncovered cost components</h3>${uncoveredRows ? `<table><thead><tr><th>Family</th><th>Meter</th><th>Native currency</th><th>Entries</th><th>Reason</th></tr></thead><tbody>${uncoveredRows}</tbody></table>` : "<p>None.</p>"}</div>
+        <div class="panel"><h3 class="section-title">Committed capacity</h3><p><strong>${escapeHtml(observe.committed_capacity.status)}</strong></p><p>${escapeHtml(observe.committed_capacity.reason)}</p></div>
+        <div class="panel"><h3 class="section-title">Agent 365 evidence</h3><p><strong>${escapeHtml(observe.external_operational_evidence.agent365.status)}</strong></p><p>${escapeHtml(observe.external_operational_evidence.agent365.claim)}</p></div>
+        <div class="panel wide"><p class="provenance-note">Projection <code>${escapeHtml(observe.projection_hash)}</code> · ${number(observe.evidence_basis.trajectory_records)} trajectories · ${number(observe.evidence_basis.acceptance_outcome_records)} acceptance outcomes · ${number(observe.evidence_basis.meter_ledger_records)} meter records.</p></div>`;
+    }
+    async function renderRun() {
       const run = state.run, observed = run.observed;
       document.getElementById("run-content").innerHTML = `<span class="badge success">completed</span> <code>${run.run_id}</code><p>${observed.requests} governed requests using policy <strong>${run.policy.version}</strong>.</p><div class="panel"><h3 class="section-title">Trajectory evidence</h3><table><tbody>${trajectoryContractRows(run.trajectory_contract)}<tr><td>Persisted trajectories</td><td>${number((run.trajectory_evidence || []).length)}</td></tr><tr><td>Evaluation joins</td><td>${number((run.evaluation_outcomes || []).length)}</td></tr></tbody></table><p class="provenance-note">Simulated runtime evidence. Each task is content-hashed and reopens through the same framework-neutral envelope.</p></div>`;
-      document.getElementById("metrics").innerHTML = `<div class="panel metric"><span>Observed cost</span><strong>${money(observed.cost_usd)}</strong></div><div class="panel metric"><span>Quality</span><strong>${number(observed.quality)}</strong></div><div class="panel metric"><span>Cache hits</span><strong>${number(observed.cache_hits)}</strong></div><div class="panel metric"><span>Average latency</span><strong>${number(observed.avg_latency_ms)} ms</strong></div><div class="panel metric"><span>Input tokens</span><strong>${number(observed.input_tokens)}</strong></div><div class="panel metric"><span>Output tokens</span><strong>${number(observed.output_tokens)}</strong></div><div class="panel wide"><strong>Worst-segment quality</strong><table><tbody>${Object.entries(observed.quality_by_segment).map(([key, value]) => `<tr><td>${key}</td><td>${number(value)}</td></tr>`).join("")}</tbody></table></div>`;
+      document.getElementById("metrics").innerHTML = `<div class="panel wide empty">Loading verified accepted-task economics...</div>`;
+      const response = await fetch(`/api/runs/${encodeURIComponent(run.run_id)}/observe`);
+      const observe = await response.json();
+      if (response.ok) { state.observe = observe; renderObserve(observe); }
+      else document.getElementById("metrics").innerHTML = `<div class="panel wide danger"><strong>Observe evidence unavailable.</strong> ${escapeHtml(observe.error || "The read-only projection could not be built.")}</div>`;
       document.getElementById("reconcile-content").innerHTML = `<table><thead><tr><th>Prediction</th><th>Status</th><th>Completed tasks</th><th>Actual tokens/task</th><th>Error</th></tr></thead><tbody>${run.reconciliation.map(item => `<tr><td><code>${item.prediction_id}</code></td><td class="success">${item.status}</td><td>${item.completed_tasks}</td><td>${number(item.actual_tokens_per_task)}</td><td>${number(item.forecast_error_pct)}%</td></tr>`).join("")}</tbody></table>`;
     }
     loadReports();

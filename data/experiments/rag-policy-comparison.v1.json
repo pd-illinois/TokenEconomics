@@ -1,0 +1,231 @@
+{
+  "schema_version": "experiment-manifest.v1",
+  "experiment_id": "rag-policy-comparison",
+  "revision": "2026-08-31.1",
+  "created_at": "2026-08-31T16:16:31+00:00",
+  "observation_unit": "complete_task_trajectory",
+  "evidence": [
+    {
+      "category": "workload",
+      "evidence_id": "five-book-rag-workload",
+      "revision": "rag-workload.v1",
+      "applicability": "applicable",
+      "status": "sourced",
+      "authority": "TokenEconomics",
+      "content_hash": "745c2332755fd5dfbce4c4f9375c4a8b2fff82f44eb39c0c9c818bf707f4daf1",
+      "location": "repo:rag/workload.rag.json",
+      "reason": null
+    },
+    {
+      "category": "task_set",
+      "evidence_id": "five-book-rag-task-set",
+      "revision": "rag-workload.v1",
+      "applicability": "applicable",
+      "status": "sourced",
+      "authority": "TokenEconomics",
+      "content_hash": "745c2332755fd5dfbce4c4f9375c4a8b2fff82f44eb39c0c9c818bf707f4daf1",
+      "location": "repo:rag/workload.rag.json",
+      "reason": null
+    },
+    {
+      "category": "corpus_index",
+      "evidence_id": "books-knowledge-base",
+      "revision": "te003-2026-08-25",
+      "applicability": "applicable",
+      "status": "measured",
+      "authority": "Azure AI Search and Microsoft Foundry IQ",
+      "content_hash": "db8b74c0a5733b956f1288cd8c73354a3f496cb5ad781348d036e35d81e60bd8",
+      "location": "repo:rag/books.json",
+      "reason": null
+    },
+    {
+      "category": "retrieval",
+      "evidence_id": "azure-search-retrieval",
+      "revision": "retrieval.v1",
+      "applicability": "applicable",
+      "status": "measured",
+      "authority": "TokenEconomics RAG adapter",
+      "content_hash": "ed1ad3bf676a33dad865f10270123ba5fc80d1c9022b369f19aa154ccd94c9c8",
+      "location": "repo:rag/retrieval.py",
+      "reason": null
+    },
+    {
+      "category": "agent_prompt",
+      "evidence_id": "tokengov-books-rag-agent",
+      "revision": "1",
+      "applicability": "applicable",
+      "status": "measured",
+      "authority": "Microsoft Foundry",
+      "content_hash": "79e721389bac51f18e6f86c9d48ef5d9d909667965f0e5a2fb4f2a62e59a672c",
+      "location": "azure-foundry:tokengov-books-rag-agent:1",
+      "reason": null
+    },
+    {
+      "category": "golden_set",
+      "evidence_id": "five-book-rag-golden-set",
+      "revision": "rag-golden.v1",
+      "applicability": "applicable",
+      "status": "sourced",
+      "authority": "TokenEconomics",
+      "content_hash": "e5b4e9bf5f7dd274789093c9cd1e8896f85671a1b2c05327d9d513057c5d6eda",
+      "location": "repo:rag/golden_set.rag.json",
+      "reason": null
+    },
+    {
+      "category": "evaluator",
+      "evidence_id": "token-coverage-evaluator",
+      "revision": "evaluator.v1",
+      "applicability": "applicable",
+      "status": "modeled",
+      "authority": "TokenEconomics",
+      "content_hash": "e8754f6a26f5784c383bb13c9dbe6c0264638414627a92db156e0e55fa33d6ee",
+      "location": "repo:costgov/evaluator.py",
+      "reason": null
+    },
+    {
+      "category": "model_catalog",
+      "evidence_id": "foundry-model-release",
+      "revision": "2026-08-25.2",
+      "applicability": "applicable",
+      "status": "sourced",
+      "authority": "TokenEconomics sourced Foundry release",
+      "content_hash": "53fa034d587115f4ad909a1f2ccd77279752d89a6396ff7e1df7d283f8ed922f",
+      "location": "repo:data/model_catalogs/foundry-model-release.v2.json",
+      "reason": null
+    },
+    {
+      "category": "pricing",
+      "evidence_id": "foundry-public-pricing",
+      "revision": "2026-08-25.2",
+      "applicability": "applicable",
+      "status": "sourced",
+      "authority": "Azure Retail Prices and Anthropic Foundry pricing",
+      "content_hash": "53fa034d587115f4ad909a1f2ccd77279752d89a6396ff7e1df7d283f8ed922f",
+      "location": "repo:data/model_catalogs/foundry-model-release.v2.json",
+      "reason": null
+    },
+    {
+      "category": "meter_stack",
+      "evidence_id": "foundry-meter-stack",
+      "revision": "consumption-models.v1",
+      "applicability": "applicable",
+      "status": "modeled",
+      "authority": "TokenEconomics",
+      "content_hash": "a10a96611546685e518485a09f457547f8a3a68ec39b9361dd7ad92fdad0ff02",
+      "location": "repo:costgov/consumption_models.py",
+      "reason": null
+    },
+    {
+      "category": "commercial_rate_cards",
+      "evidence_id": "commercial-rate-cards",
+      "revision": "not-applicable.v1",
+      "applicability": "non_applicable",
+      "status": "sourced",
+      "authority": "TokenEconomics",
+      "content_hash": null,
+      "location": null,
+      "reason": "The reference experiment is direct Foundry usage and does not consume a Copilot or GitHub commercial credit meter."
+    },
+    {
+      "category": "entitlement",
+      "evidence_id": "commercial-entitlement",
+      "revision": "not-applicable.v1",
+      "applicability": "non_applicable",
+      "status": "sourced",
+      "authority": "TokenEconomics",
+      "content_hash": null,
+      "location": null,
+      "reason": "No included Copilot or GitHub entitlement applies to this direct Foundry experiment."
+    },
+    {
+      "category": "purchase_allocation",
+      "evidence_id": "purchase-allocation",
+      "revision": "not-applicable.v1",
+      "applicability": "non_applicable",
+      "status": "sourced",
+      "authority": "TokenEconomics",
+      "content_hash": null,
+      "location": null,
+      "reason": "No committed commercial-credit purchase is allocated to this experiment."
+    },
+    {
+      "category": "billing_period",
+      "evidence_id": "experiment-run-period",
+      "revision": "utc-run.v1",
+      "applicability": "applicable",
+      "status": "modeled",
+      "authority": "TokenEconomics",
+      "content_hash": "477bb0a947369e3e3df0b468178b23ae78968562a922a14850abc9519f158786",
+      "location": "repo:data/experiments/billing-period.experiment-run.v1.json",
+      "reason": null
+    },
+    {
+      "category": "infrastructure",
+      "evidence_id": "rag-azure-infrastructure",
+      "revision": "te003-2026-08-25",
+      "applicability": "applicable",
+      "status": "measured",
+      "authority": "Azure Resource Manager",
+      "content_hash": "62dc91bb711ab619066d055c0e26a87e023d8e340b536d9d2a47e3650d4d9869",
+      "location": "repo:infra/main.bicep",
+      "reason": null
+    },
+    {
+      "category": "external_governance",
+      "evidence_id": "agent365-governance",
+      "revision": "unavailable.v1",
+      "applicability": "unavailable",
+      "status": "blocked",
+      "authority": "Microsoft Agent 365",
+      "content_hash": null,
+      "location": null,
+      "reason": "No licensed and ingestion-verified Agent 365 evidence path is available for this reference experiment."
+    }
+  ],
+  "arms": [
+    {
+      "arm_id": "premium-baseline",
+      "role": "baseline",
+      "policy_candidate": {
+        "category": "policy_candidate",
+        "evidence_id": "premium-baseline-configuration",
+        "revision": "bench-rag.v1",
+        "applicability": "applicable",
+        "status": "proposed",
+        "authority": "TokenEconomics policy candidate contract",
+        "content_hash": "0d7e02a2f283d8a93cc8805e16210fb8fcb4c89de6a7e83492ed7d4b905d316f",
+        "location": "repo:data/policy_candidates/premium-baseline-configuration.bench-rag.v1.json",
+        "reason": null
+      },
+      "factors": [
+        {"path": "execution.routing_mode", "value": "quality"},
+        {"path": "execution.semantic_cache.enabled", "value": false},
+        {"path": "execution.context.prune", "value": false},
+        {"path": "execution.retrieval.top_k", "value": 4},
+        {"path": "evaluation.sample_rate", "value": 1.0}
+      ]
+    },
+    {
+      "arm_id": "governed-candidate",
+      "role": "candidate",
+      "policy_candidate": {
+        "category": "policy_candidate",
+        "evidence_id": "governed-candidate-configuration",
+        "revision": "bench-rag.v1",
+        "applicability": "applicable",
+        "status": "proposed",
+        "authority": "TokenEconomics policy candidate contract",
+        "content_hash": "e8c03f21f68c536a19ea65232988febcf73ccfc3372c91269d8bee6635a34995",
+        "location": "repo:data/policy_candidates/governed-candidate-configuration.bench-rag.v1.json",
+        "reason": null
+      },
+      "factors": [
+        {"path": "execution.routing_mode", "value": "balanced"},
+        {"path": "execution.semantic_cache.enabled", "value": true},
+        {"path": "execution.context.prune", "value": true},
+        {"path": "execution.retrieval.top_k", "value": 4},
+        {"path": "evaluation.sample_rate", "value": 1.0}
+      ]
+    }
+  ]
+}

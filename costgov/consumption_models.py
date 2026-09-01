@@ -18,6 +18,10 @@ class ConsumptionFamily(str, Enum):
     TOKEN_DERIVED_CREDIT = "token_derived_credit"
     DIRECT_TOKEN = "direct_token"
     RESOURCE = "resource"
+    RETRIEVAL = "retrieval"
+    TOOL = "tool"
+    EVALUATION = "evaluation"
+    OBSERVABILITY = "observability"
 
 
 @dataclass(frozen=True)

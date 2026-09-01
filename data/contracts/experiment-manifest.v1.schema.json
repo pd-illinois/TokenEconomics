@@ -1,0 +1,208 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://tokeneconomics.dev/contracts/experiment-manifest.v1.schema.json",
+  "title": "TokenEconomics experiment manifest",
+  "$comment": "Cross-arm factor-path equality and candidate difference are semantic invariants enforced by the TokenEconomics runtime validator.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "experiment_id",
+    "revision",
+    "created_at",
+    "observation_unit",
+    "evidence",
+    "arms"
+  ],
+  "properties": {
+    "schema_version": {"const": "experiment-manifest.v1"},
+    "experiment_id": {"$ref": "#/$defs/stableId"},
+    "revision": {"$ref": "#/$defs/stableId"},
+    "created_at": {"type": "string", "format": "date-time"},
+    "observation_unit": {"const": "complete_task_trajectory"},
+    "evidence": {
+      "type": "array",
+      "minItems": 16,
+      "maxItems": 16,
+      "items": {"$ref": "#/$defs/evidenceReference"},
+      "allOf": [
+        {"contains": {"properties": {"category": {"const": "workload"}}}, "minContains": 1, "maxContains": 1},
+        {"contains": {"properties": {"category": {"const": "task_set"}}}, "minContains": 1, "maxContains": 1},
+        {"contains": {"properties": {"category": {"const": "corpus_index"}}}, "minContains": 1, "maxContains": 1},
+        {"contains": {"properties": {"category": {"const": "retrieval"}}}, "minContains": 1, "maxContains": 1},
+        {"contains": {"properties": {"category": {"const": "agent_prompt"}}}, "minContains": 1, "maxContains": 1},
+        {"contains": {"properties": {"category": {"const": "golden_set"}}}, "minContains": 1, "maxContains": 1},
+        {"contains": {"properties": {"category": {"const": "evaluator"}}}, "minContains": 1, "maxContains": 1},
+        {"contains": {"properties": {"category": {"const": "model_catalog"}}}, "minContains": 1, "maxContains": 1},
+        {"contains": {"properties": {"category": {"const": "pricing"}}}, "minContains": 1, "maxContains": 1},
+        {"contains": {"properties": {"category": {"const": "meter_stack"}}}, "minContains": 1, "maxContains": 1},
+        {"contains": {"properties": {"category": {"const": "commercial_rate_cards"}}}, "minContains": 1, "maxContains": 1},
+        {"contains": {"properties": {"category": {"const": "entitlement"}}}, "minContains": 1, "maxContains": 1},
+        {"contains": {"properties": {"category": {"const": "purchase_allocation"}}}, "minContains": 1, "maxContains": 1},
+        {"contains": {"properties": {"category": {"const": "billing_period"}}}, "minContains": 1, "maxContains": 1},
+        {"contains": {"properties": {"category": {"const": "infrastructure"}}}, "minContains": 1, "maxContains": 1},
+        {"contains": {"properties": {"category": {"const": "external_governance"}}}, "minContains": 1, "maxContains": 1}
+      ]
+    },
+    "arms": {
+      "type": "array",
+      "minItems": 2,
+      "items": {"$ref": "#/$defs/experimentArm"},
+      "allOf": [
+        {
+          "contains": {"properties": {"role": {"const": "baseline"}}},
+          "minContains": 1,
+          "maxContains": 1
+        },
+        {
+          "contains": {"properties": {"role": {"const": "candidate"}}},
+          "minContains": 1
+        }
+      ]
+    }
+  },
+  "$defs": {
+    "stableId": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$"
+    },
+    "sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "evidenceReference": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "category",
+        "evidence_id",
+        "revision",
+        "applicability",
+        "status",
+        "authority",
+        "content_hash",
+        "location",
+        "reason"
+      ],
+      "properties": {
+        "category": {
+          "enum": [
+            "workload",
+            "task_set",
+            "corpus_index",
+            "retrieval",
+            "agent_prompt",
+            "golden_set",
+            "evaluator",
+            "model_catalog",
+            "pricing",
+            "meter_stack",
+            "commercial_rate_cards",
+            "entitlement",
+            "purchase_allocation",
+            "billing_period",
+            "infrastructure",
+            "external_governance"
+          ]
+        },
+        "evidence_id": {"$ref": "#/$defs/stableId"},
+        "revision": {"$ref": "#/$defs/stableId"},
+        "applicability": {
+          "enum": ["applicable", "non_applicable", "unavailable"]
+        },
+        "status": {
+          "enum": [
+            "measured",
+            "modeled",
+            "sourced",
+            "proposed",
+            "blocked",
+            "production_validated"
+          ]
+        },
+        "authority": {"type": "string", "minLength": 1},
+        "content_hash": {
+          "oneOf": [{"$ref": "#/$defs/sha256"}, {"type": "null"}]
+        },
+        "location": {
+          "oneOf": [{"type": "string", "minLength": 1}, {"type": "null"}]
+        },
+        "reason": {
+          "oneOf": [{"type": "string", "minLength": 1}, {"type": "null"}]
+        }
+      }
+    },
+    "experimentFactor": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["path", "value"],
+      "properties": {
+        "path": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$"
+        },
+        "value": {}
+      }
+    },
+    "policyCandidateReference": {
+      "allOf": [
+        {"$ref": "#/$defs/evidenceReferenceBase"},
+        {"properties": {"category": {"const": "policy_candidate"}}}
+      ]
+    },
+    "evidenceReferenceBase": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "category",
+        "evidence_id",
+        "revision",
+        "applicability",
+        "status",
+        "authority",
+        "content_hash",
+        "location",
+        "reason"
+      ],
+      "properties": {
+        "category": {"type": "string"},
+        "evidence_id": {"$ref": "#/$defs/stableId"},
+        "revision": {"$ref": "#/$defs/stableId"},
+        "applicability": {"const": "applicable"},
+        "status": {
+          "enum": [
+            "measured",
+            "modeled",
+            "sourced",
+            "proposed",
+            "blocked",
+            "production_validated"
+          ]
+        },
+        "authority": {"type": "string", "minLength": 1},
+        "content_hash": {"$ref": "#/$defs/sha256"},
+        "location": {
+          "oneOf": [{"type": "string", "minLength": 1}, {"type": "null"}]
+        },
+        "reason": {
+          "oneOf": [{"type": "string", "minLength": 1}, {"type": "null"}]
+        }
+      }
+    },
+    "experimentArm": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["arm_id", "role", "policy_candidate", "factors"],
+      "properties": {
+        "arm_id": {"$ref": "#/$defs/stableId"},
+        "role": {"enum": ["baseline", "candidate"]},
+        "policy_candidate": {"$ref": "#/$defs/policyCandidateReference"},
+        "factors": {
+          "type": "array",
+          "minItems": 1,
+          "items": {"$ref": "#/$defs/experimentFactor"}
+        }
+      }
+    }
+  }
+}

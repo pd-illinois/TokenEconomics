@@ -133,6 +133,8 @@ def test_plan_to_reconciliation_preserves_trajectory_contract(tmp_path):
     )
     assert len(result["trajectory_evidence"]) == result["observed"]["requests"]
     assert len(result["evaluation_outcomes"]) == result["observed"]["requests"]
+    assert len(result["acceptance_outcomes"]) == result["observed"]["requests"]
+    assert len(result["meter_ledger_evidence"]) == 3 * result["observed"]["requests"]
     first = result["trajectory_evidence"][0]
     telemetry_path = runtime / "studio_runs" / result["run_id"] / "telemetry.jsonl"
     telemetry = [
@@ -156,6 +158,16 @@ def test_plan_to_reconciliation_preserves_trajectory_contract(tmp_path):
     assert telemetry_first["policy_etag"] == "etag-trajectory-1"
     assert evaluation_first["trajectory_id"] == first["trajectory_id"]
     assert evaluation_first["segment_id"] == telemetry_first["segment_id"]
+    assert evaluation_first["policy_candidate_id"] == (
+        "active-policy-tokengov-production"
+    )
+    acceptance_first = next(
+        item
+        for item in result["acceptance_outcomes"]
+        if item["task_id"] == first["task_id"]
+    )
+    assert acceptance_first["trajectory_id"] == first["trajectory_id"]
+    assert first["acceptance_outcome_id"] == acceptance_first["outcome_id"]
     assert first["task_id"] in {
         task_id
         for item in result["reconciliation"]

@@ -90,6 +90,15 @@ def _sha256(value: object) -> str:
     return hashlib.sha256(encoded).hexdigest()
 
 
+def _retrieved_document_count(value: object) -> int | None:
+    if not isinstance(value, str):
+        return None
+    counts = {int(item) for item in re.findall(r"Retrieved (\d+) documents?\.", value)}
+    if len(counts) != 1:
+        return None
+    return counts.pop()
+
+
 def _step_id(response_id: str, sequence: int, item_type: str) -> str:
     digest = _sha256(f"{response_id}:{sequence}:{item_type}")[:24]
     return f"step-{digest}"
@@ -443,6 +452,9 @@ class FoundryRagTrajectoryAdapter:
                 "tool_name": operation,
                 "arguments_sha256": _sha256(item.get("arguments") or ""),
                 "provider_output_sha256": _sha256(provider_output or ""),
+                "retrieved_document_count": _retrieved_document_count(
+                    provider_output
+                ),
                 "operation_count": 1,
                 "resource_meter_status": "unavailable",
                 "resource_meter_cost_usd": None,

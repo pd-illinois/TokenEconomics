@@ -1,0 +1,46 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://tokeneconomics.dev/contracts/acceptance-rule.v1.schema.json",
+  "title": "TokenEconomics segment acceptance rule",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "rule_id",
+    "version",
+    "segment_id",
+    "segment_version",
+    "evaluator_id",
+    "evaluator_version",
+    "evaluator_content_hash",
+    "minimum_score",
+    "created_at"
+  ],
+  "properties": {
+    "schema_version": {"const": "acceptance-rule.v1"},
+    "rule_id": {"$ref": "#/$defs/stableId"},
+    "version": {"$ref": "#/$defs/stableId"},
+    "segment_id": {"$ref": "#/$defs/stableId"},
+    "segment_version": {"$ref": "#/$defs/stableId"},
+    "evaluator_id": {"$ref": "#/$defs/stableId"},
+    "evaluator_version": {"$ref": "#/$defs/stableId"},
+    "evaluator_content_hash": {"$ref": "#/$defs/sha256"},
+    "minimum_score": {"type": "number", "minimum": 0, "maximum": 1},
+    "created_at": {"$ref": "#/$defs/utcTimestamp"}
+  },
+  "$defs": {
+    "stableId": {
+      "type": "string",
+      "minLength": 1
+    },
+    "sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "utcTimestamp": {
+      "type": "string",
+      "format": "date-time",
+      "pattern": "(Z|[+]00:00)$"
+    }
+  }
+}

@@ -5,6 +5,7 @@ from __future__ import annotations
 import json
 import hashlib
 import threading
+from datetime import datetime, timezone
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from urllib.parse import urlparse
@@ -19,6 +20,13 @@ from costgov.commercial_planning import (
 )
 from costgov.consumption_models import consumption_catalog
 from costgov.mcp_prediction import McpPredictionError, McpPredictorClient
+from costgov.decision_state import DecisionStateStore
+from costgov.governance_decisions import (
+    GovernanceEvidenceStore,
+    build_candidate_constraint_from_run,
+    select_candidate,
+)
+from costgov.observe_economics import load_observe_economics
 from costgov.orchestrator import StudioOrchestrator
 from costgov.planning import PlanStore
 from costgov.policy_changes import PolicyChangeStore
@@ -36,6 +44,8 @@ REGISTRY_PATH = ROOT / "studio_runs" / "registry.json"
 PLAN_STORE_PATH = ROOT / "studio_plans"
 REPORT_STORE_PATH = ROOT / "studio_reports"
 POLICY_CHANGE_STORE_PATH = ROOT / "studio_policy_changes"
+GOVERNANCE_EVIDENCE_STORE_PATH = ROOT / "studio_governance_evidence"
+DECISION_STATE_STORE_PATH = ROOT / "studio_decision_state"
 _lock = threading.Lock()
 
 
@@ -109,6 +119,27 @@ class StudioHandler(SimpleHTTPRequestHandler):
                 return self._json({"error": str(exc), "code": "policy_unavailable"}, 503)
         if path == "/api/policy-change-requests":
             return self._json({"change_requests": PolicyChangeStore(POLICY_CHANGE_STORE_PATH).list()})
+        if path == "/api/govern/decisions":
+            try:
+                records = GovernanceEvidenceStore(
+                    GOVERNANCE_EVIDENCE_STORE_PATH
+                ).list(kind="govern_decision")
+                return self._json(
+                    {
+                        "decisions": [
+                            {
+                                **record.value.to_dict(),
+                                "content_hash": record.content_hash,
+                            }
+                            for record in records
+                        ]
+                    }
+                )
+            except ValueError as exc:
+                return self._json(
+                    {"error": str(exc), "code": "governance_evidence_invalid"},
+                    409,
+                )
         if path == "/api/models":
             try:
                 return self._json(McpPredictorClient(ROOT).model_catalog())
@@ -138,13 +169,116 @@ class StudioHandler(SimpleHTTPRequestHandler):
             resource = store.get_receipt(plan_id) if path.endswith("/receipt") else store.get(plan_id)
             return self._json(resource or {"error": "not_found"}, 200 if resource else 404)
         if path.startswith("/api/runs/"):
-            run_id = path.rsplit("/", 1)[-1]
+            parts = path.strip("/").split("/")
+            run_id = parts[2] if len(parts) >= 3 else ""
             run = _read_registry().get(run_id)
+            if len(parts) == 4 and parts[3] == "observe":
+                if not run:
+                    return self._json({"error": "not_found"}, 404)
+                if run.get("status") != "completed" or not run.get("result"):
+                    return self._json(
+                        {
+                            "error": "Observe requires a completed run",
+                            "code": "run_not_completed",
+                        },
+                        409,
+                    )
+                try:
+                    projection = load_observe_economics(
+                        run["result"], REGISTRY_PATH.parent / run_id
+                    )
+                    return self._json(projection)
+                except ValueError as exc:
+                    return self._json(
+                        {
+                            "error": str(exc),
+                            "code": "observe_evidence_invalid",
+                        },
+                        409,
+                    )
             return self._json(run or {"error": "not_found"}, 200 if run else 404)
         return super().do_GET()
 
     def do_POST(self):
         path = urlparse(self.path).path
+        if path == "/api/govern/decisions":
+            try:
+                payload = self._read_json()
+                run_ids = payload.get("run_ids")
+                if (
+                    not isinstance(run_ids, list)
+                    or not run_ids
+                    or any(not isinstance(item, str) or not item for item in run_ids)
+                    or len(set(run_ids)) != len(run_ids)
+                ):
+                    raise ValueError("run_ids must be a non-empty unique string array")
+                registry = _read_registry()
+                selected_runs = []
+                report_ids = set()
+                for run_id in run_ids:
+                    run = registry.get(run_id)
+                    if (
+                        not run
+                        or run.get("status") != "completed"
+                        or not run.get("result")
+                    ):
+                        raise ValueError(
+                            f"completed immutable run evidence is required: {run_id}"
+                        )
+                    selected_runs.append(run["result"])
+                    report_ids.add(run["result"].get("report_id"))
+                if len(report_ids) != 1 or None in report_ids:
+                    raise ValueError("candidate runs must belong to one report")
+
+                evidence_store = GovernanceEvidenceStore(
+                    GOVERNANCE_EVIDENCE_STORE_PATH
+                )
+                constraints = []
+                transitions = []
+                state_store = DecisionStateStore(DECISION_STATE_STORE_PATH)
+                for run_result in selected_runs:
+                    constraint = build_candidate_constraint_from_run(
+                        run_result,
+                        REGISTRY_PATH.parent / run_result["run_id"],
+                    )
+                    existing = evidence_store.get(constraint.constraint_id)
+                    if existing is None:
+                        evidence_store.append(constraint)
+                    elif existing.content_hash != constraint.content_hash:
+                        raise ValueError(
+                            "stored constraint differs from verified run evidence"
+                        )
+                    constraints.append(constraint)
+                    transitions.extend(state_store.record(constraint))
+                decision = select_candidate(
+                    constraints,
+                    created_at=datetime.now(timezone.utc).isoformat(),
+                )
+                stored = evidence_store.append(decision)
+                report_id = next(iter(report_ids))
+                ReportStore(REPORT_STORE_PATH).add_artifact(
+                    report_id,
+                    "govern_decisions",
+                    {
+                        "id": decision.decision_id,
+                        "content_hash": stored.content_hash,
+                        "outcome": decision.outcome.value,
+                        "selected_candidate_id": decision.selected_candidate_id,
+                        "created_at": decision.created_at,
+                    },
+                )
+                return self._json(
+                    {
+                        **decision.to_dict(),
+                        "content_hash": stored.content_hash,
+                        "state_transitions": transitions,
+                    },
+                    201,
+                )
+            except json.JSONDecodeError as exc:
+                return self._json({"error": str(exc)}, 400)
+            except ValueError as exc:
+                return self._json({"error": str(exc)}, 409)
         if path == "/api/policy-change-requests":
             try:
                 loaded_policy = load_policy_from_environment()

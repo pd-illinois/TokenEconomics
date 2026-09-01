@@ -54,6 +54,9 @@ class Telemetry:
                 "policy_source": res.policy_source,
                 "policy_label": res.policy_label,
                 "policy_etag": res.policy_etag,
+                "policy_candidate_id": res.policy_candidate_id,
+                "policy_candidate_version": res.policy_candidate_version,
+                "policy_candidate_content_hash": res.policy_candidate_content_hash,
             })
         # continuous eval only looks at a sampled fraction of live traffic
         if self._rng.random() < self.sample_rate:
@@ -82,6 +85,9 @@ class Telemetry:
                 "policy_source": res.policy_source,
                 "policy_label": res.policy_label,
                 "policy_etag": res.policy_etag,
+                "policy_candidate_id": res.policy_candidate_id,
+                "policy_candidate_version": res.policy_candidate_version,
+                "policy_candidate_content_hash": res.policy_candidate_content_hash,
             })
 
     def tenant_cost(self, tenant: str) -> float:

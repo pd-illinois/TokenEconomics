@@ -22,6 +22,9 @@ class EvalOutcome:
     trajectory_id: str
     segment_id: str
     score: float
+    policy_candidate_id: str | None = None
+    policy_candidate_version: str | None = None
+    policy_candidate_content_hash: str | None = None
 
 
 @dataclass
@@ -79,6 +82,11 @@ class Evaluator:
                     trajectory_id=item["trajectory_id"],
                     segment_id=item.get("segment_id") or item["difficulty"],
                     score=s,
+                    policy_candidate_id=item.get("policy_candidate_id"),
+                    policy_candidate_version=item.get("policy_candidate_version"),
+                    policy_candidate_content_hash=item.get(
+                        "policy_candidate_content_hash"
+                    ),
                 ))
         return self._report(scores, buckets, tuple(outcomes))
 

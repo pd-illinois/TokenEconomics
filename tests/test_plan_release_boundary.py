@@ -23,6 +23,7 @@ def test_plan_release_manifest_is_explicit_and_excludes_non_plan_surfaces():
     manifest = json.loads(MANIFEST.read_text(encoding="utf-8"))
 
     assert manifest["schema_version"] == "1.0"
+    assert manifest["release_gate"] == "TE-008"
     assert manifest["surface"] == "studio-plan-readonly"
     assert manifest["entry_point"] == "plan_studio.py"
     assert manifest["static_entry"] == "studio.html"
@@ -35,7 +36,13 @@ def test_plan_release_manifest_is_explicit_and_excludes_non_plan_surfaces():
         "plan_studio.py", "studio.html", "plan_requirements.txt",
         "costgov/commercial_planning.py",
         "costgov/commercial_forecasting.py",
+        "costgov/experiment_contracts.py",
+        "costgov/policy_candidates.py",
         "costgov/mcp_prediction.py",
+        "data/contracts/experiment-manifest.v1.schema.json",
+        "data/contracts/policy-candidate.v1.schema.json",
+        "data/experiments",
+        "data/policy_candidates",
         "data/commercial",
     } <= included
     assert "requirements.txt" not in included

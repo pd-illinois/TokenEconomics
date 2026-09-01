@@ -1,0 +1,6 @@
+{
+  "schema_version": "billing-period.v1",
+  "period": "experiment_run",
+  "timezone": "UTC",
+  "allocation_scope": "one complete task trajectory"
+}

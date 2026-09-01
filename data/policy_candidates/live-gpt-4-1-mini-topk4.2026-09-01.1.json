@@ -1,0 +1,50 @@
+{
+  "schema_version": "policy-candidate.v1",
+  "candidate_id": "live-gpt-4-1-mini-topk4",
+  "version": "2026-09-01.1",
+  "status": "proposed",
+  "created_at": "2026-09-01T00:00:00+00:00",
+  "experiment_id": "rag-live-policy-comparison",
+  "experiment_revision": "2026-09-01.1",
+  "meter_stack_id": "foundry-meter-stack",
+  "meter_stack_version": "consumption-models.v1",
+  "meter_stack_content_hash": "a10a96611546685e518485a09f457547f8a3a68ec39b9361dd7ad92fdad0ff02",
+  "controls": [
+    {
+      "control_id": "model-selection",
+      "kind": "model_selection",
+      "path": "admission.allowed_models",
+      "value": ["gpt-4.1-mini"],
+      "authority": "azure_tokengov",
+      "capability": "model_routing",
+      "enforcement_scope": "runtime_enforced"
+    },
+    {
+      "control_id": "retrieval-max-output-documents",
+      "kind": "retrieval",
+      "path": "execution.retrieval.max_output_documents",
+      "value": 4,
+      "authority": "workload_adapter",
+      "capability": "retrieval_configuration",
+      "enforcement_scope": "runtime_enforced"
+    },
+    {
+      "control_id": "evaluation-rule",
+      "kind": "evaluation",
+      "path": "execution.evaluation.minimum_score",
+      "value": 0.8,
+      "authority": "azure_tokengov",
+      "capability": "evaluation_gate",
+      "enforcement_scope": "control_plane_enforced"
+    },
+    {
+      "control_id": "completed-task-budget",
+      "kind": "monetary_budget",
+      "path": "execution.budget.completed_task_usd",
+      "value": 0.02,
+      "authority": "azure_tokengov",
+      "capability": "budget_enforcement",
+      "enforcement_scope": "runtime_enforced"
+    }
+  ]
+}

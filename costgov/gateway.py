@@ -67,6 +67,9 @@ class Result:
     policy_source: str | None = None
     policy_label: str | None = None
     policy_etag: str | None = None
+    policy_candidate_id: str | None = None
+    policy_candidate_version: str | None = None
+    policy_candidate_content_hash: str | None = None
 
 
 class Gateway:
@@ -129,6 +132,15 @@ class Gateway:
             "policy_source": execution.policy_source if execution else None,
             "policy_label": execution.policy_label if execution else None,
             "policy_etag": execution.policy_etag if execution else None,
+            "policy_candidate_id": (
+                execution.policy_candidate_id if execution else None
+            ),
+            "policy_candidate_version": (
+                execution.policy_candidate_version if execution else None
+            ),
+            "policy_candidate_content_hash": (
+                execution.policy_candidate_content_hash if execution else None
+            ),
         }
 
         # 2. semantic cache lookup (in-path; adds a small embedding latency tax)

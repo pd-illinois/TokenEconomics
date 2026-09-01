@@ -1,0 +1,124 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://tokeneconomics.dev/contracts/meter-ledger-entry.v1.schema.json",
+  "title": "TokenEconomics multi-meter trajectory ledger entry",
+  "$comment": "Native units and currencies are never converted by this schema. Quantity, cost-coverage, and integrity invariants are enforced by costgov.meter_ledger.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "entry_id",
+    "experiment_id",
+    "experiment_revision",
+    "arm_id",
+    "task_id",
+    "trajectory_id",
+    "step_id",
+    "segment_id",
+    "tenant_id",
+    "product",
+    "environment",
+    "meter_stack_id",
+    "meter_stack_version",
+    "meter_stack_content_hash",
+    "policy_candidate_id",
+    "policy_candidate_version",
+    "policy_candidate_content_hash",
+    "meter_family",
+    "meter_id",
+    "native_unit",
+    "native_currency",
+    "quantity",
+    "evidence_status",
+    "entitlement_disposition",
+    "purchase_source",
+    "evidence_source",
+    "evidence_content_hash",
+    "pricing_revision",
+    "rate_card_revision",
+    "billing_period",
+    "calculation_method",
+    "allocation_method",
+    "cost_coverage",
+    "allocated_cost_usd",
+    "recorded_at",
+    "unavailable_reason"
+  ],
+  "properties": {
+    "schema_version": {"const": "meter-ledger-entry.v1"},
+    "entry_id": {"$ref": "#/$defs/nonEmpty"},
+    "experiment_id": {"$ref": "#/$defs/nonEmpty"},
+    "experiment_revision": {"$ref": "#/$defs/nonEmpty"},
+    "arm_id": {"$ref": "#/$defs/nonEmpty"},
+    "task_id": {"$ref": "#/$defs/nonEmpty"},
+    "trajectory_id": {"$ref": "#/$defs/nonEmpty"},
+    "step_id": {
+      "oneOf": [{"$ref": "#/$defs/nonEmpty"}, {"type": "null"}]
+    },
+    "segment_id": {"$ref": "#/$defs/nonEmpty"},
+    "tenant_id": {"$ref": "#/$defs/nonEmpty"},
+    "product": {"$ref": "#/$defs/nonEmpty"},
+    "environment": {"$ref": "#/$defs/nonEmpty"},
+    "meter_stack_id": {"$ref": "#/$defs/nonEmpty"},
+    "meter_stack_version": {"$ref": "#/$defs/nonEmpty"},
+    "meter_stack_content_hash": {"$ref": "#/$defs/sha256"},
+    "policy_candidate_id": {"$ref": "#/$defs/nonEmpty"},
+    "policy_candidate_version": {"$ref": "#/$defs/nonEmpty"},
+    "policy_candidate_content_hash": {"$ref": "#/$defs/sha256"},
+    "meter_family": {
+      "enum": [
+        "subscription",
+        "included",
+        "native_credit",
+        "token_derived_credit",
+        "direct_token",
+        "resource",
+        "retrieval",
+        "tool",
+        "evaluation",
+        "observability"
+      ]
+    },
+    "meter_id": {"$ref": "#/$defs/nonEmpty"},
+    "native_unit": {"$ref": "#/$defs/nonEmpty"},
+    "native_currency": {"$ref": "#/$defs/nonEmpty"},
+    "quantity": {
+      "oneOf": [{"type": "number", "minimum": 0}, {"type": "null"}]
+    },
+    "evidence_status": {
+      "enum": ["measured", "modeled", "unavailable", "excluded"]
+    },
+    "entitlement_disposition": {"$ref": "#/$defs/nonEmpty"},
+    "purchase_source": {"$ref": "#/$defs/nonEmpty"},
+    "evidence_source": {"$ref": "#/$defs/nonEmpty"},
+    "evidence_content_hash": {"$ref": "#/$defs/sha256"},
+    "pricing_revision": {
+      "oneOf": [{"$ref": "#/$defs/nonEmpty"}, {"type": "null"}]
+    },
+    "rate_card_revision": {
+      "oneOf": [{"$ref": "#/$defs/nonEmpty"}, {"type": "null"}]
+    },
+    "billing_period": {"type": "string", "pattern": "^[0-9]{4}-[0-9]{2}$"},
+    "calculation_method": {"$ref": "#/$defs/nonEmpty"},
+    "allocation_method": {"$ref": "#/$defs/nonEmpty"},
+    "cost_coverage": {
+      "enum": ["priced", "unpriced", "not_applicable"]
+    },
+    "allocated_cost_usd": {
+      "oneOf": [{"type": "number", "minimum": 0}, {"type": "null"}]
+    },
+    "recorded_at": {"$ref": "#/$defs/utcTimestamp"},
+    "unavailable_reason": {
+      "oneOf": [{"$ref": "#/$defs/nonEmpty"}, {"type": "null"}]
+    }
+  },
+  "$defs": {
+    "nonEmpty": {"type": "string", "minLength": 1},
+    "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "utcTimestamp": {
+      "type": "string",
+      "format": "date-time",
+      "pattern": "(Z|[+]00:00)$"
+    }
+  }
+}

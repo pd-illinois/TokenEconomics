@@ -1,0 +1,59 @@
+{
+  "schema_version": "policy-candidate.v1",
+  "candidate_id": "premium-baseline-configuration",
+  "version": "bench-rag.v1",
+  "status": "proposed",
+  "created_at": "2026-08-31T17:00:00+00:00",
+  "experiment_id": "rag-policy-comparison",
+  "experiment_revision": "2026-08-31.1",
+  "meter_stack_id": "foundry-meter-stack",
+  "meter_stack_version": "consumption-models.v1",
+  "meter_stack_content_hash": "a10a96611546685e518485a09f457547f8a3a68ec39b9361dd7ad92fdad0ff02",
+  "controls": [
+    {
+      "control_id": "routing-mode",
+      "kind": "routing",
+      "path": "execution.routing_mode",
+      "value": "quality",
+      "authority": "azure_tokengov",
+      "capability": "model_routing",
+      "enforcement_scope": "runtime_enforced"
+    },
+    {
+      "control_id": "semantic-cache",
+      "kind": "cache",
+      "path": "execution.semantic_cache.enabled",
+      "value": false,
+      "authority": "azure_tokengov",
+      "capability": "semantic_cache",
+      "enforcement_scope": "runtime_enforced"
+    },
+    {
+      "control_id": "context-pruning",
+      "kind": "context",
+      "path": "execution.context.prune",
+      "value": false,
+      "authority": "azure_tokengov",
+      "capability": "context_management",
+      "enforcement_scope": "runtime_enforced"
+    },
+    {
+      "control_id": "retrieval-top-k",
+      "kind": "retrieval",
+      "path": "execution.retrieval.top_k",
+      "value": 4,
+      "authority": "workload_adapter",
+      "capability": "retrieval_configuration",
+      "enforcement_scope": "runtime_enforced"
+    },
+    {
+      "control_id": "evaluation-sample-rate",
+      "kind": "evaluation",
+      "path": "evaluation.sample_rate",
+      "value": 1.0,
+      "authority": "azure_tokengov",
+      "capability": "evaluation_gate",
+      "enforcement_scope": "control_plane_enforced"
+    }
+  ]
+}

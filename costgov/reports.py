@@ -32,7 +32,13 @@ class ReportStore:
             "notes": "",
             "created_at": timestamp,
             "updated_at": timestamp,
-            "artifacts": {"plans": [], "receipts": [], "govern_handoffs": [], "runs": []},
+            "artifacts": {
+                "plans": [],
+                "receipts": [],
+                "govern_handoffs": [],
+                "govern_decisions": [],
+                "runs": [],
+            },
         }
         with _report_lock:
             self._write_unlocked(report)
@@ -43,7 +49,9 @@ class ReportStore:
         with _report_lock:
             if not path.exists():
                 return None
-            return json.loads(path.read_text(encoding="utf-8"))
+            report = json.loads(path.read_text(encoding="utf-8"))
+            report.setdefault("artifacts", {}).setdefault("govern_decisions", [])
+            return report
 
     def list(self) -> list[dict]:
         if not self.root.exists():

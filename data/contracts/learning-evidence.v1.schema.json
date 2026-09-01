@@ -1,0 +1,24 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://tokeneconomics.dev/contracts/learning-evidence.v1.schema.json",
+  "title": "TokenEconomics split learning evidence",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "metric",
+    "before_error",
+    "after_error",
+    "result",
+    "boundaries",
+    "historical_forecast_mutated",
+    "content_hash"
+  ],
+  "properties": {
+    "schema_version": {"const": "learning-evidence.v1"},
+    "metric": {"const": "weighted_absolute_percentage_error"},
+    "result": {"enum": ["improved", "unchanged", "not_improved"]},
+    "historical_forecast_mutated": {"const": false},
+    "content_hash": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
+  },
+  "additionalProperties": true
+}

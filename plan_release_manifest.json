@@ -1,10 +1,10 @@
 {
   "schema_version": "1.0",
-  "release_gate": "TE-001.7",
+  "release_gate": "TE-008",
   "surface": "studio-plan-readonly",
   "entry_point": "plan_studio.py",
   "static_entry": "studio.html",
-  "scope": "Experience-led meter-stack planning for Foundry, Microsoft Copilot, and GitHub Copilot; Govern/Runs/Observe/Reconcile are read-only",
+  "scope": "Experience-led meter-stack planning plus immutable experiment manifests and policy candidates; Govern/Runs/Observe/Reconcile are read-only",
   "include": [
     "plan_studio.py",
     "studio.html",
@@ -18,14 +18,20 @@
     "costgov/commercial_rate_cards.py",
     "costgov/consumption_models.py",
     "costgov/github_forecasting.py",
+    "costgov/experiment_contracts.py",
     "costgov/mcp_prediction.py",
     "costgov/model_release.py",
     "costgov/planning.py",
+    "costgov/policy_candidates.py",
     "costgov/reports.py",
     "costgov/trajectory_contracts.py",
+    "data/contracts/experiment-manifest.v1.schema.json",
+    "data/contracts/policy-candidate.v1.schema.json",
     "data/contracts/trajectory-envelope.v1.schema.json",
     "data/commercial",
-    "data/model_catalogs"
+    "data/experiments",
+    "data/model_catalogs",
+    "data/policy_candidates"
   ],
   "exclude": [
     ".env",
@@ -40,6 +46,7 @@
     "costgov/policy_changes.py",
     "costgov/gateway.py",
     "costgov/evaluator.py",
+    "costgov/observe_economics.py",
     "costgov/reconciliation.py",
     "rag"
   ],

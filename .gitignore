@@ -16,6 +16,11 @@ __pycache__/
 # Repository-local instructions and documentation
 .github/
 docs/
+!.github/
+.github/*
+!.github/workflows/
+.github/workflows/*
+!.github/workflows/publish-tokengov-policy.yml
 
 # Local configuration and credentials
 .env

@@ -3,15 +3,38 @@
 from __future__ import annotations
 
 import json
+import hashlib
 from dataclasses import asdict
 from datetime import datetime, timezone
 from pathlib import Path
 from uuid import NAMESPACE_URL, uuid4, uuid5
 
+from .acceptance_contracts import (
+    ACCEPTANCE_OUTCOME_SCHEMA_VERSION,
+    ACCEPTANCE_RULE_SCHEMA_VERSION,
+    AcceptanceOutcomeStore,
+    AcceptanceRule,
+    AcceptanceRuleStore,
+    ReviewEvidence,
+    ReviewMethod,
+    evaluate_acceptance,
+)
 from .contracts import ExecutionContext, ForecastReceipt, ForecastRequest
 from .evaluator import Evaluator
 from .gateway import Gateway
+from .experiment_contracts import ExperimentManifest
+from .meter_ledger import (
+    MeterLedgerStore,
+    aggregate_meter_entries,
+    entries_from_gateway_record,
+    reconcile_meter_quantity,
+)
 from .prediction import PythonPredictorAdapter
+from .policy_candidates import (
+    PolicyCandidate,
+    validate_candidate_application,
+    validate_candidate_binding,
+)
 from .reconciliation import ReconciliationService
 from .telemetry import Telemetry
 from .trajectory_contracts import (
@@ -33,7 +56,14 @@ class StudioOrchestrator:
         self.artifacts = self.root / "studio_runs"
         self.artifacts.mkdir(exist_ok=True)
 
-    def plan(self, run_id: str | None = None) -> tuple[ForecastReceipt, PythonPredictorAdapter]:
+    def plan(
+        self,
+        run_id: str | None = None,
+        *,
+        policy_candidate_id: str | None = None,
+        policy_candidate_version: str | None = None,
+        policy_candidate_content_hash: str | None = None,
+    ) -> tuple[ForecastReceipt, PythonPredictorAdapter]:
         run_id = run_id or str(uuid4())
         adapter = PythonPredictorAdapter(str(self.artifacts / "predictor_history.db"))
         forecasts = []
@@ -54,6 +84,9 @@ class StudioOrchestrator:
                 workload_version="support-workload-v1",
                 golden_set_version="support-golden-v1",
                 assumptions=assumptions,
+                policy_candidate_id=policy_candidate_id,
+                policy_candidate_version=policy_candidate_version,
+                policy_candidate_content_hash=policy_candidate_content_hash,
             ))
             forecasts.extend(child.forecasts)
         return ForecastReceipt(
@@ -63,12 +96,24 @@ class StudioOrchestrator:
             observation_unit="completed_task",
             forecasts=tuple(forecasts),
             assumptions=assumptions,
+            policy_candidate_id=policy_candidate_id,
+            policy_candidate_version=policy_candidate_version,
+            policy_candidate_content_hash=policy_candidate_content_hash,
         ), adapter
 
     def run(self, run_id: str, report_id: str, admission: dict) -> dict:
         if admission.get("status") != "admitted" or not admission.get("execution"):
             raise ValueError("an admitted policy binding is required")
-        receipt, adapter = self.plan(run_id)
+        experiment = self._validated_experiment_binding(admission)
+        policy_candidate_id = experiment["policy_candidate_id"]
+        policy_candidate_version = experiment["policy_candidate_version"]
+        policy_candidate_content_hash = experiment["policy_candidate_content_hash"]
+        receipt, adapter = self.plan(
+            run_id,
+            policy_candidate_id=policy_candidate_id,
+            policy_candidate_version=policy_candidate_version,
+            policy_candidate_content_hash=policy_candidate_content_hash,
+        )
         config = self._load("config.json")
         execution = admission["execution"]
         config["routing"]["mode"] = execution["routing_mode"]
@@ -79,6 +124,21 @@ class StudioOrchestrator:
         })
         config["evaluation"].update(execution["evaluation"])
         config["evaluation"]["sample_rate"] = 1.0
+        if experiment["candidate"] is not None:
+            validate_candidate_application(
+                experiment["candidate"],
+                {
+                    "execution.routing_mode": config["routing"]["mode"],
+                    "execution.semantic_cache.enabled": config["semantic_cache"][
+                        "enabled"
+                    ],
+                    "execution.context.prune": config["context"]["prune"],
+                    "evaluation.sample_rate": config["evaluation"]["sample_rate"],
+                    "execution.monetary_budget.per_tenant_usd_per_run": config[
+                        "budgets"
+                    ]["per_tenant_usd_per_run"],
+                },
+            )
         workload = self._load("workload.json")
         expanded_workload = list(self._expand(workload))
         telemetry = Telemetry(sample_rate=1.0)
@@ -128,18 +188,110 @@ class StudioOrchestrator:
                 policy_source=trajectory_contract.policy_binding.source,
                 policy_label=trajectory_contract.policy_binding.label,
                 policy_etag=trajectory_contract.policy_binding.etag,
+                policy_candidate_id=policy_candidate_id,
+                policy_candidate_version=policy_candidate_version,
+                policy_candidate_content_hash=policy_candidate_content_hash,
             ))
 
         evaluator = Evaluator(str(self.root / "golden_set.json"))
         quality = evaluator.continuous(telemetry.sampled)
         reconciliation = ReconciliationService(adapter).reconcile(receipt, telemetry.records)
         outcome_by_task = {item.task_id: item for item in quality.outcomes}
+        evaluator_path = Path(__file__).with_name("evaluator.py")
+        evaluator_hash = hashlib.sha256(evaluator_path.read_bytes()).hexdigest()
+        acceptance_rule_store = AcceptanceRuleStore(
+            self.artifacts / receipt.run_id / "acceptance_rules"
+        )
+        acceptance_outcome_store = AcceptanceOutcomeStore(
+            self.artifacts / receipt.run_id / "acceptance_outcomes"
+        )
+        rules = {}
+        for segment in by_segment:
+            rule = AcceptanceRule(
+                schema_version=ACCEPTANCE_RULE_SCHEMA_VERSION,
+                rule_id=f"support-{segment}-acceptance",
+                version="acceptance-rules.v1",
+                segment_id=segment,
+                segment_version=trajectory_contract.segment_schema_version,
+                evaluator_id="token-coverage-evaluator",
+                evaluator_version="evaluator.v1",
+                evaluator_content_hash=evaluator_hash,
+                minimum_score=config["evaluation"]["min_quality"],
+                created_at="2026-08-31T00:00:00+00:00",
+            )
+            acceptance_rule_store.append(rule)
+            rules[segment] = rule
         trajectory_store = TrajectoryStore(
             self.artifacts / receipt.run_id / "trajectories"
         )
+        meter_store = MeterLedgerStore(
+            self.artifacts / receipt.run_id / "meter_ledger"
+        )
         trajectory_evidence = []
+        acceptance_evidence = []
+        ledger_records = []
         for record in telemetry.records:
             outcome = outcome_by_task.get(record.task_id)
+            automated_review = None
+            if outcome is not None:
+                raw_outcome = asdict(outcome)
+                automated_review = ReviewEvidence(
+                    method=ReviewMethod.AUTOMATED,
+                    reviewer_id="token-coverage-evaluator",
+                    evidence_id=f"evaluation-{record.task_id}",
+                    evidence_version="evaluator.v1",
+                    evidence_content_hash=hashlib.sha256(
+                        json.dumps(
+                            raw_outcome,
+                            allow_nan=False,
+                            separators=(",", ":"),
+                            sort_keys=True,
+                        ).encode()
+                    ).hexdigest(),
+                    score=outcome.score,
+                )
+            acceptance = evaluate_acceptance(
+                rules[record.segment_id],
+                experiment_id=experiment["experiment_id"],
+                experiment_revision=experiment["experiment_revision"],
+                arm_id=experiment["arm_id"],
+                policy_candidate_id=policy_candidate_id,
+                policy_candidate_version=policy_candidate_version,
+                policy_candidate_content_hash=policy_candidate_content_hash,
+                task_id=record.task_id,
+                trajectory_id=record.trajectory_id,
+                segment_id=record.segment_id,
+                segment_version=record.segment_version,
+                automated_review=automated_review,
+                evaluated_at=record.timestamp,
+            )
+            stored_acceptance = acceptance_outcome_store.append(acceptance)
+            acceptance_evidence.append(
+                {
+                    "outcome_id": acceptance.outcome_id,
+                    "task_id": acceptance.task_id,
+                    "trajectory_id": acceptance.trajectory_id,
+                    "segment_id": acceptance.segment_id,
+                    "decision": acceptance.decision.value,
+                    "reason_code": acceptance.reason_code,
+                    "content_hash": stored_acceptance.content_hash,
+                }
+            )
+            ledger_entries = entries_from_gateway_record(
+                record,
+                experiment_id=experiment["experiment_id"],
+                experiment_revision=experiment["experiment_revision"],
+                arm_id=experiment["arm_id"],
+                environment="local_simulation",
+                meter_stack_id=experiment["meter_stack_id"],
+                meter_stack_version=experiment["meter_stack_version"],
+                meter_stack_content_hash=experiment[
+                    "meter_stack_content_hash"
+                ],
+                evaluation_performed=outcome is not None,
+            )
+            for entry in ledger_entries:
+                ledger_records.append(meter_store.append(entry))
             child_kind = (
                 StepKind.CACHE
                 if record.cache_hit
@@ -163,6 +315,22 @@ class StudioOrchestrator:
                 EvidenceField.from_value(
                     "evaluation_score",
                     outcome.score if outcome is not None else None,
+                ),
+                EvidenceField.from_value(
+                    "acceptance_outcome_id", acceptance.outcome_id
+                ),
+                EvidenceField.from_value(
+                    "acceptance_decision", acceptance.decision.value
+                ),
+                EvidenceField.from_value(
+                    "policy_candidate_id", policy_candidate_id
+                ),
+                EvidenceField.from_value(
+                    "policy_candidate_version", policy_candidate_version
+                ),
+                EvidenceField.from_value(
+                    "policy_candidate_content_hash",
+                    policy_candidate_content_hash,
                 ),
                 EvidenceField.from_value("evidence_status", "simulated"),
             )
@@ -227,11 +395,47 @@ class StudioOrchestrator:
                 "task_id": envelope.task.task_id,
                 "segment_id": envelope.task.segment.segment_id,
                 "content_hash": stored.content_hash,
+                "acceptance_outcome_id": acceptance.outcome_id,
+                "meter_entry_ids": [entry.entry_id for entry in ledger_entries],
             })
+        ledger_entries = tuple(record.entry for record in ledger_records)
+        meter_reconciliation = (
+            {
+                **reconcile_meter_quantity(
+                ledger_entries,
+                meter_id="foundry_model",
+                source_quantity=sum(
+                    record.input_tokens + record.output_tokens
+                    for record in telemetry.records
+                ),
+                tolerance=0.0,
+                ),
+                "comparison_basis": "derived_gateway_telemetry_self_consistency",
+            },
+            {
+                **reconcile_meter_quantity(
+                ledger_entries,
+                meter_id="automated_task_evaluation",
+                source_quantity=float(len(quality.outcomes)),
+                tolerance=0.0,
+                ),
+                "comparison_basis": "sampled_evaluator_count_self_consistency",
+            },
+            {
+                **reconcile_meter_quantity(
+                ledger_entries,
+                meter_id="foundry_resources",
+                source_quantity=0.0,
+                tolerance=0.0,
+                ),
+                "comparison_basis": "coverage_check_no_source_quantity",
+            },
+        )
         result = {
             "run_id": receipt.run_id,
             "report_id": report_id,
             "status": "completed",
+            "evidence_classification": "simulated",
             "forecast": asdict(receipt),
             "policy": {
                 **admission["policy"],
@@ -241,6 +445,9 @@ class StudioOrchestrator:
                 "routing_mode": execution["routing_mode"],
                 "quality_floor": config["evaluation"]["min_quality"],
                 "selection_reason": "execution settings loaded from the admitted policy revision",
+                "candidate_id": policy_candidate_id,
+                "candidate_version": policy_candidate_version,
+                "candidate_content_hash": policy_candidate_content_hash,
             },
             "observed": {
                 "requests": len(telemetry.records),
@@ -258,6 +465,39 @@ class StudioOrchestrator:
             "evaluation_outcomes": [
                 asdict(item) for item in quality.outcomes
             ],
+            "acceptance_contract": {
+                "rule_schema_version": ACCEPTANCE_RULE_SCHEMA_VERSION,
+                "outcome_schema_version": ACCEPTANCE_OUTCOME_SCHEMA_VERSION,
+                "rules": [
+                    {
+                        "rule_id": rule.rule_id,
+                        "version": rule.version,
+                        "segment_id": rule.segment_id,
+                        "content_hash": rule.content_hash,
+                    }
+                    for rule in rules.values()
+                ],
+            },
+            "acceptance_outcomes": acceptance_evidence,
+            "meter_ledger_evidence": [
+                {
+                    "entry_id": record.entry.entry_id,
+                    "task_id": record.entry.task_id,
+                    "trajectory_id": record.entry.trajectory_id,
+                    "meter_family": record.entry.meter_family.value,
+                    "meter_id": record.entry.meter_id,
+                    "content_hash": record.content_hash,
+                }
+                for record in ledger_records
+            ],
+            "meter_aggregates": [
+                {
+                    **asdict(aggregate),
+                    "meter_family": aggregate.meter_family.value,
+                }
+                for aggregate in aggregate_meter_entries(ledger_entries)
+            ],
+            "meter_reconciliation": list(meter_reconciliation),
         }
         run_dir = self.artifacts / receipt.run_id
         run_dir.mkdir(exist_ok=True)
@@ -267,6 +507,49 @@ class StudioOrchestrator:
 
     def _load(self, name: str) -> dict:
         return json.loads((self.root / name).read_text(encoding="utf-8"))
+
+    @staticmethod
+    def _validated_experiment_binding(admission: dict) -> dict:
+        binding = admission.get("experiment_binding")
+        if binding is None:
+            policy_binding = admission["trajectory_contract"]["policy_binding"]
+            return {
+                "experiment_id": "studio-simulation",
+                "experiment_revision": "orchestrator.v1",
+                "arm_id": "admitted-policy",
+                "policy_candidate_id": (
+                    f"active-policy-{policy_binding['policy_id']}"
+                ),
+                "policy_candidate_version": policy_binding["version"],
+                "policy_candidate_content_hash": policy_binding["content_hash"],
+                "meter_stack_id": "foundry-meter-stack",
+                "meter_stack_version": "consumption-models.v1",
+                "meter_stack_content_hash": hashlib.sha256(
+                    Path(__file__).with_name("consumption_models.py").read_bytes()
+                ).hexdigest(),
+                "candidate": None,
+            }
+        try:
+            manifest = ExperimentManifest.from_dict(binding["manifest"])
+            candidate = PolicyCandidate.from_dict(binding["candidate"])
+            arm_id = binding["arm_id"]
+        except (KeyError, TypeError, ValueError) as exc:
+            raise ValueError(
+                "experiment_binding requires a valid manifest, candidate, and arm_id"
+            ) from exc
+        validate_candidate_binding(candidate, manifest, arm_id)
+        return {
+            "experiment_id": manifest.experiment_id,
+            "experiment_revision": manifest.revision,
+            "arm_id": arm_id,
+            "policy_candidate_id": candidate.candidate_id,
+            "policy_candidate_version": candidate.version,
+            "policy_candidate_content_hash": candidate.content_hash,
+            "meter_stack_id": candidate.meter_stack_id,
+            "meter_stack_version": candidate.meter_stack_version,
+            "meter_stack_content_hash": candidate.meter_stack_content_hash,
+            "candidate": candidate,
+        }
 
     @staticmethod
     def _expand(workload: dict):

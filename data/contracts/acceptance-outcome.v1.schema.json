@@ -1,0 +1,101 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://tokeneconomics.dev/contracts/acceptance-outcome.v1.schema.json",
+  "title": "TokenEconomics accepted-task outcome",
+  "$comment": "Automated evaluator scores and human decisions remain separate review evidence. Decision derivation and hash integrity are enforced by costgov.acceptance_contracts.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "outcome_id",
+    "experiment_id",
+    "experiment_revision",
+    "arm_id",
+    "policy_candidate_id",
+    "policy_candidate_version",
+    "policy_candidate_content_hash",
+    "task_id",
+    "trajectory_id",
+    "segment_id",
+    "segment_version",
+    "rule_id",
+    "rule_version",
+    "rule_content_hash",
+    "decision",
+    "reason_code",
+    "evaluated_at",
+    "reviews"
+  ],
+  "properties": {
+    "schema_version": {"const": "acceptance-outcome.v1"},
+    "outcome_id": {"$ref": "#/$defs/stableId"},
+    "experiment_id": {"$ref": "#/$defs/stableId"},
+    "experiment_revision": {"$ref": "#/$defs/stableId"},
+    "arm_id": {"$ref": "#/$defs/stableId"},
+    "policy_candidate_id": {"$ref": "#/$defs/stableId"},
+    "policy_candidate_version": {"$ref": "#/$defs/stableId"},
+    "policy_candidate_content_hash": {"$ref": "#/$defs/sha256"},
+    "task_id": {"$ref": "#/$defs/stableId"},
+    "trajectory_id": {"$ref": "#/$defs/stableId"},
+    "segment_id": {"$ref": "#/$defs/stableId"},
+    "segment_version": {"$ref": "#/$defs/stableId"},
+    "rule_id": {"$ref": "#/$defs/stableId"},
+    "rule_version": {"$ref": "#/$defs/stableId"},
+    "rule_content_hash": {"$ref": "#/$defs/sha256"},
+    "decision": {"enum": ["accepted", "rejected", "inconclusive"]},
+    "reason_code": {"$ref": "#/$defs/stableId"},
+    "evaluated_at": {"$ref": "#/$defs/utcTimestamp"},
+    "reviews": {
+      "type": "array",
+      "maxItems": 2,
+      "items": {"$ref": "#/$defs/reviewEvidence"}
+    }
+  },
+  "$defs": {
+    "stableId": {
+      "type": "string",
+      "minLength": 1
+    },
+    "sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "utcTimestamp": {
+      "type": "string",
+      "format": "date-time",
+      "pattern": "(Z|[+]00:00)$"
+    },
+    "reviewEvidence": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "method",
+        "reviewer_id",
+        "evidence_id",
+        "evidence_version",
+        "evidence_content_hash",
+        "score",
+        "decision"
+      ],
+      "properties": {
+        "method": {"enum": ["automated_evaluator", "human_review"]},
+        "reviewer_id": {"$ref": "#/$defs/stableId"},
+        "evidence_id": {"$ref": "#/$defs/stableId"},
+        "evidence_version": {"$ref": "#/$defs/stableId"},
+        "evidence_content_hash": {"$ref": "#/$defs/sha256"},
+        "score": {
+          "oneOf": [
+            {"type": "number", "minimum": 0, "maximum": 1},
+            {"type": "null"}
+          ]
+        },
+        "decision": {
+          "oneOf": [
+            {"enum": ["accepted", "rejected", "inconclusive"]},
+            {"type": "null"}
+          ]
+        }
+      }
+    }
+  }
+}

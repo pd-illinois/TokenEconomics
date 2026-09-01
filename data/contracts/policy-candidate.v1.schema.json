@@ -1,0 +1,91 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://tokeneconomics.dev/contracts/policy-candidate.v1.schema.json",
+  "title": "TokenEconomics immutable policy candidate",
+  "$comment": "Control authority/capability matching, experiment binding, and content-hash integrity are enforced by costgov.policy_candidates.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "candidate_id",
+    "version",
+    "status",
+    "created_at",
+    "experiment_id",
+    "experiment_revision",
+    "meter_stack_id",
+    "meter_stack_version",
+    "meter_stack_content_hash",
+    "controls"
+  ],
+  "properties": {
+    "schema_version": {"const": "policy-candidate.v1"},
+    "candidate_id": {"$ref": "#/$defs/nonEmpty"},
+    "version": {"$ref": "#/$defs/nonEmpty"},
+    "status": {"enum": ["proposed", "retired"]},
+    "created_at": {"$ref": "#/$defs/utcTimestamp"},
+    "experiment_id": {"$ref": "#/$defs/nonEmpty"},
+    "experiment_revision": {"$ref": "#/$defs/nonEmpty"},
+    "meter_stack_id": {"$ref": "#/$defs/nonEmpty"},
+    "meter_stack_version": {"$ref": "#/$defs/nonEmpty"},
+    "meter_stack_content_hash": {"$ref": "#/$defs/sha256"},
+    "controls": {
+      "type": "array",
+      "minItems": 1,
+      "items": {"$ref": "#/$defs/control"}
+    }
+  },
+  "$defs": {
+    "nonEmpty": {"type": "string", "minLength": 1},
+    "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "utcTimestamp": {
+      "type": "string",
+      "format": "date-time",
+      "pattern": "(Z|[+]00:00)$"
+    },
+    "control": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "control_id",
+        "kind",
+        "path",
+        "value",
+        "authority",
+        "capability",
+        "enforcement_scope"
+      ],
+      "properties": {
+        "control_id": {"$ref": "#/$defs/nonEmpty"},
+        "kind": {
+          "enum": [
+            "model_selection",
+            "routing",
+            "cache",
+            "context",
+            "retrieval",
+            "retry",
+            "iteration",
+            "evaluation",
+            "monetary_budget",
+            "native_meter_cap",
+            "committed_capacity",
+            "overage_action",
+            "external_governance_posture"
+          ]
+        },
+        "path": {"$ref": "#/$defs/nonEmpty"},
+        "value": {},
+        "authority": {"$ref": "#/$defs/nonEmpty"},
+        "capability": {"$ref": "#/$defs/nonEmpty"},
+        "enforcement_scope": {
+          "enum": [
+            "runtime_enforced",
+            "control_plane_enforced",
+            "external_requirement"
+          ]
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,30 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://tokeneconomics.dev/contracts/reconciliation-evidence.v1.schema.json",
+  "title": "TokenEconomics reconciliation evidence",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "reconciliation_id",
+    "status",
+    "run_id",
+    "report_id",
+    "prediction_reference",
+    "decision_reference",
+    "segments",
+    "billing",
+    "missing_evidence",
+    "idempotency_key",
+    "content_hash"
+  ],
+  "properties": {
+    "schema_version": {"const": "reconciliation-evidence.v1"},
+    "status": {"enum": ["complete", "partial"]},
+    "historical_forecast_mutated": {"const": false},
+    "segments": {"type": "array", "minItems": 1},
+    "missing_evidence": {"type": "array", "items": {"type": "string"}},
+    "idempotency_key": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "content_hash": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
+  },
+  "additionalProperties": true
+}

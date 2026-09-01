@@ -64,6 +64,9 @@ class PythonPredictorAdapter:
             observation_unit=request.observation_unit,
             forecasts=(forecast,),
             assumptions=request.assumptions,
+            policy_candidate_id=request.policy_candidate_id,
+            policy_candidate_version=request.policy_candidate_version,
+            policy_candidate_content_hash=request.policy_candidate_content_hash,
         )
 
     def record_actual(self, usage: ActualUsage) -> ReconciliationResult:

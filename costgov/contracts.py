@@ -15,6 +15,9 @@ class ForecastRequest:
     golden_set_version: str
     observation_unit: str = "completed_task"
     assumptions: tuple[str, ...] = ()
+    policy_candidate_id: Optional[str] = None
+    policy_candidate_version: Optional[str] = None
+    policy_candidate_content_hash: Optional[str] = None
 
 
 @dataclass(frozen=True)
@@ -48,6 +51,9 @@ class ForecastReceipt:
     observation_unit: str
     forecasts: tuple[SegmentForecast, ...]
     assumptions: tuple[str, ...] = ()
+    policy_candidate_id: Optional[str] = None
+    policy_candidate_version: Optional[str] = None
+    policy_candidate_content_hash: Optional[str] = None
 
 
 @dataclass(frozen=True)
@@ -95,6 +101,9 @@ class ExecutionContext:
     policy_source: Optional[str] = None
     policy_label: Optional[str] = None
     policy_etag: Optional[str] = None
+    policy_candidate_id: Optional[str] = None
+    policy_candidate_version: Optional[str] = None
+    policy_candidate_content_hash: Optional[str] = None
 
 
 @dataclass(frozen=True)

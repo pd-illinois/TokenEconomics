@@ -43,6 +43,9 @@ def test_gateway_preserves_execution_identity_and_usage(tmp_path):
         policy_source="azure_app_configuration",
         policy_label="production",
         policy_etag="etag-1",
+        policy_candidate_id="governed-candidate",
+        policy_candidate_version="candidate.v1",
+        policy_candidate_content_hash="c" * 64,
     )
 
     result = gateway.handle("tenant-a", "Where is my order", "easy", execution)
@@ -57,6 +60,8 @@ def test_gateway_preserves_execution_identity_and_usage(tmp_path):
     assert telemetry.sampled[0]["prediction_id"] == 42
     assert telemetry.sampled[0]["task_id"] == "task-001"
     assert telemetry.sampled[0]["trajectory_id"] == "trajectory-001"
+    assert telemetry.sampled[0]["policy_candidate_id"] == "governed-candidate"
+    assert telemetry.sampled[0]["policy_candidate_content_hash"] == "c" * 64
 
     path = tmp_path / "telemetry.jsonl"
     telemetry.dump_jsonl(str(path))
@@ -67,6 +72,7 @@ def test_gateway_preserves_execution_identity_and_usage(tmp_path):
     assert row["workload_id"] == "support-workload"
     assert row["prediction_receipt_id"] == "receipt-001"
     assert row["policy_etag"] == "etag-1"
+    assert row["policy_candidate_version"] == "candidate.v1"
 
 
 def test_cache_hit_keeps_identity_with_zero_new_usage():

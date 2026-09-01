@@ -4,8 +4,14 @@ import json
 import threading
 from http.client import HTTPConnection
 from http.server import ThreadingHTTPServer
+from pathlib import Path
 
 import studio
+from costgov.governance_decisions import (
+    DECISION_CONSTRAINT_SCHEMA_VERSION,
+    CandidateConstraintEvidence,
+    evaluate_segment_constraint,
+)
 from costgov.mcp_prediction import McpPredictionError
 from costgov.planning import PlanStore
 from costgov.policy_store import LoadedPolicy
@@ -259,6 +265,195 @@ def test_run_endpoint_returns_queued_run(tmp_path, monkeypatch):
     finally:
         server.shutdown()
         thread.join()
+
+
+def test_observe_endpoint_is_read_only_and_requires_completed_run(
+    tmp_path, monkeypatch
+):
+    registry_path = tmp_path / "studio_runs" / "registry.json"
+    monkeypatch.setattr(studio, "REGISTRY_PATH", registry_path)
+    registry_path.parent.mkdir()
+    registry_path.write_text(
+        json.dumps(
+            {
+                "run-complete": {
+                    "run_id": "run-complete",
+                    "status": "completed",
+                    "result": {
+                        "run_id": "run-complete",
+                        "report_id": "report-1",
+                        "status": "completed",
+                    },
+                },
+                "run-queued": {
+                    "run_id": "run-queued",
+                    "status": "queued",
+                },
+            }
+        ),
+        encoding="utf-8",
+    )
+    expected = {
+        "schema_version": "accepted-task-economics.v1",
+        "run_id": "run-complete",
+    }
+    called = {}
+
+    def project(result, run_root):
+        called["result"] = result
+        called["run_root"] = run_root
+        return expected
+
+    monkeypatch.setattr(studio, "load_observe_economics", project)
+    server = ThreadingHTTPServer(("127.0.0.1", 0), studio.StudioHandler)
+    thread = threading.Thread(target=server.serve_forever)
+    thread.start()
+    try:
+        connection = HTTPConnection("127.0.0.1", server.server_port)
+        connection.request("GET", "/api/runs/run-complete/observe")
+        response = connection.getresponse()
+        payload = json.loads(response.read())
+
+        assert response.status == 200
+        assert payload == expected
+        assert called["result"]["run_id"] == "run-complete"
+        assert called["run_root"] == registry_path.parent / "run-complete"
+
+        connection.request("GET", "/api/runs/run-queued/observe")
+        queued_response = connection.getresponse()
+        queued = json.loads(queued_response.read())
+        assert queued_response.status == 409
+        assert queued["code"] == "run_not_completed"
+    finally:
+        server.shutdown()
+        thread.join()
+
+
+def test_govern_decision_endpoint_persists_comparison_without_policy_mutation(
+    tmp_path, monkeypatch
+):
+    registry_path = tmp_path / "studio_runs" / "registry.json"
+    report_path = tmp_path / "reports"
+    evidence_path = tmp_path / "governance"
+    state_path = tmp_path / "decision-state"
+    monkeypatch.setattr(studio, "REGISTRY_PATH", registry_path)
+    monkeypatch.setattr(studio, "REPORT_STORE_PATH", report_path)
+    monkeypatch.setattr(studio, "GOVERNANCE_EVIDENCE_STORE_PATH", evidence_path)
+    monkeypatch.setattr(studio, "DECISION_STATE_STORE_PATH", state_path)
+    registry_path.parent.mkdir()
+    registry_path.write_text(
+        json.dumps(
+            {
+                "run-expensive": {
+                    "status": "completed",
+                    "result": {
+                        "run_id": "run-expensive",
+                        "report_id": "RPT-GOVERN",
+                        "status": "completed",
+                    },
+                },
+                "run-cheap": {
+                    "status": "completed",
+                    "result": {
+                        "run_id": "run-cheap",
+                        "report_id": "RPT-GOVERN",
+                        "status": "completed",
+                    },
+                },
+            }
+        ),
+        encoding="utf-8",
+    )
+    report = studio.ReportStore(report_path).create("Govern comparison")
+    old_report_id = report["report_id"]
+    report["report_id"] = "RPT-GOVERN"
+    (report_path / old_report_id).rename(report_path / report["report_id"])
+    (report_path / report["report_id"] / "report.json").write_text(
+        json.dumps(report), encoding="utf-8"
+    )
+
+    def constraint(run_result, _run_root):
+        candidate_id = (
+            "cheap-candidate"
+            if run_result["run_id"] == "run-cheap"
+            else "expensive-candidate"
+        )
+        cost = 0.01 if candidate_id == "cheap-candidate" else 0.015
+        segment = evaluate_segment_constraint(
+            segment_id="hard",
+            segment_version="segment.v1",
+            acceptance_decisions=["accepted"] * 60,
+            allocatable_costs_usd=[cost] * 60,
+            acceptance_evidence_hashes=["a" * 64] * 60,
+            cost_evidence_hashes=["b" * 64] * 60,
+        )
+        return CandidateConstraintEvidence(
+            schema_version=DECISION_CONSTRAINT_SCHEMA_VERSION,
+            constraint_id=f"constraint-{run_result['run_id']}",
+            experiment_id="rag-policy-comparison",
+            experiment_revision="experiment.v1",
+            arm_id=candidate_id,
+            candidate_id=candidate_id,
+            candidate_version="candidate.v1",
+            candidate_content_hash=(
+                "c" * 64 if candidate_id == "cheap-candidate" else "d" * 64
+            ),
+            observation_unit="completed_task",
+            evaluated_at="2026-09-01T00:00:00+00:00",
+            evidence_classification="measured",
+            probability_model="one-sided exact test",
+            segments=(segment,),
+        )
+
+    monkeypatch.setattr(
+        studio, "build_candidate_constraint_from_run", constraint
+    )
+    server = ThreadingHTTPServer(("127.0.0.1", 0), studio.StudioHandler)
+    thread = threading.Thread(target=server.serve_forever)
+    thread.start()
+    try:
+        connection = HTTPConnection("127.0.0.1", server.server_port)
+        connection.request(
+            "POST",
+            "/api/govern/decisions",
+            json.dumps({"run_ids": ["run-expensive", "run-cheap"]}),
+            {"Content-Type": "application/json"},
+        )
+        response = connection.getresponse()
+        decision = json.loads(response.read())
+        assert response.status == 201
+        assert decision["outcome"] == "selected"
+        assert decision["selected_candidate_id"] == "cheap-candidate"
+        assert decision["mutation_performed"] is False
+        assert len(decision["state_transitions"]) == 2
+
+        connection.request("GET", "/api/govern/decisions")
+        list_response = connection.getresponse()
+        listed = json.loads(list_response.read())
+        assert list_response.status == 200
+        assert listed["decisions"][0]["decision_id"] == decision["decision_id"]
+        reopened = studio.ReportStore(report_path).get("RPT-GOVERN")
+        assert reopened["artifacts"]["govern_decisions"][0]["outcome"] == (
+            "selected"
+        )
+    finally:
+        server.shutdown()
+        thread.join()
+
+
+def test_studio_observe_ui_shows_denominators_native_meters_and_segments():
+    html = (Path(__file__).resolve().parents[1] / "studio.html").read_text(
+        encoding="utf-8"
+    )
+
+    assert "accepted-task economics" in html
+    assert "accepted / ${number(acceptance.evaluated_tasks)} evaluated" in html
+    assert "Inconclusive" in html
+    assert "Native meter consumption" in html
+    assert 'dimensionTable("Segments"' in html
+    assert "Uncovered cost components" in html
+    assert "95% breach upper bound" in html
+    assert "Evaluate completed runs" in html
 
 
 def test_plan_endpoint_persists_immutable_receipt_and_govern_handoff(tmp_path, monkeypatch):

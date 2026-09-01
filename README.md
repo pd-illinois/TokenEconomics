@@ -43,16 +43,19 @@ reusable TokenGov contracts remain under `costgov/`.
 | Foundry model release `2026-08-25.2` | Complete | 98 sourced OpenAI/Anthropic offerings; 50 verified coordinator models are selectable |
 | Framework-neutral trajectory contract | Complete | Stable workload, task, trajectory, segment, prediction, policy, run, and trace identities |
 | Foundry RAG adapter (TE-003) | Complete | Live report `RPT-20260825-3C4ABA0C` preserves one policy-bound deployed trajectory |
-| Experiment manifest (TE-004) | Ready | Next step is pinning the complete comparable experiment definition |
+| Experiment manifest (TE-004) | Complete | `experiment-manifest.v1` pins shared evidence and machine-readable arm differences |
+| Accepted-task outcomes (TE-005) | Complete | Segment-specific rules produce immutable `accepted`, `rejected`, or `inconclusive` evidence distinct from raw scores |
+| Multi-meter trajectory ledger (TE-006) | Complete | Native quantities, currencies, entitlements, allocations, unknown costs, and coverage-aware reconciliation remain explicit |
+| Accepted-task Observe economics (TE-007) | Complete | Read-only denominator, segment, native-meter, entitlement, priced-cost, and uncovered-cost views reopen verified immutable run evidence |
+| Immutable policy candidates (TE-008) | Complete | Hash-bound candidate revisions validate control authority/capability without mutating active Azure policy |
 
-The current measured local regression boundary is **133 TokenEconomics tests** and
+The current measured local regression boundary is **160 TokenEconomics tests** and
 **500 FutureTokenPredictor tests**. This proves the local contracts and modeled
 calculations at the tested revision; it is not production-capacity evidence.
 
-The remaining end-to-end work is material: representative experiment manifests,
-explicit accepted-task outcomes, segment-level sample sufficiency, complete multi-meter
-trajectory economics, policy-candidate comparison, calibrated budget-risk evidence,
-bounded response, billing reconciliation, and predictor learning.
+The remaining end-to-end work is material: segment-level sample sufficiency,
+decision-grade candidate comparison, calibrated budget-risk evidence, bounded response,
+independent billing reconciliation, predictor learning, and a non-Foundry portability proof.
 
 ## Run Studio locally
 
