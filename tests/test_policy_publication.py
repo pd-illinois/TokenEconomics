@@ -1,6 +1,8 @@
 from __future__ import annotations
 
 import json
+import subprocess
+import sys
 from copy import deepcopy
 from pathlib import Path
 
@@ -11,6 +13,20 @@ from costgov.policy_publication import (
     content_hash,
     load_target_policy,
 )
+
+ROOT = Path(__file__).resolve().parents[1]
+
+
+def test_publisher_entry_point_runs_from_repository_root() -> None:
+    result = subprocess.run(
+        [sys.executable, "scripts/publish_tokengov_policy.py", "--help"],
+        cwd=ROOT,
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    assert result.returncode == 0, result.stderr
+    assert "--expected-etag" in result.stdout
 
 
 def _policy(version: str = "2026-08-25.2") -> dict:

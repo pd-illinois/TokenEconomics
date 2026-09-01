@@ -2,7 +2,11 @@ from __future__ import annotations
 
 import argparse
 import json
+import sys
 from pathlib import Path
+
+REPOSITORY_ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(REPOSITORY_ROOT))
 
 from costgov.policy_publication import (
     github_workflow_identity,
@@ -23,8 +27,9 @@ def main() -> int:
     parser.add_argument("--validate-only", action="store_true")
     args = parser.parse_args()
 
-    repository_root = Path(__file__).resolve().parents[1]
-    target = load_target_policy(Path(args.policy_path), repository_root=repository_root)
+    target = load_target_policy(
+        Path(args.policy_path), repository_root=REPOSITORY_ROOT
+    )
     if args.validate_only:
         print(json.dumps({"valid": True, "version": target["version"]}, indent=2))
         return 0
