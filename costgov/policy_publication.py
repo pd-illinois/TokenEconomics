@@ -145,16 +145,17 @@ def publish_policy(
         "actor": actor,
         "workflow_run_url": run_url,
     }
-    client.add_configuration_setting(
-        key=f"tokengov:publication:{event_id}:intent",
-        label=label,
-        value=canonical_json(intent),
-        content_type="application/json",
-    )
-
     from azure.appconfiguration import ConfigurationSetting
     from azure.core import MatchConditions
 
+    client.add_configuration_setting(
+        ConfigurationSetting(
+            key=f"tokengov:publication:{event_id}:intent",
+            label=label,
+            value=canonical_json(intent),
+            content_type="application/json",
+        )
+    )
     replacement = ConfigurationSetting(
         key=key,
         label=label,
@@ -187,10 +188,12 @@ def publish_policy(
         "mutation_performed": True,
     }
     client.add_configuration_setting(
-        key=f"tokengov:publication:{event_id}:outcome",
-        label=label,
-        value=canonical_json(evidence),
-        content_type="application/json",
+        ConfigurationSetting(
+            key=f"tokengov:publication:{event_id}:outcome",
+            label=label,
+            value=canonical_json(evidence),
+            content_type="application/json",
+        )
     )
     return PublicationResult(evidence)
 

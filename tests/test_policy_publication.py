@@ -5,6 +5,7 @@ import subprocess
 import sys
 from copy import deepcopy
 from pathlib import Path
+from types import SimpleNamespace
 
 import pytest
 
@@ -12,6 +13,7 @@ from costgov.policy_publication import (
     build_publication_preview,
     content_hash,
     load_target_policy,
+    publish_policy,
 )
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -105,3 +107,39 @@ def test_target_policy_must_be_directly_under_versioned_policy_directory(
     outside.write_text(json.dumps(_policy("2026-08-31.2")), encoding="utf-8")
     with pytest.raises(ValueError, match="direct child"):
         load_target_policy(outside, repository_root=tmp_path)
+
+
+def test_publisher_uses_sdk_setting_objects_and_verifies_result() -> None:
+    class Client:
+        def __init__(self) -> None:
+            self.current = SimpleNamespace(
+                value=json.dumps(_policy()), etag="etag-1"
+            )
+            self.evidence = []
+
+        def get_configuration_setting(self, *, key, label):
+            return self.current
+
+        def add_configuration_setting(self, setting):
+            self.evidence.append(setting)
+
+        def set_configuration_setting(self, setting, *, match_condition):
+            self.current = SimpleNamespace(value=setting.value, etag="etag-2")
+
+    client = Client()
+    result = publish_policy(
+        endpoint="https://example.azconfig.io",
+        key="tokengov:policy",
+        label="production",
+        target_policy=_policy("2026-08-31.1"),
+        expected_etag="etag-1",
+        action="publish",
+        actor="reviewer",
+        run_url="https://github.example/actions/runs/1",
+        client=client,
+    )
+
+    assert result.evidence["result"]["etag"] == "etag-2"
+    assert len(client.evidence) == 2
+    assert client.evidence[0].key.endswith(":intent")
+    assert client.evidence[1].key.endswith(":outcome")
