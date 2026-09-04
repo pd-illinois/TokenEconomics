@@ -1,0 +1,39 @@
+{
+  "admission": {
+    "allowed_models": [
+      "gpt-5.6-sol",
+      "gpt-4.1-mini"
+    ],
+    "allowed_providers": [
+      "azure_openai"
+    ],
+    "max_model_cost_per_call_usd": 0.02,
+    "require_infrastructure_estimate": true,
+    "require_pricing_verified": true
+  },
+  "effective_from": "2026-08-31T00:00:00Z",
+  "execution": {
+    "budget": {
+      "hard_cap_action": "deny",
+      "per_tenant_usd_per_run": 5
+    },
+    "evaluation": {
+      "consecutive_breaches": 2,
+      "min_quality": 0.8,
+      "min_segment_samples": 60
+    },
+    "routing_mode": "balanced",
+    "semantic_cache": {
+      "enabled": false,
+      "score_threshold": 0.83
+    }
+  },
+  "mutation": {
+    "allowed_knobs": [],
+    "mode": "manual"
+  },
+  "policy_id": "tokengov-te003-live-proof",
+  "schema_version": "1.0",
+  "status": "active",
+  "version": "2026-08-31.2"
+}
