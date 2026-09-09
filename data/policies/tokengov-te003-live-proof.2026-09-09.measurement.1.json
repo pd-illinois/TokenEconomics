@@ -1,0 +1,38 @@
+{
+  "schema_version": "1.0",
+  "policy_id": "tokengov-te003-live-proof",
+  "version": "2026-09-09.measurement.1",
+  "status": "active",
+  "effective_from": "2026-08-31T00:00:00Z",
+  "admission": {
+    "allowed_models": ["gpt-5.6-luna", "gpt-4.1-mini"],
+    "allowed_providers": ["azure_openai"],
+    "max_model_cost_per_call_usd": 0.02,
+    "require_infrastructure_estimate": true,
+    "require_pricing_verified": true
+  },
+  "execution": {
+    "budget": {"hard_cap_action": "deny", "per_tenant_usd_per_run": 5},
+    "evaluation": {
+      "consecutive_breaches": 2,
+      "min_quality": 0.8,
+      "min_segment_samples": 60
+    },
+    "routing_mode": "balanced",
+    "semantic_cache": {"enabled": false, "score_threshold": 0.83}
+  },
+  "mutation": {"allowed_knobs": [], "mode": "manual"},
+  "measurement": {
+    "schema_version": "workload-measurement-policy.v1",
+    "mode": "measurement_only",
+    "workload_scope": "studio_batches",
+    "max_questions": 10,
+    "max_output_tokens": 1024,
+    "max_elapsed_seconds": 300,
+    "observed_model_cost_stop_usd": 0.25,
+    "expires_at": "2026-09-11T13:45:53.970945+00:00",
+    "acknowledge_incomplete_costs": true,
+    "hard_spend_cap_guaranteed": false,
+    "operational_promotion": false
+  }
+}

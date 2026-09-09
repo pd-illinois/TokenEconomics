@@ -4,7 +4,9 @@ from __future__ import annotations
 
 import json
 import hashlib
+import math
 import os
+import re
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from pathlib import Path
@@ -19,6 +21,83 @@ class PolicyLoadError(RuntimeError):
 class LoadedPolicy:
     document: dict[str, Any]
     provenance: dict[str, Any]
+
+
+def validate_measurement_policy(value: object) -> dict[str, Any]:
+    """Validate opt-in measurement scope without changing operational budgets."""
+    fixed = {
+        "schema_version": "workload-measurement-policy.v1",
+        "mode": "measurement_only",
+        "workload_scope": "studio_batches",
+        "acknowledge_incomplete_costs": True,
+        "hard_spend_cap_guaranteed": False,
+        "operational_promotion": False,
+    }
+    limits = {
+        "max_questions": 10,
+        "max_output_tokens": 4096,
+        "max_elapsed_seconds": 600,
+    }
+    expected = set(fixed) | set(limits) | {
+        "observed_model_cost_stop_usd", "expires_at",
+    }
+    if not isinstance(value, dict) or set(value) != expected:
+        raise PolicyLoadError("policy.measurement must match workload-measurement-policy.v1")
+    for key, required in fixed.items():
+        if type(value[key]) is not type(required) or value[key] != required:
+            raise PolicyLoadError(f"policy.measurement.{key} is invalid")
+    for key, maximum in limits.items():
+        if type(value[key]) is not int or not 1 <= value[key] <= maximum:
+            raise PolicyLoadError(f"policy.measurement.{key} is outside the supported bound")
+    threshold = value["observed_model_cost_stop_usd"]
+    if (
+        type(threshold) not in (int, float)
+        or not 0 < threshold <= 5
+        or not math.isfinite(threshold)
+    ):
+        raise PolicyLoadError("policy.measurement.observed_model_cost_stop_usd must be finite and in (0, 5]")
+    expires = value["expires_at"]
+    if not isinstance(expires, str) or not re.fullmatch(
+        r"\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?(?:Z|\+00:00)", expires,
+    ):
+        raise PolicyLoadError("policy.measurement.expires_at must be a UTC timestamp")
+    try:
+        parsed = datetime.fromisoformat(expires.replace("Z", "+00:00"))
+    except (AttributeError, TypeError, ValueError):
+        raise PolicyLoadError("policy.measurement.expires_at must be a UTC timestamp") from None
+    if parsed.utcoffset() != timezone.utc.utcoffset(None):
+        raise PolicyLoadError("policy.measurement.expires_at must be a UTC timestamp")
+    return value
+
+
+def measurement_authorization(
+    loaded: LoadedPolicy, *, now: datetime | None = None,
+) -> dict[str, Any]:
+    """Require a live, separately reviewed Azure measurement authorization.
+
+    The observed-cost stop applies between questions, not to unknown internal
+    charges. Operational execution retains its existing hard-budget semantics.
+    """
+    provenance = loaded.provenance
+    if (
+        loaded.document.get("status") != "active"
+        or provenance.get("source") != "azure_app_configuration"
+        or provenance.get("development_only")
+        or not all(
+            isinstance(provenance.get(key), str) and provenance[key].strip()
+            for key in ("endpoint", "key", "label", "etag")
+        )
+    ):
+        raise PolicyLoadError("Measurement requires active Azure policy with exact provenance")
+    validate_policy(loaded.document)
+    value = validate_measurement_policy(loaded.document.get("measurement"))
+    current = now or datetime.now(timezone.utc)
+    if current.utcoffset() is None:
+        raise PolicyLoadError("Measurement authorization requires a timezone-aware clock")
+    expires = datetime.fromisoformat(value["expires_at"].replace("Z", "+00:00"))
+    if expires <= current:
+        raise PolicyLoadError("Azure measurement authorization has expired")
+    return dict(value)
 
 
 def _canonical(value: object) -> str:
@@ -198,6 +277,8 @@ def validate_policy(document: dict[str, Any]) -> dict[str, Any]:
     allowed_knobs = mutation.get("allowed_knobs")
     if not isinstance(allowed_knobs, list) or not all(isinstance(item, str) for item in allowed_knobs):
         raise PolicyLoadError("policy.mutation.allowed_knobs must be an array of strings")
+    if "measurement" in document:
+        validate_measurement_policy(document["measurement"])
     return document
 
 
