@@ -1,0 +1,16 @@
+{
+  "schema_version": "policy-review.v1",
+  "change_id": "PCR-6215C1D3BA",
+  "policy_path": "data/policies/tokengov-te003-live-proof.2026-09-17.measurement.1.json",
+  "expected_etag": "VwGDw8v3O9LbEiPND3MDKVBYdpvnzgi3PqZN1ahLmTg",
+  "base_policy": {
+    "policy_id": "tokengov-te003-live-proof",
+    "version": "2026-09-15.measurement.1",
+    "etag": "VwGDw8v3O9LbEiPND3MDKVBYdpvnzgi3PqZN1ahLmTg",
+    "content_hash": "308854f906546c263e5371655f138861358396176c05cf58a7e47bb83b96aba8"
+  },
+  "proposed_version": "2026-09-17.measurement.1",
+  "proposed_content_hash": "cd0d39f5844dc53f17a281737f32e95f83de99d6c6d768a29c92da6a05c4853e",
+  "authoring_mode": "edit",
+  "created_at": "2026-09-17T15:24:25.183359+00:00"
+}
