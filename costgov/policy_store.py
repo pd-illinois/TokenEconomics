@@ -25,6 +25,21 @@ class LoadedPolicy:
 
 def validate_measurement_policy(value: object) -> dict[str, Any]:
     """Validate opt-in measurement scope without changing operational budgets."""
+    if not isinstance(value, dict):
+        raise PolicyLoadError(
+            "policy.measurement must match workload-measurement-policy.v1 or workload-measurement-policy.v2"
+        )
+    schema_version = value.get("schema_version")
+    if schema_version == "workload-measurement-policy.v1":
+        return _validate_measurement_policy_v1(value)
+    if schema_version == "workload-measurement-policy.v2":
+        return _validate_measurement_policy_v2(value)
+    raise PolicyLoadError(
+        "policy.measurement must match workload-measurement-policy.v1 or workload-measurement-policy.v2"
+    )
+
+
+def _validate_measurement_policy_v1(value: dict[str, Any]) -> dict[str, Any]:
     fixed = {
         "schema_version": "workload-measurement-policy.v1",
         "mode": "measurement_only",
@@ -41,7 +56,7 @@ def validate_measurement_policy(value: object) -> dict[str, Any]:
     expected = set(fixed) | set(limits) | {
         "observed_model_cost_stop_usd", "expires_at",
     }
-    if not isinstance(value, dict) or set(value) != expected:
+    if set(value) != expected:
         raise PolicyLoadError("policy.measurement must match workload-measurement-policy.v1")
     for key, required in fixed.items():
         if type(value[key]) is not type(required) or value[key] != required:
@@ -56,7 +71,80 @@ def validate_measurement_policy(value: object) -> dict[str, Any]:
         or not math.isfinite(threshold)
     ):
         raise PolicyLoadError("policy.measurement.observed_model_cost_stop_usd must be finite and in (0, 5]")
-    expires = value["expires_at"]
+    _validate_measurement_expiration(value["expires_at"])
+    return value
+
+
+def _validate_measurement_policy_v2(value: dict[str, Any]) -> dict[str, Any]:
+    fixed = {
+        "schema_version": "workload-measurement-policy.v2",
+        "mode": "measurement_only",
+        "workload_scope": "studio_campaigns",
+        "require_explicit_campaign_id": True,
+        "acknowledge_incomplete_costs": True,
+        "hard_spend_cap_guaranteed": False,
+        "operational_promotion": False,
+    }
+    limits = {
+        "max_questions": 25,
+        "max_output_tokens": 4096,
+        "max_elapsed_seconds": 600,
+        "max_campaign_repetitions": 100,
+        "max_campaign_questions": 2500,
+        "max_evaluation_runs": 100,
+        "max_evaluation_rows_per_run": 25,
+    }
+    expected = set(fixed) | set(limits) | {
+        "observed_model_cost_stop_usd",
+        "campaign_observed_model_cost_stop_usd",
+        "expires_at",
+    }
+    if set(value) != expected:
+        raise PolicyLoadError("policy.measurement must match workload-measurement-policy.v2")
+    for key, required in fixed.items():
+        if type(value[key]) is not type(required) or value[key] != required:
+            raise PolicyLoadError(f"policy.measurement.{key} is invalid")
+    for key, maximum in limits.items():
+        if type(value[key]) is not int or not 1 <= value[key] <= maximum:
+            raise PolicyLoadError(f"policy.measurement.{key} is outside the supported bound")
+
+    threshold = value["observed_model_cost_stop_usd"]
+    if (
+        type(threshold) not in (int, float)
+        or not 0 < threshold <= 5
+        or not math.isfinite(threshold)
+    ):
+        raise PolicyLoadError(
+            "policy.measurement.observed_model_cost_stop_usd must be finite and in (0, 5]"
+        )
+    campaign_threshold = value["campaign_observed_model_cost_stop_usd"]
+    if (
+        type(campaign_threshold) not in (int, float)
+        or not 0 < campaign_threshold <= 25
+        or not math.isfinite(campaign_threshold)
+    ):
+        raise PolicyLoadError(
+            "policy.measurement.campaign_observed_model_cost_stop_usd must be finite and in (0, 25]"
+        )
+    if value["max_campaign_questions"] > (
+        value["max_campaign_repetitions"] * value["max_questions"]
+    ):
+        raise PolicyLoadError(
+            "policy.measurement.max_campaign_questions exceeds repetitions * max_questions"
+        )
+    if value["max_evaluation_rows_per_run"] > value["max_questions"]:
+        raise PolicyLoadError(
+            "policy.measurement.max_evaluation_rows_per_run exceeds max_questions"
+        )
+    if campaign_threshold < threshold:
+        raise PolicyLoadError(
+            "policy.measurement.campaign_observed_model_cost_stop_usd is below the per-execution stop"
+        )
+    _validate_measurement_expiration(value["expires_at"])
+    return value
+
+
+def _validate_measurement_expiration(expires: object) -> None:
     if not isinstance(expires, str) or not re.fullmatch(
         r"\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?(?:Z|\+00:00)", expires,
     ):
@@ -67,7 +155,6 @@ def validate_measurement_policy(value: object) -> dict[str, Any]:
         raise PolicyLoadError("policy.measurement.expires_at must be a UTC timestamp") from None
     if parsed.utcoffset() != timezone.utc.utcoffset(None):
         raise PolicyLoadError("policy.measurement.expires_at must be a UTC timestamp")
-    return value
 
 
 def measurement_authorization(
