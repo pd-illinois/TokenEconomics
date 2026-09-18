@@ -38,6 +38,9 @@ class ReportStore:
                 "govern_handoffs": [],
                 "govern_decisions": [],
                 "runs": [],
+                "reconciliations": [],
+                "learning_proofs": [],
+                "portability_proofs": [],
             },
         }
         with _report_lock:
@@ -51,6 +54,9 @@ class ReportStore:
                 return None
             report = json.loads(path.read_text(encoding="utf-8"))
             report.setdefault("artifacts", {}).setdefault("govern_decisions", [])
+            report["artifacts"].setdefault("reconciliations", [])
+            report["artifacts"].setdefault("learning_proofs", [])
+            report["artifacts"].setdefault("portability_proofs", [])
             return report
 
     def list(self) -> list[dict]:
@@ -58,10 +64,30 @@ class ReportStore:
             return []
         reports = [self.get(path.name) for path in self.root.iterdir() if path.is_dir()]
         return sorted(
-            (report for report in reports if report is not None),
+            (report for report in reports if report is not None and not (self.root / report["report_id"] / "retired.json").exists()),
             key=lambda report: report["updated_at"],
             reverse=True,
         )
+
+    def retire(self, report_id: str, *, reason: str) -> dict:
+        """Remove a report from the active directory without erasing evidence."""
+        if not reason.strip():
+            raise ValueError("a retirement reason is required")
+        with _report_lock:
+            if not self.get(report_id):
+                raise KeyError(report_id)
+            path = self.root / report_id / "retired.json"
+            if path.exists():
+                return json.loads(path.read_text(encoding="utf-8"))
+            event = {
+                "schema_version": "report-retirement.v1",
+                "report_id": report_id,
+                "retired_at": _now(),
+                "reason": reason.strip(),
+            }
+            with path.open("x", encoding="utf-8") as stream:
+                json.dump(event, stream, indent=2)
+            return event
 
     def save(self, report_id: str, *, title: str | None = None, notes: str | None = None) -> dict:
         with _report_lock:

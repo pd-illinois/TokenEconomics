@@ -13,6 +13,8 @@ from pathlib import Path
 from typing import Any, Mapping
 from uuid import uuid4
 
+from .atomic_publish import publish_immutable
+
 TRAJECTORY_SCHEMA_VERSION = "trajectory-envelope.v1"
 _ID_PATTERN = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$")
 _HASH_PATTERN = re.compile(r"^[0-9a-f]{64}$")
@@ -591,7 +593,7 @@ class TrajectoryStore:
                 stream.write("\n")
                 stream.flush()
                 os.fsync(stream.fileno())
-            os.link(temporary, path)
+            publish_immutable(temporary, path)
             self._sync_directory(self.root)
         finally:
             temporary.unlink(missing_ok=True)

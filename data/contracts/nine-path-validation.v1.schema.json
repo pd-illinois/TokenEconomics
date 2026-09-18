@@ -1,0 +1,65 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://tokeneconomics.local/contracts/nine-path-validation.v1.schema.json",
+  "title": "Nine Path Validation v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "revision",
+    "evidence_classification",
+    "program_status",
+    "lifecycle",
+    "routes",
+    "software_contract_families",
+    "claims",
+    "content_hash"
+  ],
+  "properties": {
+    "schema_version": {"const": "nine-path-validation.v1"},
+    "revision": {"type": "string", "minLength": 1},
+    "evidence_classification": {"const": "mixed_measured_and_blocked"},
+    "program_status": {"const": "software_validated_external_proof_partial"},
+    "lifecycle": {"type": "array", "minItems": 8, "uniqueItems": true},
+    "routes": {
+      "type": "array",
+      "minItems": 9,
+      "maxItems": 9,
+      "items": {
+        "type": "object",
+        "required": [
+          "route_id",
+          "capability_profile_version",
+          "capability_profile_hash",
+          "software_contract_validation",
+          "deterministic_fixture",
+          "hybrid_dual_ledger_required",
+          "source_verifiable_execution",
+          "production_validated",
+          "remaining_gaps"
+        ]
+      }
+    },
+    "software_contract_families": {
+      "type": "array",
+      "minItems": 14,
+      "uniqueItems": true
+    },
+    "claims": {
+      "type": "object",
+      "properties": {
+        "guaranteed_savings": {"const": false},
+        "guaranteed_quality": {"const": false},
+        "nine_path_production_validation": {"const": false},
+        "modeled_percentile_is_calibrated_tail_bound": {"const": false}
+      },
+      "required": [
+        "guaranteed_savings",
+        "guaranteed_quality",
+        "nine_path_production_validation",
+        "modeled_percentile_is_calibrated_tail_bound"
+      ]
+    },
+    "content_hash": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
+  }
+}

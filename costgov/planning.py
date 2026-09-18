@@ -13,6 +13,7 @@ from pathlib import Path
 from uuid import uuid4
 
 from .contracts import PlanReceipt
+from .route_governance import build_route_candidate, evaluate_route_candidate
 from .trajectory_contracts import (
     PolicyBinding,
     PredictionBinding,
@@ -28,6 +29,7 @@ SCHEMA_VERSION = "2.0"
 COMMERCIAL_SCHEMA_VERSION = "3.0"
 METER_STACK_SCHEMA_VERSION = "4.0"
 TRAJECTORY_RECEIPT_SCHEMA_VERSION = "5.0"
+INFRASTRUCTURE_RECEIPT_SCHEMA_VERSION = "6.0"
 _plan_lock = threading.RLock()
 
 
@@ -70,6 +72,7 @@ class PlanStore:
             "receipt_id": None,
             "receipt_hash": None,
             "govern_handoff": None,
+            "govern_candidate": None,
             "trajectory_contract": trajectory_contract.to_dict(),
         }
         self._write_session(session)
@@ -85,6 +88,28 @@ class PlanStore:
         )
         if analysis is not None:
             session["analysis"] = analysis
+        self._write_session(session)
+        return session
+
+    def require_infrastructure_review(
+        self, session: dict, infrastructure: dict, parameters: dict
+    ) -> dict:
+        """Persist the exact proposal a user must review before receipt completion."""
+        session.update(
+            status="needs_clarification",
+            clarifications=[
+                {
+                    "field": "infrastructure_review",
+                    "question": (
+                        "Review and explicitly confirm the proposed Azure services, "
+                        "safeguards, quantity assumptions, and priced coverage."
+                    ),
+                }
+            ],
+            parameters=parameters,
+            infrastructure_draft=infrastructure,
+            updated_at=_now(),
+        )
         self._write_session(session)
         return session
 
@@ -106,6 +131,44 @@ class PlanStore:
         return session
 
     def complete(self, session: dict, result: dict) -> tuple[dict, dict]:
+        if {"response_forecast", "response_prediction_contract"} & set(result):
+            raise ValueError("Use the explicit server-owned response forecast intent")
+        return self._complete(session, result)
+
+    def complete_response_forecast(
+        self, session: dict, result: dict, *, configuration: dict, baseline: dict,
+        source: dict, candidates: dict | None = None, experiment: dict | None = None,
+    ) -> tuple[dict, dict]:
+        """Complete a NEW forecast result using a server-probed response contract.
+
+        Never pass a historical receipt/result re-estimated after seeing actuals.
+        The server caller owns prospective baseline provenance and probe freshness;
+        receipt configuration is checked again against sealed execution evidence.
+        Optional experiment pins dataset_hash, case_ids, family_ids and split
+        inside the receipt; only the workload adapter can verify their membership.
+        """
+        from .response_forecasts import build_response_forecast
+
+        with _plan_lock:
+            persisted = self.get(session["plan_id"])
+            if (persisted is None or persisted != session
+                    or persisted["status"] != "draft" or persisted.get("receipt_id")):
+                raise ValueError("Response forecasts require a fresh draft session")
+            if {"receipt_id", "content_hash", "created_at", "response_forecast",
+                "response_prediction_contract"} & set(result):
+                raise ValueError("Response forecasts require a new result, not a receipt clone")
+            prediction_id = result["prediction"]["prediction_id"]
+            for existing in self.list():
+                receipt = self.get_receipt(existing["plan_id"])
+                if receipt and str(receipt["prediction"]["prediction_id"]) == str(prediction_id):
+                    raise ValueError("Response forecasts require a new prediction identity")
+            forecast = build_response_forecast(
+                prediction=result["prediction"], configuration=configuration,
+                baseline=baseline, source=source, candidates=candidates, experiment=experiment,
+            )
+            return self._complete(session, result, response_forecast=forecast)
+
+    def _complete(self, session: dict, result: dict, *, response_forecast=None) -> tuple[dict, dict]:
         created_at = _now()
         intake = result["intake"]
         analysis = intake.get("analysis", {})
@@ -114,7 +177,10 @@ class PlanStore:
         clarifications = analysis.get("clarifications", [])
         exclusions = analysis.get("exclusions", [])
         schema_version = (
-            TRAJECTORY_RECEIPT_SCHEMA_VERSION
+            INFRASTRUCTURE_RECEIPT_SCHEMA_VERSION
+            if result.get("infrastructure", {}).get("schema_version")
+            == "infrastructure-forecast.v1"
+            else TRAJECTORY_RECEIPT_SCHEMA_VERSION
             if result.get("meter_stack")
             else COMMERCIAL_SCHEMA_VERSION
             if result.get("route")
@@ -139,6 +205,7 @@ class PlanStore:
             COMMERCIAL_SCHEMA_VERSION,
             METER_STACK_SCHEMA_VERSION,
             TRAJECTORY_RECEIPT_SCHEMA_VERSION,
+            INFRASTRUCTURE_RECEIPT_SCHEMA_VERSION,
         }:
             snapshot.update(
                 route=result["route"],
@@ -151,15 +218,26 @@ class PlanStore:
         if schema_version in {
             METER_STACK_SCHEMA_VERSION,
             TRAJECTORY_RECEIPT_SCHEMA_VERSION,
+            INFRASTRUCTURE_RECEIPT_SCHEMA_VERSION,
         }:
             snapshot["meter_stack"] = result["meter_stack"]
-        if schema_version == TRAJECTORY_RECEIPT_SCHEMA_VERSION:
+        if schema_version in {
+            TRAJECTORY_RECEIPT_SCHEMA_VERSION,
+            INFRASTRUCTURE_RECEIPT_SCHEMA_VERSION,
+        }:
             snapshot["trajectory_contract"] = session["trajectory_contract"]
+        if response_forecast is not None:
+            from .response_forecasts import validate_receipt_response
+
+            snapshot["response_forecast"] = response_forecast
+            snapshot["response_prediction_contract"] = response_forecast["response_prediction_contract"]
+            validate_receipt_response(snapshot)
         content_hash = hashlib.sha256(_canonical(snapshot).encode("utf-8")).hexdigest()
         if schema_version in {
             COMMERCIAL_SCHEMA_VERSION,
             METER_STACK_SCHEMA_VERSION,
             TRAJECTORY_RECEIPT_SCHEMA_VERSION,
+            INFRASTRUCTURE_RECEIPT_SCHEMA_VERSION,
         }:
             receipt_payload = {
                 "receipt_id": f"plan_{content_hash[:20]}",
@@ -185,6 +263,9 @@ class PlanStore:
                 content_hash=content_hash,
             )
             receipt_payload = self._receipt_payload(receipt)
+            if response_forecast is not None:
+                receipt_payload["response_forecast"] = snapshot["response_forecast"]
+                receipt_payload["response_prediction_contract"] = snapshot["response_prediction_contract"]
         self._write_receipt(receipt_payload)
         session.update(
             status="complete",
@@ -241,6 +322,108 @@ class PlanStore:
                 self._write_session(session)
         return handoff
 
+    def create_govern_candidate(self, plan_id: str) -> dict:
+        """Create or return the append-only candidate for one immutable receipt."""
+        session = self.get(plan_id)
+        if not session:
+            raise KeyError(plan_id)
+        if session["status"] not in {"complete", "handed_off"}:
+            raise ValueError("plan must be complete before Govern candidate creation")
+        existing = session.get("govern_candidate")
+        if existing:
+            path = (
+                self.root
+                / plan_id
+                / "govern_candidates"
+                / f"{existing['candidate_id']}.json"
+            )
+            return json.loads(path.read_text(encoding="utf-8"))
+        receipt = self.get_receipt(plan_id)
+        candidate = build_route_candidate(receipt)
+        path = (
+            self.root
+            / plan_id
+            / "govern_candidates"
+            / f"{candidate['candidate_id']}.json"
+        )
+        with _plan_lock:
+            path.parent.mkdir(parents=True, exist_ok=True)
+            if path.exists():
+                persisted = json.loads(path.read_text(encoding="utf-8"))
+                if persisted.get("content_hash") != candidate["content_hash"]:
+                    raise ValueError("Govern candidate replay conflicts with immutable evidence")
+                candidate = persisted
+            else:
+                with path.open("x", encoding="utf-8") as stream:
+                    json.dump(candidate, stream, indent=2)
+        session["govern_candidate"] = {
+            "candidate_id": candidate["candidate_id"],
+            "content_hash": candidate["content_hash"],
+            "readiness": candidate["readiness"],
+        }
+        session["updated_at"] = _now()
+        self._write_session(session)
+        return candidate
+
+    def create_route_govern_handoff(self, plan_id: str) -> dict:
+        """Evaluate route readiness and constraints without loading Azure policy."""
+        session = self.get(plan_id)
+        if not session:
+            raise KeyError(plan_id)
+        candidate = self.create_govern_candidate(plan_id)
+        session = self.get(plan_id)
+        if not session:
+            raise KeyError(plan_id)
+        decision = evaluate_route_candidate(candidate)
+        existing_handoff = self.get_govern_handoff(plan_id)
+        if (
+            existing_handoff
+            and existing_handoff.get("status") in {"admitted", "rejected"}
+            and existing_handoff.get("policy")
+        ):
+            return existing_handoff
+        if (
+            existing_handoff
+            and existing_handoff.get("route_decision", {}).get("content_hash")
+            == decision["content_hash"]
+        ):
+            return existing_handoff
+        receipt = self.get_receipt(plan_id)
+        handoff = {
+            "handoff_id": f"handoff_{decision['content_hash'][:20]}",
+            "report_id": session["report_id"],
+            "status": decision["status"],
+            "created_at": decision["evaluated_at"],
+            "evaluated_at": decision["evaluated_at"],
+            "plan_id": plan_id,
+            "receipt_id": receipt["receipt_id"],
+            "receipt_hash": receipt["content_hash"],
+            "prediction_id": receipt["prediction"].get("prediction_id"),
+            "candidate_id": candidate["candidate_id"],
+            "candidate_hash": candidate["content_hash"],
+            "route_id": candidate["route_id"],
+            "capability_profile": candidate["capability_profile"],
+            "readiness": candidate["readiness"],
+            "route_decision": decision,
+            "checks": decision["checks"],
+            "economics": {
+                "cost_per_call": receipt["prediction"].get("cost_per_call"),
+                "monthly_cost": receipt["prediction"].get("monthly_cost"),
+                "annual_cost": receipt["prediction"].get("annual_cost"),
+                "tokens_per_call": receipt["prediction"].get("tokens_per_call"),
+                "commercial": receipt.get("commercial"),
+                "purchase": receipt.get("purchase"),
+            },
+            "policy": None,
+            "execution": None,
+            "mutation": decision["mutation"],
+            "infrastructure_status": receipt["infrastructure"]["status"],
+            "trajectory_contract": receipt["trajectory_contract"],
+        }
+        session.update(status="handed_off", govern_handoff=handoff, updated_at=_now())
+        self._write_session(session)
+        return handoff
+
     def create_govern_handoff(self, plan_id: str, policy: LoadedPolicy) -> dict:
         from .policy_store import admit_receipt
 
@@ -257,6 +440,11 @@ class PlanStore:
         ):
             return existing_handoff
         receipt = self.get_receipt(plan_id)
+        candidate = self.create_govern_candidate(plan_id)
+        session = self.get(plan_id)
+        if not session:
+            raise KeyError(plan_id)
+        route_decision = evaluate_route_candidate(candidate)
         admission = admit_receipt(receipt, policy)
         prediction = receipt["prediction"]
         prediction_binding = PredictionBinding(
@@ -306,6 +494,12 @@ class PlanStore:
             "evaluated_at": admission["evaluated_at"],
             "infrastructure_status": receipt["infrastructure"]["status"],
             "trajectory_contract": trajectory_contract.to_dict(),
+            "candidate_id": candidate["candidate_id"],
+            "candidate_hash": candidate["content_hash"],
+            "route_id": candidate["route_id"],
+            "capability_profile": candidate["capability_profile"],
+            "readiness": candidate["readiness"],
+            "route_decision": route_decision,
         }
         session.update(status="handed_off", govern_handoff=handoff, updated_at=_now())
         self._write_session(session)

@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+from types import SimpleNamespace
 
 import pytest
 
@@ -65,6 +66,8 @@ def test_file_policy_requires_explicit_development_mode(tmp_path, monkeypatch):
 
     assert loaded.document["policy_id"] == "tokengov-production"
     assert loaded.provenance["source"] == "local_file"
+    assert loaded.provenance["label"] == "development:2026-07-20.1"
+    assert len(loaded.provenance["etag"]) == 64
     assert loaded.provenance["development_only"] is True
 
 
@@ -73,6 +76,107 @@ def test_azure_is_default_and_fails_closed_without_endpoint(monkeypatch):
     monkeypatch.delenv("AZURE_APPCONFIG_ENDPOINT", raising=False)
     with pytest.raises(PolicyLoadError, match="AZURE_APPCONFIG_ENDPOINT"):
         load_policy_from_environment()
+
+
+@pytest.fixture
+def azure_policy_runtime(monkeypatch):
+    import azure.appconfiguration
+    import azure.identity
+
+    monkeypatch.setenv("TOKENGOV_POLICY_SOURCE", "azure")
+    monkeypatch.setenv("AZURE_APPCONFIG_ENDPOINT", "https://policy-test.azconfig.io")
+    monkeypatch.setenv("TOKENGOV_POLICY_KEY", "tokengov:policy")
+    monkeypatch.setenv("TOKENGOV_POLICY_LABEL", "approved-v1")
+    for key in ("TOKENGOV_POLICY_AZURE_CLI_SUBSCRIPTION", "CONTAINER_APP_NAME", "WEBSITE_INSTANCE_ID"):
+        monkeypatch.delenv(key, raising=False)
+    calls = []
+    default, cli = object(), object()
+
+    def default_credential(**kwargs):
+        calls.append(("default", kwargs))
+        return default
+
+    def cli_credential(**kwargs):
+        calls.append(("cli", kwargs))
+        return cli
+
+    def get_setting(**kwargs):
+        calls.append(("get", kwargs))
+        return SimpleNamespace(value=json.dumps(_policy()), content_type="application/json",
+                               last_modified=None, etag="unchanged-etag")
+
+    def client(endpoint, credential):
+        calls.append(("client", endpoint, credential))
+        return SimpleNamespace(get_configuration_setting=get_setting)
+
+    monkeypatch.setattr(azure.identity, "DefaultAzureCredential", default_credential)
+    monkeypatch.setattr(azure.identity, "AzureCliCredential", cli_credential)
+    monkeypatch.setattr(azure.appconfiguration, "AzureAppConfigurationClient", client)
+    return calls, default, cli
+
+
+def test_explicit_policy_subscription_pins_cli_without_changing_authority(azure_policy_runtime, monkeypatch):
+    calls, _, cli = azure_policy_runtime
+    subscription = "a91cc1ba-bd19-43a7-90ea-120794c0fbc6"
+    monkeypatch.setenv("TOKENGOV_POLICY_AZURE_CLI_SUBSCRIPTION", subscription)
+    loaded = load_policy_from_environment()
+    assert calls == [
+        ("cli", {"subscription": subscription, "process_timeout": 20}),
+        ("client", "https://policy-test.azconfig.io", cli),
+        ("get", {"key": "tokengov:policy", "label": "approved-v1"}),
+    ]
+    assert loaded.document == _policy()
+    assert loaded.provenance["source"] == "azure_app_configuration"
+    assert loaded.provenance["etag"] == "unchanged-etag"
+    assert not loaded.provenance.get("development_only")
+
+
+@pytest.mark.parametrize("host", [None, "CONTAINER_APP_NAME", "WEBSITE_INSTANCE_ID"])
+def test_unpinned_policy_preserves_default_runtime_identity(azure_policy_runtime, monkeypatch, host):
+    calls, default, _ = azure_policy_runtime
+    if host:
+        monkeypatch.setenv(host, "hosted-runtime")
+    assert load_policy_from_environment().provenance["source"] == "azure_app_configuration"
+    assert calls[0] == ("default", {})
+    assert calls[1] == ("client", "https://policy-test.azconfig.io", default)
+
+
+@pytest.mark.parametrize("host", ["CONTAINER_APP_NAME", "WEBSITE_INSTANCE_ID"])
+def test_hosted_policy_rejects_local_cli_override(azure_policy_runtime, monkeypatch, host):
+    calls, _, _ = azure_policy_runtime
+    monkeypatch.setenv(host, "hosted-runtime")
+    monkeypatch.setenv("TOKENGOV_POLICY_AZURE_CLI_SUBSCRIPTION", "a91cc1ba-bd19-43a7-90ea-120794c0fbc6")
+    with pytest.raises(PolicyLoadError, match="local-development only"):
+        load_policy_from_environment()
+    assert not calls
+
+
+@pytest.mark.parametrize("subscription", ["wrong-subscription", " ", "--tenant elsewhere"])
+def test_policy_rejects_invalid_subscription_without_fallback(azure_policy_runtime, monkeypatch, subscription):
+    calls, _, _ = azure_policy_runtime
+    monkeypatch.setenv("TOKENGOV_POLICY_AZURE_CLI_SUBSCRIPTION", subscription)
+    with pytest.raises(PolicyLoadError, match="subscription UUID"):
+        load_policy_from_environment()
+    assert not calls
+
+
+def test_pinned_auth_failure_does_not_try_default_identity_or_local_policy(azure_policy_runtime, monkeypatch, tmp_path):
+    import azure.identity
+    from azure.core.exceptions import ClientAuthenticationError
+
+    calls, _, _ = azure_policy_runtime
+    path = tmp_path / "fallback.json"
+    path.write_text(json.dumps(_policy()), encoding="utf-8")
+    monkeypatch.setenv("TOKENGOV_POLICY_FILE", str(path))
+    monkeypatch.setenv("TOKENGOV_POLICY_AZURE_CLI_SUBSCRIPTION", "a91cc1ba-bd19-43a7-90ea-120794c0fbc6")
+
+    def fail(**kwargs):
+        raise ClientAuthenticationError("Selected account requires login")
+
+    monkeypatch.setattr(azure.identity, "AzureCliCredential", fail)
+    with pytest.raises(PolicyLoadError, match="Selected account requires login"):
+        load_policy_from_environment()
+    assert not calls
 
 
 def test_admission_uses_receipt_evidence_and_policy_provenance():
@@ -103,6 +207,37 @@ def test_admission_uses_receipt_evidence_and_policy_provenance():
     assert decision["policy"]["version"] == "2026-07-20.1"
     assert decision["policy"]["provenance"]["etag"] == "etag-1"
     assert all(check["passed"] for check in decision["checks"])
+
+
+def test_admission_matches_explicit_deployment_and_catalog_model_aliases():
+    from hashlib import sha256
+
+    snapshot = {
+        "report_id": "RPT-1",
+        "plan_id": "plan-1",
+        "schema_version": "1.0",
+        "created_at": "2026-07-20T00:00:00+00:00",
+        "description": "RAG workload",
+        "intake": {"model": "gpt-5.6-luna"},
+        "prediction": {
+            "provider": "azure_openai",
+            "model": "gpt-5.6-luna",
+            "pricing_verified": True,
+            "cost_per_call": {"mean": 0.013},
+        },
+        "infrastructure": {"status": "not_estimated"},
+    }
+    canonical = json.dumps(snapshot, sort_keys=True, separators=(",", ":"), ensure_ascii=True)
+    receipt = {**snapshot, "receipt_id": "receipt-1", "content_hash": sha256(canonical.encode()).hexdigest()}
+    policy = _policy()
+    policy["admission"]["allowed_models"] = ["gpt-5-6-luna"]
+
+    decision = admit_receipt(
+        receipt,
+        LoadedPolicy(policy, {"source": "azure_app_configuration"}),
+    )
+
+    assert decision["status"] == "admitted"
 
 
 def test_admission_rejects_unverified_or_over_ceiling_prediction():
@@ -139,9 +274,139 @@ def test_admission_rejects_unverified_or_over_ceiling_prediction():
 def test_admission_rejects_unknown_receipt_schema_before_hash_projection():
     with pytest.raises(PolicyLoadError, match="unsupported receipt schema"):
         admit_receipt(
-            {"schema_version": "6.0"},
+            {"schema_version": "7.0"},
             LoadedPolicy(_policy(), {"source": "azure_app_configuration"}),
         )
+
+
+def test_policy_validates_versioned_infrastructure_coverage():
+    policy = _policy()
+    policy["infrastructure_coverage"] = {
+        "schema_version": "infrastructure-coverage-policy.v1",
+        "applicable_routes": ["foundry"],
+        "require_confirmed_estimate": True,
+        "min_priced_coverage_ratio": 1.0,
+        "allow_material_unpriced_items": False,
+        "required_price_type": "Consumption",
+        "currency": "USD",
+        "require_exact_meter_match": True,
+        "max_price_evidence_age_days": 30,
+        "allowed_regions": ["eastus"],
+        "required_safeguards": ["managed_identity"],
+        "max_monthly_cost_usd": 500,
+    }
+
+    assert validate_policy(policy)["infrastructure_coverage"]["allowed_regions"] == [
+        "eastus"
+    ]
+    policy["infrastructure_coverage"]["min_priced_coverage_ratio"] = 1.1
+    with pytest.raises(PolicyLoadError, match="min_priced_coverage_ratio"):
+        validate_policy(policy)
+
+
+def test_schema_six_admission_enforces_infrastructure_coverage():
+    from datetime import datetime, timezone
+    from hashlib import sha256
+
+    policy = _policy()
+    policy["infrastructure_coverage"] = {
+        "schema_version": "infrastructure-coverage-policy.v1",
+        "applicable_routes": ["foundry"],
+        "require_confirmed_estimate": True,
+        "min_priced_coverage_ratio": 1.0,
+        "allow_material_unpriced_items": False,
+        "required_price_type": "Consumption",
+        "currency": "USD",
+        "require_exact_meter_match": True,
+        "max_price_evidence_age_days": 30,
+        "allowed_regions": ["eastus"],
+        "required_safeguards": ["managed_identity"],
+        "max_monthly_cost_usd": 500,
+    }
+    infrastructure = {
+        "schema_version": "infrastructure-forecast.v1",
+        "status": "estimated",
+        "route_id": "foundry",
+        "region": "eastus",
+        "classification": "modeled",
+        "confirmed": True,
+        "architecture": {
+            "safeguards": [
+                {"safeguard_id": "managed_identity", "status": "design_satisfied"}
+            ]
+        },
+        "price_snapshot": {
+            "price_type": "Consumption",
+            "currency": "USD",
+            "captured_at": datetime.now(timezone.utc).isoformat(),
+            "lines": [{
+                "evidence_status": "sourced",
+                "meter_id": "meter-1",
+                "meter_name": "Runtime",
+            }],
+        },
+        "priced_subtotal_usd": 100,
+        "coverage_ratio": 1.0,
+        "unpriced_material_items": [],
+    }
+    snapshot = {
+        "report_id": "RPT-6",
+        "plan_id": "plan-6",
+        "schema_version": "6.0",
+        "created_at": datetime.now(timezone.utc).isoformat(),
+        "description": "Foundry workload",
+        "intake": {},
+        "analysis": {},
+        "confirmed_profile": {},
+        "assumptions": [],
+        "clarifications": [],
+        "exclusions": [],
+        "route": {"route_id": "foundry"},
+        "commercial": {},
+        "purchase": None,
+        "token_subforecast": None,
+        "hybrid": None,
+        "acceptance_assumption": None,
+        "meter_stack": {},
+        "trajectory_contract": {},
+        "prediction": {
+            "provider": "azure_openai",
+            "model": "gpt-4.1",
+            "pricing_verified": True,
+            "cost_per_call": {"mean": 0.01},
+        },
+        "infrastructure": infrastructure,
+    }
+    canonical = json.dumps(
+        snapshot, sort_keys=True, separators=(",", ":"), ensure_ascii=True
+    )
+    receipt = {
+        **snapshot,
+        "receipt_id": "receipt-6",
+        "content_hash": sha256(canonical.encode()).hexdigest(),
+    }
+
+    decision = admit_receipt(
+        receipt, LoadedPolicy(policy, {"source": "azure_app_configuration"})
+    )
+
+    assert decision["status"] == "admitted"
+    assert all(check["passed"] for check in decision["checks"])
+    blocked = json.loads(json.dumps(receipt))
+    blocked["infrastructure"]["confirmed"] = False
+    blocked_snapshot = {
+        key: value
+        for key, value in blocked.items()
+        if key not in {"receipt_id", "content_hash"}
+    }
+    blocked["content_hash"] = sha256(
+        json.dumps(
+            blocked_snapshot, sort_keys=True, separators=(",", ":"), ensure_ascii=True
+        ).encode()
+    ).hexdigest()
+    assert admit_receipt(
+        blocked, LoadedPolicy(policy, {"source": "azure_app_configuration"})
+    )["status"] == "rejected"
 
 
 def test_policy_change_is_a_validated_draft_without_mutating_active_policy(tmp_path):
@@ -166,3 +431,169 @@ def test_policy_change_is_a_validated_draft_without_mutating_active_policy(tmp_p
     assert proposal["proposed_policy"]["admission"]["max_model_cost_per_call_usd"] == 0.015
     assert active["admission"]["max_model_cost_per_call_usd"] == 0.02
     assert PolicyChangeStore(tmp_path).list()[0]["change_id"] == proposal["change_id"]
+
+
+def test_policy_change_normalizes_null_supersedes_and_rejects_unknown_draft(tmp_path):
+    loaded = LoadedPolicy(
+        _policy(), {"source": "azure_app_configuration", "etag": "etag-1"}
+    )
+    store = PolicyChangeStore(tmp_path)
+    payload = {
+        "supersedes_change_id": None,
+        "reason": "Create a new policy revision.",
+        "proposed_version": "2026-07-20.2",
+        "changes": {"execution.routing_mode": "cost"},
+    }
+
+    proposal = store.create(payload, loaded)
+
+    assert proposal["supersedes_change_id"] is None
+    payload["supersedes_change_id"] = "PCR-0000000000"
+    payload["proposed_version"] = "2026-07-20.3"
+    with pytest.raises(ValueError, match="superseded policy draft was not found"):
+        store.create(payload, loaded)
+
+
+def test_policy_can_be_authored_from_conservative_defaults_and_superseded(tmp_path):
+    active = _policy()
+    loaded = LoadedPolicy(active, {"source": "azure_app_configuration", "etag": "etag-1"})
+    store = PolicyChangeStore(tmp_path)
+
+    created = store.create(
+        {
+            "authoring_mode": "create",
+            "reason": "Author a replacement from conservative defaults.",
+            "proposed_version": "2026-07-20.2",
+            "changes": {
+                "admission.allowed_models": ["gpt-4.1"],
+                "execution.routing_mode": "quality",
+            },
+        },
+        loaded,
+    )
+    revised = store.create(
+        {
+            "authoring_mode": "create",
+            "supersedes_change_id": created["change_id"],
+            "reason": "Raise the reviewed segment floor.",
+            "proposed_version": "2026-07-20.2",
+            "changes": {
+                "admission.allowed_models": ["gpt-4.1"],
+                "execution.routing_mode": "quality",
+                "execution.evaluation.min_quality": 0.9,
+            },
+        },
+        loaded,
+    )
+
+    assert created["proposed_policy"]["execution"]["budget"]["hard_cap_action"] == "deny"
+    assert created["proposed_policy"]["execution"]["semantic_cache"]["enabled"] is False
+    assert revised["supersedes_change_id"] == created["change_id"]
+    assert revised["proposed_policy"]["execution"]["evaluation"]["min_quality"] == 0.9
+    assert len(store.list()) == 2
+
+
+def test_draft_delete_and_pending_retirement_are_append_only(tmp_path):
+    loaded = LoadedPolicy(
+        _policy(), {"source": "azure_app_configuration", "etag": "etag-1"}
+    )
+    store = PolicyChangeStore(tmp_path)
+    deleted_proposal = store.create(
+        {
+            "reason": "Discard this local draft.",
+            "proposed_version": "2026-07-20.2",
+            "changes": {"execution.routing_mode": "cost"},
+        },
+        loaded,
+    )
+    pending_proposal = store.create(
+        {
+            "reason": "Retain this pending review.",
+            "proposed_version": "2026-07-20.3",
+            "changes": {"execution.routing_mode": "cost"},
+        },
+        loaded,
+    )
+    store.record_review(
+        pending_proposal["change_id"],
+        {
+            "provider": "github",
+            "pull_request_number": 42,
+            "pull_request_url": "https://github.com/example/repo/pull/42",
+        },
+    )
+
+    deleted = store.delete_draft(deleted_proposal["change_id"])
+
+    assert deleted["status"] == "deleted"
+    assert deleted["events"][-1]["event_id"].startswith("policy-delete-")
+    assert [item["change_id"] for item in store.list()] == [
+        pending_proposal["change_id"]
+    ]
+    assert (tmp_path / f"{deleted_proposal['change_id']}.json").is_file()
+    with pytest.raises(ValueError, match="only a draft policy can be deleted"):
+        store.delete_draft(pending_proposal["change_id"])
+
+    retired = store.retire_pending(pending_proposal["change_id"])
+
+    assert retired["status"] == "retired"
+    assert retired["events"][-1]["event_id"].startswith("policy-retire-")
+    assert retired["events"][-1]["reason"] == "removed_from_active_workspace"
+    assert store.list() == []
+    assert (tmp_path / f"{pending_proposal['change_id']}.json").is_file()
+    with pytest.raises(ValueError, match="only a pending policy request can be retired"):
+        store.retire_pending(deleted_proposal["change_id"])
+
+
+def test_policy_review_events_are_append_only_and_active_requires_azure_match(tmp_path):
+    loaded = LoadedPolicy(
+        _policy(), {"source": "azure_app_configuration", "etag": "etag-1"}
+    )
+    store = PolicyChangeStore(tmp_path)
+    proposal = store.create(
+        {
+            "reason": "Create a reviewed revision.",
+            "proposed_version": "2026-07-20.2",
+            "changes": {"execution.routing_mode": "cost"},
+        },
+        loaded,
+    )
+
+    pending = store.record_review(
+        proposal["change_id"],
+        {
+            "provider": "github",
+            "pull_request_number": 42,
+            "pull_request_url": "https://github.com/example/repo/pull/42",
+        },
+    )
+
+    assert pending["status"] == "pending"
+    assert len(pending["events"]) == 1
+    assert list((tmp_path / "events" / proposal["change_id"]).glob("*.json"))
+    active = store.get(
+        proposal["change_id"], active_policy=proposal["proposed_policy"]
+    )
+    assert active["status"] == "active"
+
+
+def test_external_publication_resolves_draft_without_rewriting_history(tmp_path):
+    from copy import deepcopy
+
+    store = PolicyChangeStore(tmp_path)
+    proposal = store.create({
+        "reason": "Reviewed outside Studio.",
+        "proposed_version": "2026-07-20.2",
+        "changes": {"execution.routing_mode": "cost"},
+    }, LoadedPolicy(_policy(), {"source": "azure_app_configuration", "etag": "base"}))
+    path = tmp_path / f"{proposal['change_id']}.json"
+    original = path.read_bytes()
+    assert store.get(proposal["change_id"])["status"] == "draft"
+    mismatch = deepcopy(proposal["proposed_policy"])
+    mismatch["execution"]["budget"]["per_tenant_usd_per_run"] += 1
+    assert store.get(proposal["change_id"], active_policy=mismatch)["status"] == "draft"
+    assert store.get(proposal["change_id"], active_policy=proposal["proposed_policy"])["status"] == "active"
+    assert path.read_bytes() == original
+    assert not store._events(proposal["change_id"])
+    store.delete_draft(proposal["change_id"])
+    assert store.get(proposal["change_id"], active_policy=proposal["proposed_policy"])["status"] == "deleted"

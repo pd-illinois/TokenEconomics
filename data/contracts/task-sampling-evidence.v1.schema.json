@@ -1,0 +1,15 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Server-owned sampling methodology evidence (not a calibration guarantee)",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "population_revision", "method", "representative", "independent_tasks", "content_hash"],
+  "properties": {
+    "schema_version": {"const": "task-sampling-evidence.v1"},
+    "population_revision": {"type": "string", "minLength": 1},
+    "method": {"type": "string", "minLength": 1},
+    "representative": {"type": "boolean"},
+    "independent_tasks": {"type": "boolean"},
+    "content_hash": {"type": "string", "pattern": "^[a-f0-9]{64}$"}
+  }
+}

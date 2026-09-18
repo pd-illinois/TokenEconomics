@@ -166,7 +166,7 @@
       "applicability": "applicable",
       "status": "measured",
       "authority": "Azure Resource Manager",
-      "content_hash": "62dc91bb711ab619066d055c0e26a87e023d8e340b536d9d2a47e3650d4d9869",
+      "content_hash": "b6bb46ef354be0bbd5ec7694452fc1c02bdc6ead822f230f099ed5d0ad32bf73",
       "location": "repo:infra/main.bicep",
       "reason": null
     },

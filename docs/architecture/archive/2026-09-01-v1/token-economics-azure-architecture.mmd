@@ -1,0 +1,112 @@
+flowchart LR
+  subgraph users["Experience and product-meter domains"]
+    operator["Operator<br/>browser"]
+    copilot["Microsoft 365 Copilot<br/>and Cowork"]
+    studioagents["Copilot Studio<br/>and Work IQ agents"]
+    githubcopilot["GitHub Copilot<br/>AI Credits"]
+    meters["Versioned commercial evidence<br/>native meter currencies"]
+  end
+
+  subgraph publish["Protected policy publication"]
+    repository["GitHub repository<br/>versioned policy source"]
+    workflow["Protected GitHub Actions<br/>tokengov-production"]
+    publisher["OIDC publisher identity<br/>App Configuration Data Owner"]
+  end
+
+  subgraph control["Azure control plane - rg-tokeneconomics"]
+    ingress["Public HTTPS ingress"]
+    containerapp["TokenEconomics Studio<br/>Azure Container App"]
+    tokengov["TokenGov core<br/>plan, govern, evaluate,<br/>reconcile, learn"]
+    predictor["FutureTokenPredictor<br/>model/token forecast"]
+    appconfig["Azure App Configuration<br/>authoritative policy<br/>2026-08-31.1"]
+    identity["User-assigned identity<br/>read-only runtime access"]
+    registry["Azure Container Registry<br/>Studio image"]
+  end
+
+  subgraph workload["Azure workload/data plane - measured Foundry RAG"]
+    project["Microsoft Foundry project<br/>ai-project-tokeneconomics-te003"]
+    agent["Versioned prompt agent<br/>Responses API"]
+    iq["Foundry IQ<br/>MCP knowledge base"]
+    search["Azure AI Search<br/>five-book index"]
+    models["Azure AI Services<br/>model deployments"]
+  end
+
+  subgraph evidence["Evidence, cost, and observability"]
+    studiofiles["Azure Files<br/>append-only Studio state"]
+    evidenceblob["Azure Storage<br/>ActualCost and evidence"]
+    costexport["Cost Management<br/>ActualCost export"]
+    appinsights["Application Insights"]
+    loganalytics["Log Analytics"]
+  end
+
+  operator -->|"plan, govern, inspect"| ingress
+  ingress --> containerapp
+  registry -.->|"AcrPull"| containerapp
+  identity -.->|"managed identity"| containerapp
+  containerapp --> tokengov
+  tokengov -->|"forecast request"| predictor
+  tokengov -->|"fail-closed policy read"| appconfig
+  identity -.->|"Data Reader only"| appconfig
+
+  copilot --> meters
+  studioagents --> meters
+  githubcopilot --> meters
+  meters -->|"plan and reconcile"| tokengov
+
+  repository --> workflow
+  workflow --> publisher
+  publisher -.->|"least-privilege publish"| appconfig
+
+  tokengov -->|"admitted immutable plan"| project
+  project --> agent
+  agent -->|"model calls"| models
+  agent -->|"tool call"| iq
+  iq -->|"hybrid retrieval"| search
+  agent -->|"provider usage, citations,<br/>tool evidence"| evidenceblob
+
+  containerapp -->|"persistent /data"| studiofiles
+  tokengov -->|"immutable evidence"| studiofiles
+  costexport -->|"daily cost rows"| evidenceblob
+  evidenceblob -->|"reconciliation input"| tokengov
+  containerapp --> appinsights
+  containerapp --> loganalytics
+
+  classDef blue fill:#CFE4FA,stroke:#0078D4,color:#102A43
+  classDef green fill:#DFF6DD,stroke:#107C10,color:#173B19
+  classDef purple fill:#E8DAEF,stroke:#5C2D91,color:#32184F
+  classDef orange fill:#FDE7C7,stroke:#D83B01,color:#5A2400
+  classDef teal fill:#D5F5F2,stroke:#008272,color:#123D38
+  classDef gray fill:#ECEFF1,stroke:#5F6B6D,color:#263238
+
+  class operator,copilot,studioagents,githubcopilot,meters gray
+  class repository,workflow,publisher,identity purple
+  class ingress,containerapp,tokengov,predictor,appconfig,registry blue
+  class project,agent,iq,search,models green
+  class studiofiles,evidenceblob,costexport teal
+  class appinsights,loganalytics orange
+
+  %% icon operator = user
+  %% icon copilot = apex
+  %% icon studioagents = agent
+  %% icon githubcopilot = github
+  %% icon meters = graph
+  %% icon repository = github
+  %% icon workflow = app registration
+  %% icon publisher = enterprise app
+  %% icon ingress = front door
+  %% icon containerapp = container apps
+  %% icon tokengov = monitor
+  %% icon predictor = openai
+  %% icon appconfig = app configuration
+  %% icon identity = managed identity
+  %% icon registry = acr
+  %% icon project = ai foundry
+  %% icon agent = foundry agent
+  %% icon iq = mcp
+  %% icon search = ai search
+  %% icon models = openai
+  %% icon studiofiles = storage
+  %% icon evidenceblob = storage
+  %% icon costexport = cost management
+  %% icon appinsights = appinsights
+  %% icon loganalytics = loganalytics

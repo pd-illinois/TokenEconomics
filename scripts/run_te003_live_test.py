@@ -42,7 +42,7 @@ def build_test_parameters() -> dict:
     """Return explicit selected controls; prose inference cannot override them."""
     return {
         "route": "foundry",
-        "model": "gpt-5-6-luna",
+        "model": "gpt-5.6-luna",
         "provider": "azure_openai",
         "users": 100,
         "calls_per_user_per_day": 5,
@@ -83,7 +83,7 @@ def _parser() -> argparse.ArgumentParser:
         default="https://appcs-xbk6ickycmp22.azconfig.io",
     )
     parser.add_argument("--policy-key", default="tokengov:policy")
-    parser.add_argument("--policy-label", default="te003-live-v2")
+    parser.add_argument("--policy-label", default="te003-live-v1")
     parser.add_argument("--description", default=DEFAULT_DESCRIPTION)
     parser.add_argument("--question", default=DEFAULT_QUESTION)
     parser.add_argument("--segment-id", default="factual-lookup")
@@ -145,6 +145,58 @@ def _record_handoff(
     )
 
 
+def _record_studio_run(
+    *,
+    report_id: str,
+    session: dict,
+    handoff: dict,
+    run_id: str,
+    task_id: str,
+    trajectory_id: str,
+    record,
+) -> dict:
+    run_root = ROOT / "studio_runs" / run_id
+    stored = TrajectoryStore(run_root / "trajectories").append(record.envelope)
+    result = {
+        "run_id": run_id,
+        "report_id": report_id,
+        "status": "completed",
+        "evidence_classification": "measured_live",
+        "policy": {
+            **handoff["policy"],
+            "handoff_id": handoff["handoff_id"],
+            "plan_id": session["plan_id"],
+            "receipt_id": handoff["receipt_id"],
+        },
+        "trajectory_contract": session["trajectory_contract"],
+        "trajectory_evidence": [
+            {
+                "trajectory_id": trajectory_id,
+                "task_id": task_id,
+                "segment_id": record.envelope.task.segment.segment_id,
+                "content_hash": stored.content_hash,
+            }
+        ],
+        "evaluation_outcomes": [],
+        "acceptance_outcomes": [],
+        "meter_ledger_evidence": [],
+    }
+    result_path = run_root / "result.json"
+    result_path.write_text(json.dumps(result, indent=2), encoding="utf-8")
+
+    registry_path = ROOT / "studio_runs" / "registry.json"
+    registry = (
+        json.loads(registry_path.read_text(encoding="utf-8"))
+        if registry_path.exists()
+        else {}
+    )
+    registry[run_id] = {"run_id": run_id, "status": "completed", "result": result}
+    temporary = registry_path.with_suffix(".tmp")
+    temporary.write_text(json.dumps(registry, indent=2), encoding="utf-8")
+    os.replace(temporary, registry_path)
+    return result
+
+
 def main() -> int:
     args = _parser().parse_args()
     os.environ["AZURE_APPCONFIG_ENDPOINT"] = args.policy_endpoint
@@ -154,7 +206,7 @@ def main() -> int:
 
     report_store = ReportStore(ROOT / "studio_reports")
     plan_store = PlanStore(ROOT / "studio_plans")
-    report = report_store.create("TE-003 deployed Foundry RAG live proof")
+    report = report_store.create("Foundry GPT-5.6 Luna deployed RAG golden test")
     report_id = report["report_id"]
     parameters = build_test_parameters()
     session = plan_store.create_session(report_id, args.description, parameters)
@@ -207,6 +259,15 @@ def main() -> int:
     reopened = store.get(trajectory_id)
     if reopened != capture.record:
         raise RuntimeError("persisted trajectory did not reopen with matching evidence")
+    _record_studio_run(
+        report_id=report_id,
+        session=session,
+        handoff=handoff,
+        run_id=run_id,
+        task_id=task_id,
+        trajectory_id=trajectory_id,
+        record=capture.record,
+    )
 
     report_store.add_artifact(
         report_id,
@@ -221,6 +282,7 @@ def main() -> int:
             "conversation_id": capture.conversation_id,
             "response_id": capture.response_id,
             "content_hash": capture.record.content_hash,
+            "path": f"studio_runs/{run_id}/result.json",
         },
     )
     print(

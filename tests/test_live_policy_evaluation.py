@@ -1,9 +1,17 @@
 from __future__ import annotations
 
+import pytest
+
 from costgov.policy_candidates import PolicyCandidate
+from costgov.reports import ReportStore
 from rag.foundry_trajectory_adapter import _retrieved_document_count
 from rag.provision_retrieval_arms import ARMS, _knowledge_base_body
-from rag.run_live_policy_evaluation import _build_tasks, _retrieval_limit, _score
+from rag.run_live_policy_evaluation import (
+    _build_tasks,
+    _get_or_create_report,
+    _retrieval_limit,
+    _score,
+)
 
 
 def test_live_task_set_has_sixty_per_material_segment() -> None:
@@ -78,3 +86,15 @@ def test_candidate_limit_uses_enforced_knowledge_base_control() -> None:
         }
     )
     assert _retrieval_limit(candidate) == 1
+
+
+def test_live_candidate_runs_can_share_one_report(tmp_path) -> None:
+    store = ReportStore(tmp_path)
+    baseline = _get_or_create_report(store, "baseline", None)
+
+    reused = _get_or_create_report(store, "regression", baseline["report_id"])
+
+    assert reused["report_id"] == baseline["report_id"]
+    assert reused["title"] == "baseline"
+    with pytest.raises(ValueError, match="shared report does not exist"):
+        _get_or_create_report(store, "regression", "RPT-missing")

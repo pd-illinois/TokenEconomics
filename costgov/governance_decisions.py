@@ -14,6 +14,8 @@ from statistics import NormalDist
 from typing import Any, Mapping, Sequence
 from uuid import uuid4
 
+from .atomic_publish import publish_immutable
+
 DECISION_CONSTRAINT_SCHEMA_VERSION = "decision-constraint.v1"
 GOVERN_DECISION_SCHEMA_VERSION = "govern-decision.v1"
 
@@ -44,6 +46,23 @@ def _utc(value: object, field: str) -> str:
 
 def _canonical(value: object) -> str:
     return json.dumps(value, allow_nan=False, separators=(",", ":"), sort_keys=True)
+
+
+def _acceptance_reference_hashes(
+    references: Sequence[Mapping[str, Any]],
+) -> tuple[dict[str, str], dict[str, str]]:
+    return (
+        {
+            item["task_id"]: item["content_hash"]
+            for item in references
+            if item.get("task_id")
+        },
+        {
+            item["outcome_id"]: item["content_hash"]
+            for item in references
+            if item.get("outcome_id")
+        },
+    )
 
 
 def _continued_fraction_beta(a: float, b: float, x: float) -> float:
@@ -397,10 +416,9 @@ def build_candidate_constraint_from_run(
     ):
         raise ValueError("meter evidence does not match the candidate binding")
 
-    acceptance_hashes = {
-        item["task_id"]: item["content_hash"]
-        for item in run_result.get("acceptance_outcomes", [])
-    }
+    acceptance_hashes_by_task, acceptance_hashes_by_outcome = (
+        _acceptance_reference_hashes(run_result.get("acceptance_outcomes", []))
+    )
     meter_hashes = {
         item["entry_id"]: item["content_hash"]
         for item in run_result.get("meter_ledger_evidence", [])
@@ -431,7 +449,8 @@ def build_candidate_constraint_from_run(
             decisions.append(outcome.decision.value)
             acceptance_evidence.append(
                 _hash(
-                    acceptance_hashes.get(task_id),
+                    acceptance_hashes_by_task.get(task_id)
+                    or acceptance_hashes_by_outcome.get(outcome.outcome_id),
                     f"acceptance hash for {task_id}",
                 )
             )
@@ -818,7 +837,7 @@ class GovernanceEvidenceStore:
                 stream.write("\n")
                 stream.flush()
                 os.fsync(stream.fileno())
-            os.link(temporary, path)
+            publish_immutable(temporary, path)
         finally:
             temporary.unlink(missing_ok=True)
         return ImmutableRecord(value.content_hash, value)

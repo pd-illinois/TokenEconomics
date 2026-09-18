@@ -1,0 +1,56 @@
+flowchart LR
+  subgraph external["Experience + native meters"]
+    operator["Operator"]
+    products["Microsoft 365 Copilot · Cowork<br/>Copilot Studio · Work IQ<br/>GitHub Copilot"]
+    meters["Versioned native-meter evidence<br/>No token ↔ credit conversion"]
+    operator --> products --> meters
+  end
+
+  subgraph control["Azure control plane · rg-tokeneconomics · eastus2"]
+    subgraph publication["Protected policy publication"]
+      repository["Policy source"] --> actions["GitHub Actions"] --> publisher["OIDC publisher"]
+    end
+
+    studio["TokenEconomics Studio<br/>Container App"]
+    tokengov["TokenGov core"]
+    predictor["Predictor"]
+    identity["Managed identity<br/>Data Reader + AcrPull"]
+    registry["Container Registry"]
+    policy["App Configuration<br/>authoritative policy"]
+
+    studio --> tokengov --> predictor
+    publisher -. 2 Reviewed publish .-> policy
+    policy -->|"Fail-closed read"| tokengov
+  end
+
+  subgraph workload["Foundry RAG workload / data plane"]
+    project["Foundry project"] --> agent["Prompt agent"]
+    agent --> models["Azure AI Services"]
+    agent --> iq["Foundry IQ"] --> search["Azure AI Search"]
+  end
+
+  subgraph evidence["Evidence + observability"]
+    files["Azure Files"]
+    cost["Cost Management"] --> store["Evidence storage"]
+    appi["Application Insights"]
+    logs["Log Analytics"]
+  end
+
+  meters -->|"1 Plan"| studio
+  tokengov -->|"3 Admit"| project
+  agent -->|"4 Execute + retrieve"| models
+  agent -->|"5 Usage · citations · tool evidence"| store
+  store -->|"6 Reconcile + learn"| tokengov
+  studio --> files
+
+  classDef external fill:#f3f5f7,stroke:#65717f,color:#172033
+  classDef control fill:#eaf4fd,stroke:#0078d4,color:#172033
+  classDef policy fill:#f5effa,stroke:#7e22ce,color:#172033
+  classDef workload fill:#edf8ed,stroke:#107c10,color:#172033
+  classDef evidence fill:#edf9f7,stroke:#008272,color:#172033
+
+  class operator,products,meters external
+  class studio,tokengov,predictor,registry control
+  class repository,actions,publisher,identity,policy policy
+  class project,agent,models,iq,search workload
+  class files,cost,store,appi,logs evidence

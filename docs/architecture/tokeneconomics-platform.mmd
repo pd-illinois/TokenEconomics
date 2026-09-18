@@ -1,0 +1,63 @@
+flowchart TB
+  subgraph plan["Plan and compare"]
+    experiences["Nine delivery experiences\nCopilot · Studio · Foundry · GitHub"]
+    ui["TokenEconomics Studio\nPlan · Govern · Runs · Observe · Reconcile"]
+    forecast["Versioned meter stacks\nand commercial forecast"]
+    receipt["Immutable Plan receipt\nschema 5"]
+    experiences -->|describe work| ui
+    ui -->|predict and compare| forecast
+    forecast -->|versioned evidence| receipt
+  end
+
+  subgraph control["TokenGov control plane"]
+    policy["Azure App Configuration\nfail-closed policy authority"]
+    admission["Policy comparison\nand admission outcome"]
+    policy -->|authoritative decision| admission
+  end
+
+  subgraph runtime["Reference workload data plane"]
+    agent["Microsoft Foundry agent"]
+    knowledge["Foundry IQ and Azure AI Search\nmanaged-identity retrieval"]
+    model["API Management\ngoverned model path"]
+    agent -->|retrieve| knowledge
+    agent -->|invoke| model
+  end
+
+  subgraph evidence["Evidence and reconciliation"]
+    envelope["trajectory-envelope.v1\nrun · trace · segment evidence"]
+    monitor["Azure Monitor\nApplication Insights"]
+    evaluation["Segment evaluation\naccepted-task outcomes"]
+    ledger["Multi-meter ledger\nreconcile and learn"]
+    envelope -->|observe| monitor
+    monitor -->|evaluate| evaluation
+    evaluation -->|reconcile| ledger
+  end
+
+  subgraph external["External authorities"]
+    billing["Microsoft 365 · Power Platform\nGitHub · Azure billing"]
+    agent365["Agent 365 · Entra · Defender · Purview\noptional evidence connector"]
+  end
+
+  receipt -->|proposed binding| policy
+  admission -->|admitted execution| agent
+  agent -->|emit evidence| envelope
+  billing -->|rates and entitlements| forecast
+  billing -->|authoritative usage| ledger
+  agent365 -.->|identity and posture| ui
+  agent365 -.->|trace correlation| envelope
+
+  %% icon experiences = Chat Multiple
+  %% icon ui = App Services
+  %% icon forecast = Cost Management
+  %% icon receipt = Document
+  %% icon policy = App Configuration
+  %% icon admission = Defender
+  %% icon agent = Foundry Agent
+  %% icon knowledge = Cognitive Search
+  %% icon model = API Management Services
+  %% icon envelope = Grid Circles
+  %% icon monitor = Monitor
+  %% icon evaluation = AI Foundry
+  %% icon ledger = Storage Accounts
+  %% icon billing = Cost Management
+  %% icon agent365 = Enterprise Applications

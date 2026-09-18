@@ -1,0 +1,159 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://tokeneconomics.dev/contracts/route-task-economics.v1.schema.json",
+  "title": "Route-aware complete-task economics",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "route_id",
+    "capability_profile",
+    "allocation",
+    "evidence_classification",
+    "scope",
+    "overall",
+    "segments",
+    "filters",
+    "evidence",
+    "tail_risk",
+    "warnings",
+    "historical_evidence_mutated",
+    "economics_id",
+    "content_hash"
+  ],
+  "properties": {
+    "schema_version": {"const": "route-task-economics.v1"},
+    "route_id": {"$ref": "#/$defs/route"},
+    "capability_profile": {"$ref": "#/$defs/reference"},
+    "allocation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["period", "basis", "revision", "content_hash"],
+      "properties": {
+        "period": {"$ref": "#/$defs/nonEmpty"},
+        "basis": {"$ref": "#/$defs/nonEmpty"},
+        "revision": {"$ref": "#/$defs/nonEmpty"},
+        "content_hash": {"$ref": "#/$defs/hash"}
+      }
+    },
+    "evidence_classification": {"$ref": "#/$defs/nonEmpty"},
+    "scope": {"const": "complete_task_or_trajectory"},
+    "overall": {"$ref": "#/$defs/summary"},
+    "segments": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "allOf": [
+          {"$ref": "#/$defs/summary"},
+          {
+            "type": "object",
+            "required": ["segment_id", "segment_version"],
+            "properties": {
+              "segment_id": {"$ref": "#/$defs/nonEmpty"},
+              "segment_version": {"$ref": "#/$defs/nonEmpty"}
+            }
+          }
+        ]
+      }
+    },
+    "filters": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "route_ids",
+        "meter_stacks",
+        "policy_candidates",
+        "segments",
+        "authorities",
+        "target_legs"
+      ],
+      "properties": {
+        "route_ids": {"type": "array", "minItems": 1, "items": {"$ref": "#/$defs/route"}},
+        "meter_stacks": {"type": "array", "minItems": 1, "items": {"type": "object"}},
+        "policy_candidates": {"type": "array", "minItems": 1, "items": {"type": "object"}},
+        "segments": {"type": "array", "minItems": 1, "items": {"type": "object"}},
+        "authorities": {"type": "array", "minItems": 1, "items": {"$ref": "#/$defs/nonEmpty"}},
+        "target_legs": {"type": "array", "minItems": 1, "items": {"$ref": "#/$defs/nonEmpty"}}
+      }
+    },
+    "evidence": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["completed_tasks", "acceptance_outcome_hashes", "ledger_bindings"],
+      "properties": {
+        "completed_tasks": {"type": "array", "minItems": 1, "items": {"type": "object"}},
+        "acceptance_outcome_hashes": {"type": "array", "minItems": 1, "items": {"$ref": "#/$defs/hash"}},
+        "ledger_bindings": {"type": "array", "minItems": 1, "items": {"type": "object"}}
+      }
+    },
+    "tail_risk": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["modeled_percentiles_present", "calibrated_tail_risk_claim", "claim"],
+      "properties": {
+        "modeled_percentiles_present": {"type": "boolean"},
+        "calibrated_tail_risk_claim": {"const": false},
+        "claim": {"$ref": "#/$defs/nonEmpty"}
+      }
+    },
+    "warnings": {"type": "array", "items": {"$ref": "#/$defs/nonEmpty"}},
+    "historical_evidence_mutated": {"const": false},
+    "economics_id": {"$ref": "#/$defs/nonEmpty"},
+    "content_hash": {"$ref": "#/$defs/hash"}
+  },
+  "$defs": {
+    "nonEmpty": {"type": "string", "minLength": 1},
+    "hash": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "route": {
+      "enum": [
+        "included",
+        "cowork",
+        "agent_builder",
+        "copilot_studio",
+        "work_iq",
+        "foundry",
+        "github_copilot",
+        "copilot_studio_byom",
+        "foundry_work_iq"
+      ]
+    },
+    "reference": {
+      "type": "object",
+      "required": ["version", "content_hash"],
+      "properties": {
+        "version": {"$ref": "#/$defs/nonEmpty"},
+        "content_hash": {"$ref": "#/$defs/hash"}
+      }
+    },
+    "summary": {
+      "type": "object",
+      "required": [
+        "completed_tasks",
+        "acceptance_denominator",
+        "monetary_views",
+        "native_ledgers",
+        "capacity_utilization",
+        "coverage"
+      ],
+      "properties": {
+        "completed_tasks": {"type": "integer", "minimum": 1},
+        "acceptance_denominator": {
+          "type": "object",
+          "required": ["observation_unit", "completed", "accepted", "rejected", "inconclusive", "raw_evaluator_score_substituted"],
+          "properties": {
+            "observation_unit": {"const": "completed_task"},
+            "completed": {"type": "integer", "minimum": 1},
+            "accepted": {"type": "integer", "minimum": 0},
+            "rejected": {"type": "integer", "minimum": 0},
+            "inconclusive": {"type": "integer", "minimum": 0},
+            "raw_evaluator_score_substituted": {"const": false}
+          }
+        },
+        "monetary_views": {"type": "object"},
+        "native_ledgers": {"type": "array", "minItems": 1, "items": {"type": "object"}},
+        "capacity_utilization": {"type": "array", "items": {"type": "object"}},
+        "coverage": {"type": "object"}
+      }
+    }
+  }
+}

@@ -1,0 +1,92 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://tokeneconomics.dev/contracts/workload-acceptance-pack.v1.schema.json",
+  "title": "TokenEconomics workload acceptance pack",
+  "$comment": "Acceptance packs are workload- and segment-defined rather than inferred from a product route.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "pack_id",
+    "version",
+    "workload_id",
+    "workload_version",
+    "route_ids",
+    "requirements",
+    "created_at",
+    "source_revision",
+    "source_content_hash"
+  ],
+  "properties": {
+    "schema_version": {"const": "workload-acceptance-pack.v1"},
+    "pack_id": {"$ref": "#/$defs/nonEmpty"},
+    "version": {"$ref": "#/$defs/nonEmpty"},
+    "workload_id": {"$ref": "#/$defs/nonEmpty"},
+    "workload_version": {"$ref": "#/$defs/nonEmpty"},
+    "route_ids": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {
+        "enum": [
+          "included",
+          "cowork",
+          "agent_builder",
+          "copilot_studio",
+          "work_iq",
+          "foundry",
+          "github_copilot",
+          "copilot_studio_byom",
+          "foundry_work_iq"
+        ]
+      }
+    },
+    "requirements": {
+      "type": "array",
+      "minItems": 1,
+      "items": {"$ref": "#/$defs/segmentRequirement"}
+    },
+    "created_at": {"$ref": "#/$defs/utcTimestamp"},
+    "source_revision": {"$ref": "#/$defs/nonEmpty"},
+    "source_content_hash": {"$ref": "#/$defs/sha256"}
+  },
+  "$defs": {
+    "nonEmpty": {"type": "string", "minLength": 1},
+    "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "utcTimestamp": {
+      "type": "string",
+      "format": "date-time",
+      "pattern": "(Z|[+]00:00)$"
+    },
+    "segmentRequirement": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "segment_id",
+        "segment_version",
+        "minimum_segment_samples",
+        "minimum_acceptance_rate",
+        "minimum_task_assertions",
+        "required_provenance"
+      ],
+      "properties": {
+        "segment_id": {"$ref": "#/$defs/nonEmpty"},
+        "segment_version": {"$ref": "#/$defs/nonEmpty"},
+        "minimum_segment_samples": {"type": "integer", "minimum": 1},
+        "minimum_acceptance_rate": {
+          "type": "string",
+          "pattern": "^(0([.][0-9]+)?|1([.]0+)?)$"
+        },
+        "minimum_task_assertions": {"type": "integer", "minimum": 1},
+        "required_provenance": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "enum": ["trajectory", "output", "ground_truth", "review_material"]
+          }
+        }
+      }
+    }
+  }
+}

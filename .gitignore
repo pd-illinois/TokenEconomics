@@ -16,6 +16,26 @@ __pycache__/
 # Repository-local instructions and documentation
 .github/
 docs/
+!docs/
+docs/*
+!docs/TOKEN_STUDIO_USER_GUIDE.md
+!docs/TOKEN_STUDIO_USER_GUIDE.pdf
+!docs/TOKEN_ECONOMICS_IN_PRACTICE_PART_2.md
+!docs/architecture/
+!docs/architecture/*
+!docs/architecture/archive/
+!docs/architecture/archive/**
+!docs/archive/
+docs/archive/*
+!docs/archive/studio-ui/
+!docs/archive/studio-ui/**
+!docs/images/
+docs/images/*
+!docs/images/token-studio-guide/
+!docs/images/token-studio-guide/*.png
+!docs/images/token-studio-blog/
+!docs/images/token-studio-blog/2026-09-14/
+!docs/images/token-studio-blog/2026-09-14/04-billing-query-local.png
 !.github/
 .github/*
 !.github/workflows/
@@ -29,14 +49,28 @@ docs/
 !**/.env.example
 
 # Generated runtime and evidence data
+.studio-health/
 studio_plans/
 studio_reports/
 StudioUIScreenshot.jpeg
 studio_runs/
 studio_policy_changes/
+studio_lifecycle/
+studio_billing_evidence/
+studio_response_learning/
+studio_decision_state/
+studio_governance_evidence/
+studio_learning_evidence/
+studio_portability_evidence/
+studio_reconciliation_evidence/
+.test-studio-lifecycle/
 telemetry_*.jsonl
 dashboard_data.json
 dashboard.html
+govern-layout-metrics.json
+govern-standard-uniform.png
+studio-home-crm-standard.png
+token-studio-home-snapshot.md
 
 # Build and release output
 build/

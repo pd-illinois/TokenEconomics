@@ -13,6 +13,8 @@ from pathlib import Path
 from typing import Any, Iterable, Mapping
 from uuid import uuid4
 
+from .atomic_publish import publish_immutable
+
 from .consumption_models import ConsumptionFamily
 
 METER_LEDGER_SCHEMA_VERSION = "meter-ledger-entry.v1"
@@ -154,6 +156,13 @@ class MeterLedgerEntry:
         elif not self.unavailable_reason:
             raise ValueError("unavailable or excluded meter evidence requires a reason")
         if self.cost_coverage is CostCoverage.PRICED:
+            if self.evidence_status in {
+                MeterEvidenceStatus.UNAVAILABLE,
+                MeterEvidenceStatus.EXCLUDED,
+            }:
+                raise ValueError(
+                    "unavailable or excluded evidence cannot be represented as priced"
+                )
             if (
                 isinstance(self.allocated_cost_usd, bool)
                 or not isinstance(self.allocated_cost_usd, (int, float))
@@ -460,7 +469,7 @@ class MeterLedgerStore:
                 stream.write("\n")
                 stream.flush()
                 os.fsync(stream.fileno())
-            os.link(temporary, path)
+            publish_immutable(temporary, path)
         finally:
             temporary.unlink(missing_ok=True)
         return MeterLedgerRecord(content_hash, entry)

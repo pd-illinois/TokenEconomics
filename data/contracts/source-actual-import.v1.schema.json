@@ -1,0 +1,74 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://tokeneconomics.dev/contracts/source-actual-import.v1.schema.json",
+  "title": "Source-specific authoritative actual import",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "import_id",
+    "source",
+    "source_revision",
+    "source_export_hash",
+    "billing_period",
+    "refreshed_at",
+    "finalization_state",
+    "finalized_at",
+    "observations",
+    "content_hash"
+  ],
+  "properties": {
+    "schema_version": {"const": "source-actual-import.v1"},
+    "import_id": {"$ref": "#/$defs/nonEmpty"},
+    "source": {"enum": ["m365_cost_management", "power_platform", "github_billing", "azure_billing"]},
+    "source_revision": {"$ref": "#/$defs/nonEmpty"},
+    "source_export_hash": {"$ref": "#/$defs/hash"},
+    "billing_period": {"$ref": "#/$defs/nonEmpty"},
+    "refreshed_at": {"type": "string", "format": "date-time"},
+    "finalization_state": {"enum": ["provisional", "finalized"]},
+    "finalized_at": {"type": ["string", "null"], "format": "date-time"},
+    "observations": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "observation_id",
+          "route_id",
+          "authority",
+          "target_leg",
+          "meter_family",
+          "meter_id",
+          "native_unit",
+          "native_currency",
+          "quantity",
+          "purchase_model",
+          "source_row_hash",
+          "actual_cost",
+          "cost_currency"
+        ],
+        "properties": {
+          "observation_id": {"$ref": "#/$defs/nonEmpty"},
+          "route_id": {"$ref": "#/$defs/nonEmpty"},
+          "authority": {"$ref": "#/$defs/nonEmpty"},
+          "target_leg": {"$ref": "#/$defs/nonEmpty"},
+          "meter_family": {"enum": ["subscription", "included", "native_credit", "token_derived_credit", "direct_token", "resource", "evaluation", "governance"]},
+          "meter_id": {"$ref": "#/$defs/nonEmpty"},
+          "native_unit": {"$ref": "#/$defs/nonEmpty"},
+          "native_currency": {"$ref": "#/$defs/nonEmpty"},
+          "quantity": {"type": "number", "minimum": 0},
+          "purchase_model": {"enum": ["seat", "pack", "p3", "payg", "github_allowance", "azure_cost"]},
+          "source_row_hash": {"$ref": "#/$defs/hash"},
+          "actual_cost": {"type": ["number", "null"], "minimum": 0},
+          "cost_currency": {"type": ["string", "null"]}
+        }
+      }
+    },
+    "content_hash": {"$ref": "#/$defs/hash"}
+  },
+  "$defs": {
+    "nonEmpty": {"type": "string", "minLength": 1},
+    "hash": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
+  }
+}

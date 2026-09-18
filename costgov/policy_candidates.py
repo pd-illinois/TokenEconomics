@@ -12,6 +12,8 @@ from pathlib import Path
 from typing import Any, Mapping
 from uuid import uuid4
 
+from .atomic_publish import publish_immutable
+
 POLICY_CANDIDATE_SCHEMA_VERSION = "policy-candidate.v1"
 
 _CAPABILITIES = {
@@ -332,7 +334,7 @@ class PolicyCandidateStore:
                 stream.write("\n")
                 stream.flush()
                 os.fsync(stream.fileno())
-            os.link(temporary, path)
+            publish_immutable(temporary, path)
         finally:
             temporary.unlink(missing_ok=True)
         return PolicyCandidateRecord(candidate.content_hash, candidate)

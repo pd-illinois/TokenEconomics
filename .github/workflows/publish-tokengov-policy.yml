@@ -1,6 +1,12 @@
 name: Publish reviewed TokenGov policy
 
 on:
+  push:
+    branches:
+      - main
+    paths:
+      - data/policies/*.json
+      - data/policy_reviews/*.json
   workflow_dispatch:
     inputs:
       policy_path:
@@ -28,7 +34,38 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
+  resolve:
+    runs-on: ubuntu-latest
+    outputs:
+      policy_path: ${{ steps.review.outputs.policy_path }}
+      expected_etag: ${{ steps.review.outputs.expected_etag }}
+      change_id: ${{ steps.review.outputs.change_id }}
+      action: ${{ steps.review.outputs.action }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+      - name: Resolve merged review manifest
+        id: review
+        shell: bash
+        run: |
+          if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
+            {
+              echo "policy_path=${{ inputs.policy_path }}"
+              echo "expected_etag=${{ inputs.expected_etag }}"
+              echo "change_id=manual-${{ github.run_id }}"
+              echo "action=${{ inputs.action }}"
+            } >> "$GITHUB_OUTPUT"
+          else
+            python scripts/resolve_policy_review.py \
+              --before "${{ github.event.before }}" \
+              --after "${{ github.sha }}" \
+              --output "$GITHUB_OUTPUT"
+            echo "action=publish" >> "$GITHUB_OUTPUT"
+          fi
+
   validate:
+    needs: resolve
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -38,9 +75,9 @@ jobs:
       - name: Validate reviewed policy artifact
         run: >-
           python scripts/publish_tokengov_policy.py
-          "${{ inputs.policy_path }}"
-          --expected-etag "${{ inputs.expected_etag }}"
-          --action "${{ inputs.action }}"
+          "${{ needs.resolve.outputs.policy_path }}"
+          --expected-etag "${{ needs.resolve.outputs.expected_etag }}"
+          --action "${{ needs.resolve.outputs.action }}"
           --endpoint "https://appcs-xbk6ickycmp22.azconfig.io"
           --key "tokengov:policy"
           --label "te003-live-v2"
@@ -48,7 +85,9 @@ jobs:
 
   publish:
     if: github.ref == 'refs/heads/main'
-    needs: validate
+    needs:
+      - resolve
+      - validate
     runs-on: ubuntu-latest
     environment: tokengov-production
     steps:
@@ -66,9 +105,9 @@ jobs:
       - name: Publish with ETag concurrency and verify
         run: >-
           python scripts/publish_tokengov_policy.py
-          "${{ inputs.policy_path }}"
-          --expected-etag "${{ inputs.expected_etag }}"
-          --action "${{ inputs.action }}"
+          "${{ needs.resolve.outputs.policy_path }}"
+          --expected-etag "${{ needs.resolve.outputs.expected_etag }}"
+          --action "${{ needs.resolve.outputs.action }}"
           --endpoint "https://appcs-xbk6ickycmp22.azconfig.io"
           --key "tokengov:policy"
           --label "te003-live-v2"

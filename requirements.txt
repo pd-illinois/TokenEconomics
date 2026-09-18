@@ -4,7 +4,10 @@
 openai>=1.40.0                 # Azure OpenAI / Foundry chat completions
 azure-ai-projects>=2.5.0       # Foundry project, agent, conversations, and Responses API
 azure-identity>=1.17.0         # DefaultAzureCredential (Entra ID / az login)
+azure-storage-blob>=12.25.0    # managed-identity Cost Management export ingestion
 python-dotenv>=1.0.0           # load .env
+PyJWT[crypto]>=2.9.0           # short-lived GitHub App installation tokens
+mcp>=1.13.0,<2                 # MCP clients for predictor and Azure pricing evidence
 
 # Optional — activate only if you wire these services (safe to omit otherwise):
 azure-appconfiguration>=1.5.0          # config store hydration (App Configuration)

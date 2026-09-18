@@ -1,0 +1,23 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "infrastructure-forecast.v1.schema.json",
+  "title": "TokenEconomics modeled Azure infrastructure forecast",
+  "type": "object",
+  "required": ["schema_version", "status", "route_id", "classification"],
+  "properties": {
+    "schema_version": {"const": "infrastructure-forecast.v1"},
+    "status": {"enum": ["estimated", "partial", "needs_clarification", "not_applicable"]},
+    "route_id": {"type": "string", "minLength": 1},
+    "region": {"type": "string", "minLength": 1},
+    "classification": {"const": "modeled"},
+    "confirmed": {"type": "boolean"},
+    "architecture": {"type": "object"},
+    "price_snapshot": {"type": "object"},
+    "priced_subtotal_usd": {"type": ["number", "null"], "minimum": 0},
+    "coverage_ratio": {"type": "number", "minimum": 0, "maximum": 1},
+    "unpriced_material_items": {"type": "array", "items": {"type": "string"}},
+    "unpriced_material_lines": {"type": "array", "items": {"type": "string"}},
+    "content_hash": {"type": "string", "pattern": "^[a-f0-9]{64}$"}
+  },
+  "additionalProperties": true
+}

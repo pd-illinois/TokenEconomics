@@ -1,0 +1,173 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://tokeneconomics.dev/contracts/route-acceptance-outcome.v1.schema.json",
+  "title": "TokenEconomics explicit route task acceptance outcome",
+  "$comment": "Operational completion and quality scores do not imply acceptance. Explicit assertion, segment sample, and provenance invariants are enforced by costgov.route_acceptance.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "outcome_id",
+    "pack_id",
+    "pack_version",
+    "pack_content_hash",
+    "workload_id",
+    "workload_version",
+    "route_id",
+    "task_id",
+    "trajectory_id",
+    "segment_id",
+    "segment_version",
+    "operational_outcome",
+    "acceptance_decision",
+    "evidence_availability",
+    "reason_code",
+    "sample",
+    "sample_sufficient",
+    "provenance",
+    "quality_scores",
+    "assertions",
+    "evaluated_at"
+  ],
+  "properties": {
+    "schema_version": {"const": "route-acceptance-outcome.v1"},
+    "outcome_id": {"$ref": "#/$defs/nonEmpty"},
+    "pack_id": {"$ref": "#/$defs/nonEmpty"},
+    "pack_version": {"$ref": "#/$defs/nonEmpty"},
+    "pack_content_hash": {"$ref": "#/$defs/sha256"},
+    "workload_id": {"$ref": "#/$defs/nonEmpty"},
+    "workload_version": {"$ref": "#/$defs/nonEmpty"},
+    "route_id": {"$ref": "#/$defs/nonEmpty"},
+    "task_id": {"$ref": "#/$defs/nonEmpty"},
+    "trajectory_id": {"$ref": "#/$defs/nonEmpty"},
+    "segment_id": {"$ref": "#/$defs/nonEmpty"},
+    "segment_version": {"$ref": "#/$defs/nonEmpty"},
+    "operational_outcome": {
+      "enum": [
+        "completed",
+        "rejected_quality",
+        "blocked_capacity",
+        "blocked_policy",
+        "abandoned",
+        "failed_tool",
+        "needs_human_rework",
+        "unavailable"
+      ]
+    },
+    "acceptance_decision": {"enum": ["accepted", "rejected", "inconclusive"]},
+    "evidence_availability": {"enum": ["available", "unavailable"]},
+    "reason_code": {"$ref": "#/$defs/nonEmpty"},
+    "sample": {
+      "oneOf": [{"$ref": "#/$defs/sample"}, {"type": "null"}]
+    },
+    "sample_sufficient": {"type": "boolean"},
+    "provenance": {
+      "type": "array",
+      "items": {"$ref": "#/$defs/provenance"}
+    },
+    "quality_scores": {
+      "type": "array",
+      "items": {"$ref": "#/$defs/qualityScore"}
+    },
+    "assertions": {
+      "type": "array",
+      "items": {"$ref": "#/$defs/assertion"}
+    },
+    "evaluated_at": {"$ref": "#/$defs/utcTimestamp"}
+  },
+  "$defs": {
+    "nonEmpty": {"type": "string", "minLength": 1},
+    "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "utcTimestamp": {
+      "type": "string",
+      "format": "date-time",
+      "pattern": "(Z|[+]00:00)$"
+    },
+    "sample": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "sample_id",
+        "sample_set_id",
+        "sample_set_revision",
+        "sample_set_content_hash",
+        "segment_completed_samples",
+        "representative"
+      ],
+      "properties": {
+        "sample_id": {"$ref": "#/$defs/nonEmpty"},
+        "sample_set_id": {"$ref": "#/$defs/nonEmpty"},
+        "sample_set_revision": {"$ref": "#/$defs/nonEmpty"},
+        "sample_set_content_hash": {"$ref": "#/$defs/sha256"},
+        "segment_completed_samples": {"type": "integer", "minimum": 1},
+        "representative": {"type": "boolean"}
+      }
+    },
+    "provenance": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "kind",
+        "evidence_id",
+        "revision",
+        "content_hash",
+        "availability",
+        "reason"
+      ],
+      "properties": {
+        "kind": {
+          "enum": ["trajectory", "output", "ground_truth", "review_material"]
+        },
+        "evidence_id": {"$ref": "#/$defs/nonEmpty"},
+        "revision": {"$ref": "#/$defs/nonEmpty"},
+        "content_hash": {
+          "type": ["string", "null"],
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "availability": {"enum": ["available", "unavailable"]},
+        "reason": {"type": ["string", "null"]}
+      }
+    },
+    "qualityScore": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "metric_id",
+        "evaluator_revision",
+        "evidence_content_hash",
+        "score"
+      ],
+      "properties": {
+        "metric_id": {"$ref": "#/$defs/nonEmpty"},
+        "evaluator_revision": {"$ref": "#/$defs/nonEmpty"},
+        "evidence_content_hash": {"$ref": "#/$defs/sha256"},
+        "score": {
+          "type": "string",
+          "pattern": "^(0([.][0-9]+)?|1([.]0+)?)$"
+        }
+      }
+    },
+    "assertion": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "method",
+        "reviewer_id",
+        "evidence_id",
+        "evidence_revision",
+        "evidence_content_hash",
+        "decision",
+        "reason"
+      ],
+      "properties": {
+        "method": {"enum": ["automated_assertion", "human_assertion"]},
+        "reviewer_id": {"$ref": "#/$defs/nonEmpty"},
+        "evidence_id": {"$ref": "#/$defs/nonEmpty"},
+        "evidence_revision": {"$ref": "#/$defs/nonEmpty"},
+        "evidence_content_hash": {"$ref": "#/$defs/sha256"},
+        "decision": {"enum": ["accepted", "rejected", "inconclusive"]},
+        "reason": {"$ref": "#/$defs/nonEmpty"}
+      }
+    }
+  }
+}

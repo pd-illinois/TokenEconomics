@@ -7,6 +7,7 @@ from http.server import ThreadingHTTPServer
 from pathlib import Path
 
 import studio
+import pytest
 from costgov.governance_decisions import (
     DECISION_CONSTRAINT_SCHEMA_VERSION,
     CandidateConstraintEvidence,
@@ -15,6 +16,336 @@ from costgov.governance_decisions import (
 from costgov.mcp_prediction import McpPredictionError
 from costgov.planning import PlanStore
 from costgov.policy_store import LoadedPolicy
+
+
+@pytest.fixture(autouse=True)
+def _block_external_rag_side_effects(monkeypatch):
+    import rag.agent_batch as batch
+    import rag.agent_batch_measurement as measurement
+
+    for name in ("RAG_BATCH_EVIDENCE_ACCOUNT_URL", "RAG_BATCH_EVIDENCE_CONTAINER"):
+        monkeypatch.delenv(name, raising=False)
+
+    def unexpected_external_call(*args, **kwargs):
+        raise AssertionError("API tests must explicitly mock RAG dispatch, inventory and cloud publication")
+
+    monkeypatch.setattr(batch, "execute", unexpected_external_call)
+    monkeypatch.setattr(batch, "probe_agent", unexpected_external_call)
+    monkeypatch.setattr(measurement, "_blob_publish", unexpected_external_call)
+
+
+def test_rag_api_external_side_effect_tripwires():
+    import rag.agent_batch as batch
+    import rag.agent_batch_measurement as measurement
+
+    for call in (
+        lambda: batch.execute(None),
+        lambda: batch.probe_agent(None),
+        lambda: measurement._blob_publish(None, None, None),
+    ):
+        with pytest.raises(AssertionError, match="explicitly mock"):
+            call()
+
+
+def test_report_run_summary_projects_dates_without_changing_evidence_or_leaking_content():
+    report = {"report_id": "r1", "artifacts": {"runs": [
+        {"id": "known", "status": "completed"},
+        {"id": "foreign", "status": "failed"},
+        {"id": "missing", "status": "failed"},
+    ]}}
+    before = json.dumps(report, sort_keys=True)
+    registry = {
+        "known": {"report_id": "r1", "result": {
+            "started_at": "2026-09-09T11:06:15-04:00", "questions_count": 10,
+            "schema_version": "rag-agent-batch.v2", "execution_status": "completed",
+            "answers": ["PRIVATE"], "metrics": [{"private": "PRIVATE"}],
+        }},
+        "foreign": {"report_id": "r2", "result": {"started_at": "FOREIGN"}},
+    }
+    summaries = studio._report_run_summaries(report, registry)
+    assert summaries[0]["started_at"] == "2026-09-09T11:06:15-04:00"
+    assert summaries[0]["questions_count"] == 10
+    assert "created_at" not in summaries[0]
+    assert "started_at" not in summaries[1] and "started_at" not in summaries[2]
+    assert "PRIVATE" not in json.dumps(summaries)
+    assert json.dumps(report, sort_keys=True) == before
+
+
+def test_portfolio_report_summary_projects_existing_evidence_without_leaking_receipt_content():
+    report = {
+        "report_id": "r1",
+        "artifacts": {
+            "plans": [{"id": "p1"}],
+            "govern_handoffs": [{"id": "h1", "status": "admitted"}],
+            "govern_decisions": [],
+            "runs": [{
+                "id": "run1", "status": "completed", "evaluation_id": "evaluation1",
+                "cloud_status": "published",
+            }],
+            "reconciliations": [{"id": "reconciliation1"}],
+            "learning_proofs": [],
+        },
+    }
+    registry = {
+        "run1": {
+            "report_id": "r1",
+            "result": {
+                "execution_status": "completed",
+                "evidence_classification": "measured",
+                "answers": ["PRIVATE"],
+            },
+        }
+    }
+    receipt = {
+        "receipt_id": "receipt1",
+        "created_at": "2026-09-18T12:00:00+00:00",
+        "prediction": {
+            "provider": "azure_openai",
+            "model": "gpt-4.1-mini",
+            "annual_cost": {"mean": 120.0},
+            "monthly_cost": {"mean": 10.0},
+            "tokens_per_call": {"total": 2400},
+        },
+        "intake": {"description": "PRIVATE"},
+    }
+    plan_store = type(
+        "Plans", (), {"get_receipt": lambda self, plan_id: receipt if plan_id == "p1" else None}
+    )()
+    summary = studio._portfolio_report_summary(report, registry, plan_store)
+    assert summary["classification"] == "read_only_projection"
+    assert summary["readiness"] == {"stage": 5, "stage_count": 6, "label": "Reconciled"}
+    assert summary["counts"]["measured_runs"] == 1
+    assert summary["counts"]["quality_reviewed_runs"] == 1
+    assert summary["economics"]["annual_cost_mean_max"] == 120.0
+    assert summary["attention"][0]["code"] == "learning_evidence_required"
+    assert "PRIVATE" not in json.dumps(summary)
+
+
+def test_portfolio_report_summary_flags_failures_and_never_converts_missing_economics_to_zero():
+    report = {
+        "report_id": "r1",
+        "artifacts": {
+            "plans": [{"id": "p1"}],
+            "govern_handoffs": [{"id": "h1", "status": "blocked"}],
+            "govern_decisions": [],
+            "runs": [{
+                "id": "run1", "status": "failed", "cloud_status": "publication_failed",
+            }],
+            "reconciliations": [],
+            "learning_proofs": [],
+        },
+    }
+    plan_store = type("Plans", (), {"get_receipt": lambda self, plan_id: None})()
+    summary = studio._portfolio_report_summary(report, {}, plan_store)
+    assert summary["status"] == "needs_attention"
+    assert summary["economics"]["annual_cost_mean_max"] is None
+    assert [item["code"] for item in summary["attention"]][:3] == [
+        "publication_failed", "execution_needs_review", "policy_review_blocked",
+    ]
+
+
+def test_rag_connection_uses_fresh_azure_policy_and_selected_receipt(monkeypatch):
+    import rag.agent_batch as batch
+    receipt = {"plan_id": "p1", "receipt_hash": "h1"}
+    loaded = [object(), object()]
+    calls = []
+    monkeypatch.setattr(studio, "_lifecycle_service", lambda: type(
+        "Service", (), {"receipt": lambda self, plan_id: receipt if plan_id == "p1" else None}
+    )())
+    monkeypatch.setattr(studio, "load_policy_from_environment", lambda: loaded.pop(0))
+    monkeypatch.setattr(batch, "connection_status", lambda **kwargs: (
+        calls.append(kwargs) or {"ready": False, "status": "measurement_authorization_missing"}
+    ))
+    server = ThreadingHTTPServer(("127.0.0.1", 0), studio.StudioHandler)
+    thread = threading.Thread(target=server.serve_forever)
+    thread.start()
+    try:
+        connection = HTTPConnection("127.0.0.1", server.server_port)
+        for _ in range(2):
+            connection.request("GET", "/api/rag-batches/connection?plan_id=p1")
+            response = connection.getresponse()
+            assert response.status == 200
+            assert json.loads(response.read())["ready"] is False
+        assert all(call["receipt"] is receipt for call in calls)
+        assert all(call.get("loaded") is not None for call in calls)
+        assert calls[0]["loaded"] is not calls[1]["loaded"]
+    finally:
+        server.shutdown()
+        thread.join()
+
+
+def test_rag_connection_policy_failure_is_safe_and_cannot_authorize(monkeypatch):
+    import rag.agent_batch as batch
+    from costgov.policy_store import PolicyLoadError
+    monkeypatch.setattr(studio, "_lifecycle_service", lambda: type(
+        "Service", (), {"receipt": lambda self, plan_id: {"plan_id": plan_id}}
+    )())
+    def unavailable():
+        raise PolicyLoadError("sensitive policy details")
+    monkeypatch.setattr(studio, "load_policy_from_environment", unavailable)
+    monkeypatch.setattr(batch, "connection_status", lambda **kwargs: pytest.fail("No policy authority"))
+    server = ThreadingHTTPServer(("127.0.0.1", 0), studio.StudioHandler)
+    thread = threading.Thread(target=server.serve_forever)
+    thread.start()
+    try:
+        connection = HTTPConnection("127.0.0.1", server.server_port)
+        connection.request("GET", "/api/rag-batches/connection?plan_id=p1")
+        response = connection.getresponse()
+        payload = json.loads(response.read())
+        assert response.status == 503
+        assert payload["ready"] is False
+        assert payload["code"] == "policy_unavailable"
+        assert "sensitive" not in json.dumps(payload)
+    finally:
+        server.shutdown()
+        thread.join()
+
+
+@pytest.mark.parametrize("guard", ["missing_csrf", "wrong_origin", "operational_only"])
+def test_rag_measurement_requires_csrf_and_separate_evaluation_authority(monkeypatch, guard):
+    import rag.agent_batch as batch
+    calls = []
+    monkeypatch.setenv("TOKENGOV_EVALUATION_ALLOW_LOCAL", "false" if guard == "operational_only" else "true")
+    monkeypatch.setenv("TOKENGOV_OPERATIONAL_ALLOW_LOCAL", "true")
+    monkeypatch.delenv("TOKENGOV_LIFECYCLE_AUTHENTICATED_INGRESS", raising=False)
+    monkeypatch.setattr(batch, "execute", lambda *args: calls.append(args))
+    server = ThreadingHTTPServer(("127.0.0.1", 0), studio.StudioHandler)
+    thread = threading.Thread(target=server.serve_forever)
+    thread.start()
+    try:
+        origin = f"http://127.0.0.1:{server.server_port}"
+        headers = {"Content-Type": "application/json", "Origin": origin,
+                   "X-TokenGov-CSRF": studio._lifecycle_request_token}
+        if guard == "missing_csrf":
+            headers.pop("X-TokenGov-CSRF")
+        elif guard == "wrong_origin":
+            headers["Origin"] = "https://untrusted.example"
+        connection = HTTPConnection("127.0.0.1", server.server_port)
+        connection.request("POST", "/api/plans/p1/rag-batches",
+                           json.dumps({"questions": ["Question?"], "request_id": "r1"}), headers)
+        response = connection.getresponse()
+        assert response.status == 403
+        assert json.loads(response.read())["code"] == "lifecycle_unauthorized"
+        assert calls == []
+    finally:
+        server.shutdown()
+        thread.join()
+
+
+@pytest.mark.parametrize("execution_status,cloud_status", [
+    ("blocked", "not_published_no_executed_usage"),
+    ("failed_or_partial", "failed"),
+    ("completed", "published"),
+])
+def test_rag_measurement_report_link_preserves_execution_and_storage_states(
+        monkeypatch, execution_status, cloud_status):
+    import rag.agent_batch as batch
+    calls, artifacts = [], []
+    service, loaded = object(), object()
+    result = {
+        "schema_version": "rag-agent-batch.v2", "run_id": "r1", "report_id": "report1",
+        "plan_id": "p1", "prediction": {"content_hash": "h1"}, "execution_status": execution_status,
+        "metrics": [], "acceptance_status": "not_evaluated",
+        "evidence": {"location": "studio_runs/r1/result.json",
+                     "status": "persisted_locally_cloud_pending",
+                     "cloud_status": "publication_tracked_separately"},
+    }
+    monkeypatch.setenv("TOKENGOV_EVALUATION_ALLOW_LOCAL", "true")
+    monkeypatch.setattr(studio, "_lifecycle_service", lambda: service)
+    monkeypatch.setattr(studio, "load_policy_from_environment", lambda: loaded)
+    monkeypatch.setattr(batch, "execute", lambda *args: calls.append(args) or result)
+    monkeypatch.setattr(batch, "publication_status", lambda *args: {"status": cloud_status})
+    monkeypatch.setattr(studio, "ReportStore", lambda *args: type(
+        "Reports", (), {"add_artifact": lambda self, *args: artifacts.append(args)}
+    )())
+    server = ThreadingHTTPServer(("127.0.0.1", 0), studio.StudioHandler)
+    thread = threading.Thread(target=server.serve_forever)
+    thread.start()
+    try:
+        connection = HTTPConnection("127.0.0.1", server.server_port)
+        payload = {"questions": ["Never dispatch this fixture"], "request_id": "r1"}
+        connection.request("POST", "/api/plans/p1/rag-batches", json.dumps(payload), {
+            "Content-Type": "application/json",
+            "Origin": f"http://127.0.0.1:{server.server_port}",
+            "X-TokenGov-CSRF": studio._lifecycle_request_token,
+        })
+        response = connection.getresponse()
+        assert response.status == 201
+        assert json.loads(response.read()) == result
+        assert calls[0][:5] == (service, "p1", payload, loaded, "local-operator")
+        artifact = artifacts[0][2]
+        assert artifact["status"] == execution_status
+        assert artifact["cloud_status"] == cloud_status
+        assert artifact["evidence_status"] == "persisted_locally_cloud_pending"
+        assert artifact["plan_id"] == "p1" and artifact["receipt_hash"] == "h1"
+        assert "questions" not in artifact
+    finally:
+        server.shutdown()
+        thread.join()
+
+
+def test_rag_publication_endpoint_is_read_only_and_preserves_cloud_failures(monkeypatch):
+    import rag.agent_batch as batch
+    calls = []
+    monkeypatch.setattr(studio, "_read_registry", lambda: {
+        "r1": {"result": {"schema_version": "rag-agent-batch.v2"}}
+    })
+    monkeypatch.setattr(studio, "_lifecycle_service", lambda: object())
+    monkeypatch.setattr(batch, "execute", lambda *args: calls.append("execute"))
+    monkeypatch.setattr(batch, "publish_result", lambda *args: calls.append("publish"))
+    status = {"schema_version": "rag-batch-publication.v1", "run_id": "r1",
+              "status": "publication_failed", "content_hash": "a" * 64}
+    monkeypatch.setattr(batch, "publication_status", lambda *args: status)
+    server = ThreadingHTTPServer(("127.0.0.1", 0), studio.StudioHandler)
+    thread = threading.Thread(target=server.serve_forever)
+    thread.start()
+    try:
+        connection = HTTPConnection("127.0.0.1", server.server_port)
+        connection.request("GET", "/api/rag-batches/r1/publication")
+        response = connection.getresponse()
+        assert response.status == 200
+        assert json.loads(response.read()) == status
+        connection.request("GET", "/api/rag-batches/missing/publication")
+        response = connection.getresponse()
+        assert response.status == 404
+        response.read()
+        assert calls == []
+    finally:
+        server.shutdown()
+        thread.join()
+
+
+@pytest.mark.parametrize("endpoint", [
+    "/api/runs/r1/observe", "/api/plans/p1/run-preview/r1", "/api/plans/p1/attachments",
+])
+def test_metrics_only_batch_is_not_parsed_as_conventional_execution(monkeypatch, endpoint):
+    monkeypatch.setenv("TOKENGOV_EVALUATION_ALLOW_LOCAL", "true")
+    monkeypatch.setattr(studio, "_read_registry", lambda: {
+        "r1": {"status": "completed", "result": {"schema_version": "rag-agent-batch.v2"}}
+    })
+    calls = []
+    monkeypatch.setattr(studio, "load_observe_economics", lambda *args: calls.append("observe"))
+    monkeypatch.setattr(studio, "_lifecycle_service", lambda: calls.append("lifecycle"))
+    server = ThreadingHTTPServer(("127.0.0.1", 0), studio.StudioHandler)
+    thread = threading.Thread(target=server.serve_forever)
+    thread.start()
+    try:
+        connection = HTTPConnection("127.0.0.1", server.server_port)
+        if endpoint.endswith("/attachments"):
+            connection.request("POST", endpoint, json.dumps({"run_id": "r1"}), {
+                "Content-Type": "application/json",
+                "Origin": f"http://127.0.0.1:{server.server_port}",
+                "X-TokenGov-CSRF": studio._lifecycle_request_token,
+            })
+        else:
+            connection.request("GET", endpoint)
+        response = connection.getresponse()
+        assert response.status == 409
+        assert json.loads(response.read())["code"] == "measurement_only_no_acceptance"
+        assert calls == []
+    finally:
+        server.shutdown()
+        thread.join()
 
 
 def _analysis(confidence: str = "high", clarifications: list[str] | None = None) -> dict:
@@ -52,6 +383,27 @@ def _confirm_analysis(parameters: dict) -> dict:
             "tools": ["file_search"],
         },
     }
+
+
+def test_liveness_endpoint_is_independent_of_storage_and_azure_policy():
+    server = ThreadingHTTPServer(("127.0.0.1", 0), studio.StudioHandler)
+    thread = threading.Thread(target=server.serve_forever)
+    thread.start()
+    try:
+        connection = HTTPConnection("127.0.0.1", server.server_port)
+        connection.request("GET", "/livez")
+        response = connection.getresponse()
+        payload = json.loads(response.read())
+
+        assert response.status == 200
+        assert payload == {
+            "status": "healthy",
+            "service": "tokeneconomics-studio",
+            "evidence_scope": "research_prototype",
+        }
+    finally:
+        server.shutdown()
+        thread.join()
 
 
 def test_analysis_endpoint_returns_predictor_evidence(monkeypatch):
@@ -218,7 +570,31 @@ def test_report_can_be_saved_and_reopened(tmp_path, monkeypatch):
         thread.join()
 
 
-def test_run_endpoint_returns_queued_run(tmp_path, monkeypatch):
+def test_report_directory_returns_structured_503_when_state_store_is_unavailable(
+    monkeypatch,
+):
+    def unavailable(_store):
+        raise OSError(112, "Host is down")
+
+    monkeypatch.setattr(studio.ReportStore, "list", unavailable)
+    server = ThreadingHTTPServer(("127.0.0.1", 0), studio.StudioHandler)
+    thread = threading.Thread(target=server.serve_forever)
+    thread.start()
+    try:
+        connection = HTTPConnection("127.0.0.1", server.server_port)
+        connection.request("GET", "/api/reports")
+        response = connection.getresponse()
+        payload = json.loads(response.read())
+
+        assert response.status == 503
+        assert payload["code"] == "state_store_unavailable"
+        assert "Host is down" in payload["error"]
+    finally:
+        server.shutdown()
+        thread.join()
+
+
+def test_run_endpoint_does_not_dispatch_from_historical_admission(tmp_path, monkeypatch):
     monkeypatch.setattr(studio, "REGISTRY_PATH", tmp_path / "registry.json")
     monkeypatch.setattr(studio, "REPORT_STORE_PATH", tmp_path / "reports")
     monkeypatch.setattr(studio, "PLAN_STORE_PATH", tmp_path / "plans")
@@ -257,11 +633,9 @@ def test_run_endpoint_returns_queued_run(tmp_path, monkeypatch):
         response = connection.getresponse()
         payload = json.loads(response.read())
 
-        assert response.status == 202
-        assert payload["status"] == "queued"
-        assert payload["report_id"] == report["report_id"]
-        assert payload["binding"]["policy_etag"] == "etag-1"
-        assert studio._read_registry()[payload["run_id"]]["run_id"] == payload["run_id"]
+        assert response.status == 409
+        assert payload["code"] == "execution_adapter_unavailable"
+        assert studio._read_registry() == {}
     finally:
         server.shutdown()
         thread.join()
@@ -332,6 +706,7 @@ def test_observe_endpoint_is_read_only_and_requires_completed_run(
 def test_govern_decision_endpoint_persists_comparison_without_policy_mutation(
     tmp_path, monkeypatch
 ):
+    monkeypatch.setenv("TOKENGOV_EVALUATION_ALLOW_LOCAL", "true")
     registry_path = tmp_path / "studio_runs" / "registry.json"
     report_path = tmp_path / "reports"
     evidence_path = tmp_path / "governance"
@@ -417,7 +792,7 @@ def test_govern_decision_endpoint_persists_comparison_without_policy_mutation(
             "POST",
             "/api/govern/decisions",
             json.dumps({"run_ids": ["run-expensive", "run-cheap"]}),
-            {"Content-Type": "application/json"},
+            {"Content-Type": "application/json", "Origin": f"http://127.0.0.1:{server.server_port}", "X-TokenGov-CSRF": studio._lifecycle_request_token},
         )
         response = connection.getresponse()
         decision = json.loads(response.read())
@@ -452,11 +827,30 @@ def test_studio_observe_ui_shows_denominators_native_meters_and_segments():
     assert "Native meter consumption" in html
     assert 'dimensionTable("Segments"' in html
     assert "Uncovered cost components" in html
-    assert "95% breach upper bound" in html
-    assert "Evaluate completed runs" in html
+    assert 'id="lifecycle-epsilon"' in html
+    assert "Evaluate persisted evidence (no spending)" in html
+    assert "Aggregate performance never overrides a failing segment." in html
+    assert 'class="donut"' in html
+    assert 'progressBar("Acceptance"' in html
+    assert "Native meter evidence" in html
+
+
+def test_studio_keeps_forecast_separate_from_legacy_govern_handoff():
+    html = (Path(__file__).resolve().parents[1] / "studio.html").read_text(
+        encoding="utf-8"
+    )
+    render_start = html.index("function renderPlan(plan)")
+    render_end = html.index("function renderCommercialPlan(plan)", render_start)
+    render_plan = html[render_start:render_end]
+
+    assert "bindGovernHandoff" not in html
+    assert "handoffToGovern" not in html
+    assert 'data-workflow-view="policy"' in html
+    assert "Govern admission opens in v2" not in render_plan
 
 
 def test_plan_endpoint_persists_immutable_receipt_and_govern_handoff(tmp_path, monkeypatch):
+    monkeypatch.setattr(studio, "route_requires_infrastructure", lambda _route: False)
     monkeypatch.setattr(studio, "PLAN_STORE_PATH", tmp_path / "plans")
     monkeypatch.setattr(studio, "REPORT_STORE_PATH", tmp_path / "reports")
     monkeypatch.setattr(studio, "load_policy_from_environment", _loaded_policy)
@@ -490,7 +884,10 @@ def test_plan_endpoint_persists_immutable_receipt_and_govern_handoff(tmp_path, m
                 "cost_per_call": {"mean": 0.013},
                 "monthly_cost": {"mean": 12.0},
             },
-            "infrastructure": {"status": "not_estimated", "message": "Separate ledger"},
+            "infrastructure": {
+                "status": "estimated",
+                "message": "Versioned test estimate",
+            },
         },
     )
     server = ThreadingHTTPServer(("127.0.0.1", 0), studio.StudioHandler)
@@ -520,6 +917,47 @@ def test_plan_endpoint_persists_immutable_receipt_and_govern_handoff(tmp_path, m
                         "turn_weight": 1,
                     },
                 ],
+                "govern_evidence": {
+                    requirement: {
+                        "state": "satisfied",
+                        "authority": "test-authority",
+                        "evidence_revision": "test-evidence.v1",
+                        "content_hash": "a" * 64,
+                        "reason": None,
+                    }
+                    for requirement in (
+                        "released_model",
+                        "verified_pricing",
+                        "infrastructure_coverage",
+                        "acceptance_rule",
+                    )
+                },
+                "govern_constraints": {
+                    "task_contract": "task.v1",
+                    "segment_contract": "segment.v1",
+                    "acceptance_contract": "acceptance-rule.v1",
+                    "period": "monthly",
+                    "expected_complete_task_cost": 0.013,
+                    "acceptance": {
+                        "segments": [{
+                            "segment_id": "default",
+                            "outcome": "accepted",
+                            "sample_count": 30,
+                            "minimum_samples": 30,
+                        }]
+                    },
+                    "tail_risk": {
+                        "budget": 0.10,
+                        "epsilon": 0.05,
+                        "breach_probability": 0.01,
+                        "evidence_classification": "calibrated",
+                    },
+                    "cost_coverage": {
+                        "applicable_cost": 0.013,
+                        "priced_cost": 0.013,
+                        "unpriced_cost_decision_bounded": False,
+                    },
+                },
             }),
         })
         connection.request(
@@ -528,6 +966,14 @@ def test_plan_endpoint_persists_immutable_receipt_and_govern_handoff(tmp_path, m
         response = connection.getresponse()
         payload = json.loads(response.read())
 
+        assert response.status == 400
+        assert "browser-supplied governance evidence" in payload["error"]
+        clean_request = json.loads(body)
+        clean_request["parameters"].pop("govern_evidence")
+        clean_request["parameters"].pop("govern_constraints")
+        connection.request("POST", "/api/plan", json.dumps(clean_request), {"Content-Type": "application/json"})
+        response = connection.getresponse()
+        payload = json.loads(response.read())
         assert response.status == 201
         assert payload["report_id"] == report["report_id"]
         assert payload["description"] == "RAG for 1000 users"
@@ -583,11 +1029,10 @@ def test_plan_endpoint_persists_immutable_receipt_and_govern_handoff(tmp_path, m
         assert handoff["handoff_id"] != "legacy-handoff"
         assert handoff["receipt_hash"] == payload["receipt_hash"]
         assert handoff["prediction_id"] == 42
-        assert handoff["status"] == "admitted"
+        assert handoff["status"] == "blocked"
         assert handoff["economics"]["monthly_cost"]["mean"] == 12.0
-        assert handoff["policy"]["policy_id"] == "tokengov-production"
-        assert handoff["policy"]["provenance"]["etag"] == "etag-1"
-        assert all(check["passed"] for check in handoff["checks"])
+        assert handoff["policy"] is None
+        assert any(not check["passed"] for check in handoff["checks"])
         assert receipt_path.read_bytes() == receipt_before
 
         connection.request("GET", f"/api/reports/{report['report_id']}")
@@ -728,6 +1173,7 @@ def test_plan_endpoint_persists_clarification_without_calling_predictor(tmp_path
 
 
 def test_clarification_reply_completes_the_same_plan_session(tmp_path, monkeypatch):
+    monkeypatch.setattr(studio, "route_requires_infrastructure", lambda _route: False)
     monkeypatch.setattr(studio, "PLAN_STORE_PATH", tmp_path / "plans")
     monkeypatch.setattr(studio, "REPORT_STORE_PATH", tmp_path / "reports")
     monkeypatch.setattr(studio.McpPredictorClient, "analyze", lambda self, description: _analysis())
@@ -777,6 +1223,11 @@ def test_clarification_reply_completes_the_same_plan_session(tmp_path, monkeypat
 def test_policy_api_exposes_effective_policy_and_creates_review_only_draft(tmp_path, monkeypatch):
     monkeypatch.setattr(studio, "POLICY_CHANGE_STORE_PATH", tmp_path / "policy_changes")
     monkeypatch.setattr(studio, "load_policy_from_environment", _loaded_policy)
+    monkeypatch.setenv(
+        "TOKENGOV_APPROVAL_URL",
+        "https://github.com/example/repo/actions/workflows/publish-policy.yml",
+    )
+    monkeypatch.setenv("TOKENGOV_APPROVAL_ENVIRONMENT", "policy-production")
     server = ThreadingHTTPServer(("127.0.0.1", 0), studio.StudioHandler)
     thread = threading.Thread(target=server.serve_forever)
     thread.start()
@@ -789,15 +1240,26 @@ def test_policy_api_exposes_effective_policy_and_creates_review_only_draft(tmp_p
         assert effective["policy"]["version"] == "2026-07-20.1"
         assert effective["provenance"]["etag"] == "etag-1"
         assert effective["change_control"]["browser_write_permitted"] is False
+        assert effective["change_control"]["approval_url"].endswith(
+            "/actions/workflows/publish-policy.yml"
+        )
+        assert (
+            effective["change_control"]["approval_environment"]
+            == "policy-production"
+        )
         assert len(effective["content_hash"]) == 64
 
         connection.request(
             "POST",
             "/api/policy-change-requests",
             json.dumps({
+                "supersedes_change_id": None,
                 "reason": "Reduce the maximum admitted unit cost.",
                 "proposed_version": "2026-07-20.2",
-                "changes": {"admission.max_model_cost_per_call_usd": 0.015},
+                "changes": {
+                    "admission.allowed_models": ["gpt-4.1", "gpt-5.6-luna"],
+                    "admission.max_model_cost_per_call_usd": 0.015,
+                },
             }),
             {"Content-Type": "application/json"},
         )
@@ -806,6 +1268,10 @@ def test_policy_api_exposes_effective_policy_and_creates_review_only_draft(tmp_p
         assert proposal_response.status == 201
         assert proposal["status"] == "draft"
         assert proposal["publication"]["azure_write_permitted"] is False
+        assert proposal["proposed_policy"]["admission"]["allowed_models"] == [
+            "gpt-4.1",
+            "gpt-5.6-luna",
+        ]
 
         connection.request(
             "POST",
@@ -824,6 +1290,113 @@ def test_policy_api_exposes_effective_policy_and_creates_review_only_draft(tmp_p
         list_response = connection.getresponse()
         listed = json.loads(list_response.read())
         assert listed["change_requests"][0]["change_id"] == proposal["change_id"]
+
+        connection.request(
+            "DELETE", f"/api/policy-change-requests/{proposal['change_id']}"
+        )
+        delete_response = connection.getresponse()
+        deleted = json.loads(delete_response.read())
+        assert delete_response.status == 200
+        assert deleted["change_id"] == proposal["change_id"]
+        assert deleted["status"] == "deleted"
+
+        connection.request("GET", "/api/policy-change-requests")
+        empty_response = connection.getresponse()
+        assert json.loads(empty_response.read())["change_requests"] == []
+    finally:
+        server.shutdown()
+        thread.join()
+
+
+def test_policy_review_submission_creates_pending_pull_request_event(
+    tmp_path, monkeypatch
+):
+    monkeypatch.setattr(studio, "POLICY_CHANGE_STORE_PATH", tmp_path / "policy_changes")
+    monkeypatch.setattr(studio, "load_policy_from_environment", _loaded_policy)
+    monkeypatch.setenv("TOKENGOV_REVIEW_ALLOW_LOCAL", "true")
+
+    class ReviewClient:
+        def create_review(self, proposal):
+            return {
+                "provider": "github",
+                "repository": "example/repo",
+                "branch": f"tokengov/{proposal['change_id'].lower()}",
+                "policy_path": "data/policies/tokengov-production.2026-07-20.2.json",
+                "review_manifest_path": (
+                    f"data/policy_reviews/{proposal['change_id'].lower()}.json"
+                ),
+                "pull_request_number": 42,
+                "pull_request_url": "https://github.com/example/repo/pull/42",
+                "state": "open",
+            }
+
+    monkeypatch.setattr(studio, "_policy_review_client", lambda: ReviewClient())
+    store = studio.PolicyChangeStore(studio.POLICY_CHANGE_STORE_PATH)
+    proposal = store.create(
+        {
+            "reason": "Review routing change.",
+            "proposed_version": "2026-07-20.2",
+            "changes": {"execution.routing_mode": "cost"},
+        },
+        _loaded_policy(),
+    )
+    server = ThreadingHTTPServer(("127.0.0.1", 0), studio.StudioHandler)
+    thread = threading.Thread(target=server.serve_forever)
+    thread.start()
+    try:
+        connection = HTTPConnection("127.0.0.1", server.server_port)
+        connection.request(
+            "POST",
+            f"/api/policy-change-requests/{proposal['change_id']}/submit",
+            headers={
+                "Host": f"127.0.0.1:{server.server_port}",
+                "Origin": f"http://127.0.0.1:{server.server_port}",
+                "X-TokenGov-CSRF": studio._policy_review_request_token,
+            },
+        )
+        response = connection.getresponse()
+        result = json.loads(response.read())
+
+        assert response.status == 201
+        assert result["status"] == "pending"
+        assert result["review"]["pull_request_number"] == 42
+        assert result["events"][0]["status"] == "pending"
+
+        connection.request(
+            "DELETE", f"/api/policy-change-requests/{proposal['change_id']}"
+        )
+        delete_response = connection.getresponse()
+        delete_result = json.loads(delete_response.read())
+        assert delete_response.status == 200
+        assert delete_result["status"] == "retired"
+
+        connection.request("GET", "/api/policy-change-requests")
+        list_response = connection.getresponse()
+        assert json.loads(list_response.read())["change_requests"] == []
+    finally:
+        server.shutdown()
+        thread.join()
+
+
+def test_policy_review_submission_fails_closed_without_authenticated_ingress(
+    tmp_path, monkeypatch
+):
+    monkeypatch.setattr(studio, "POLICY_CHANGE_STORE_PATH", tmp_path / "policy_changes")
+    monkeypatch.delenv("TOKENGOV_REVIEW_ALLOW_LOCAL", raising=False)
+    monkeypatch.delenv("TOKENGOV_REVIEW_AUTHENTICATED_INGRESS", raising=False)
+    server = ThreadingHTTPServer(("127.0.0.1", 0), studio.StudioHandler)
+    thread = threading.Thread(target=server.serve_forever)
+    thread.start()
+    try:
+        connection = HTTPConnection("127.0.0.1", server.server_port)
+        connection.request(
+            "POST", "/api/policy-change-requests/PCR-NOTFOUND/submit"
+        )
+        response = connection.getresponse()
+        result = json.loads(response.read())
+
+        assert response.status == 403
+        assert result["code"] == "policy_review_unauthorized"
     finally:
         server.shutdown()
         thread.join()

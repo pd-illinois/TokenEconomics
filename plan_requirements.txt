@@ -1,2 +1,3 @@
 # Install the allowlisted FutureTokenPredictor package and its declared runtime closure.
 ./FutureTokenPredictor
+mcp>=1.13.0,<2

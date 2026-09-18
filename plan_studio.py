@@ -15,12 +15,24 @@ from costgov.commercial_planning import (
     attach_foundry_meter_stack,
     build_commercial_result,
 )
+from costgov.azure_infrastructure import (
+    AzureInfrastructureError,
+    build_infrastructure_forecast,
+    confirm_infrastructure_forecast,
+    route_requires_infrastructure,
+)
 from costgov.consumption_models import consumption_catalog
 from costgov.mcp_prediction import McpPredictionError, McpPredictorClient
 from costgov.planning import PlanStore
 from costgov.reports import ReportStore
 
 ROOT = Path(__file__).resolve().parent
+try:
+    from dotenv import load_dotenv
+
+    load_dotenv(ROOT / ".env")
+except ImportError:
+    pass
 PLAN_STORE_PATH = ROOT / "studio_plans"
 REPORT_STORE_PATH = ROOT / "studio_reports"
 MAX_REQUEST_BYTES = 256_000
@@ -34,6 +46,13 @@ class PlanStudioHandler(SimpleHTTPRequestHandler):
 
     def do_GET(self):
         path = urlparse(self.path).path
+        if path == "/api/lifecycle":
+            return self._json({
+                "schema_version": "studio-lifecycle-capabilities.v1",
+                "release": "forecast_only", "read_only_import": False,
+                "bounded_evaluation": False, "live_execution": False,
+                "policy_publication": False,
+            })
         if path == "/":
             self.path = "/studio.html"
             return super().do_GET()
@@ -52,6 +71,9 @@ class PlanStudioHandler(SimpleHTTPRequestHandler):
         if path == "/api/plans":
             return self._json({"plans": PlanStore(PLAN_STORE_PATH).list()})
         if path.startswith("/api/plans/"):
+            parts = path.strip("/").split("/")
+            if len(parts) != 3 and not (len(parts) == 4 and parts[3] == "receipt"):
+                return self._json({"error": "not_found", "code": "forecast_only_release"}, 404)
             plan_id = self._resource_id(path, 3)
             store = PlanStore(PLAN_STORE_PATH)
             resource = store.get_receipt(plan_id) if path.endswith("/receipt") else store.get(plan_id)
@@ -106,6 +128,8 @@ class PlanStudioHandler(SimpleHTTPRequestHandler):
             parameters = payload.get("parameters") or {}
             if not isinstance(parameters, dict):
                 raise ValueError("parameters must be an object")
+            if any(key in parameters for key in ("govern_evidence", "govern_constraints")):
+                raise ValueError("browser-supplied governance evidence is not accepted")
             report_id = str(payload.get("report_id", "")).strip()
             if not report_id or not report_store.get(report_id):
                 return self._json({"error": "valid report_id is required"}, 400)
@@ -190,6 +214,28 @@ class PlanStudioHandler(SimpleHTTPRequestHandler):
                     )
             else:
                 result = attach_foundry_meter_stack(token_result)
+            if route_requires_infrastructure(route):
+                draft = session.get("infrastructure_draft")
+                if parameters.get("infrastructure_confirmed") is True:
+                    if not draft:
+                        raise ValueError(
+                            "infrastructure must be reviewed before confirmation"
+                        )
+                    result["infrastructure"] = confirm_infrastructure_forecast(
+                        draft,
+                        str(parameters.get("infrastructure_forecast_hash") or ""),
+                    )
+                else:
+                    draft = build_infrastructure_forecast(description, parameters)
+                    session = store.require_infrastructure_review(
+                        session, draft, parameters
+                    )
+                    report_store.add_artifact(
+                        report_id,
+                        "plans",
+                        {"id": session["plan_id"], "status": session["status"]},
+                    )
+                    return self._json(session, 201)
             return self._complete_plan(
                 store, report_store, session, report_id, result
             )
@@ -209,6 +255,15 @@ class PlanStudioHandler(SimpleHTTPRequestHandler):
         except McpPredictionError as exc:
             if session:
                 store.fail(session, str(exc))
+            return self._json({"status": "failed", "error": str(exc)}, 502)
+        except AzureInfrastructureError as exc:
+            if session:
+                return self._clarify(
+                    store,
+                    report_store,
+                    session,
+                    [{"field": "azure_infrastructure", "question": str(exc)}],
+                )
             return self._json({"status": "failed", "error": str(exc)}, 502)
         except OSError:
             return self._json({"status": "failed", "error": "Plan persistence failed"}, 507)

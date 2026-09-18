@@ -44,7 +44,7 @@ resource tokenGovPolicy 'Microsoft.AppConfiguration/configurationStores/keyValue
 
 var appConfigDataReaderRoleId = subscriptionResourceId(
   'Microsoft.Authorization/roleDefinitions',
-  '516239f1-63e1-4d78-a4de-a74fb236a071c'
+  '516239f1-63e1-4d78-a4de-a74fb236a071'
 )
 var appConfigDataOwnerRoleId = subscriptionResourceId(
   'Microsoft.Authorization/roleDefinitions',
