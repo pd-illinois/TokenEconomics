@@ -1,0 +1,58 @@
+{
+  "admission": {
+    "allowed_models": [
+      "gpt-5.6-luna",
+      "gpt-4.1-mini"
+    ],
+    "allowed_providers": [
+      "azure_openai"
+    ],
+    "max_model_cost_per_call_usd": 0.02,
+    "require_infrastructure_estimate": true,
+    "require_pricing_verified": true
+  },
+  "effective_from": "2026-08-31T00:00:00Z",
+  "execution": {
+    "budget": {
+      "hard_cap_action": "deny",
+      "per_tenant_usd_per_run": 5
+    },
+    "evaluation": {
+      "consecutive_breaches": 2,
+      "min_quality": 0.8,
+      "min_segment_samples": 60
+    },
+    "routing_mode": "balanced",
+    "semantic_cache": {
+      "enabled": false,
+      "score_threshold": 0.83
+    }
+  },
+  "measurement": {
+    "schema_version": "workload-measurement-policy.v2",
+    "mode": "measurement_only",
+    "workload_scope": "studio_campaigns",
+    "max_questions": 25,
+    "max_output_tokens": 1024,
+    "max_elapsed_seconds": 600,
+    "observed_model_cost_stop_usd": 0.25,
+    "max_campaign_repetitions": 100,
+    "max_campaign_questions": 2500,
+    "max_evaluation_runs": 100,
+    "max_evaluation_rows_per_run": 25,
+    "campaign_observed_model_cost_stop_usd": 25,
+    "require_explicit_campaign_id": true,
+    "expires_at": "2026-10-17T15:09:21.310+00:00",
+    "acknowledge_incomplete_costs": true,
+    "hard_spend_cap_guaranteed": false,
+    "operational_promotion": false
+  },
+  "mutation": {
+    "allowed_knobs": [],
+    "mode": "manual"
+  },
+  "policy_id": "tokengov-te003-live-proof",
+  "schema_version": "1.0",
+  "status": "active",
+  "version": "2026-09-18.campaign.1"
+}
