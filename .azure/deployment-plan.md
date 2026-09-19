@@ -1,6 +1,6 @@
 # TokenEconomics Studio Container Apps Deployment Plan
 
-> **Status:** Validation Blocked
+> **Status:** Deployed - governance-owner action remains
 
 ## September 18 accumulated Studio release
 
@@ -135,13 +135,55 @@ billing reconciliation, and predictor learning.
   `ststudiojf6s7lqws6o4` currently has `allowSharedKeyAccess=false`, while the
   Container Apps environment storage is an Azure Files key-based mount.
 
-The deployment is not validated and must not proceed. Restoring the account
-setting again would be a security/governance mutation and would not solve the
-known recurring automation reversal. The governance automation owner must make
-the active account-scoped exception durable, or an approved replacement storage
-mount design must be prepared and validated. After the existing revision is
-ready and the preservation baseline can be read, repeat Azure validation before
-deploying the prepared digest.
+The user explicitly approved temporarily restoring shared-key access under the
+existing October 1 exception. The account setting was restored and the existing
+revision restarted. The replacement replica is ready with zero restarts;
+`/livez`, `/health`, `/readyz`, `/`, and `/api/reports` return HTTP 200, and
+persistent storage reports `storage_io_verified`.
+
+The cloud store contains its existing historical report
+`RPT-20260908-CA037FE9`; the local campaign report
+`RPT-20260918-302EDAF6` is intentionally not migrated by an image update.
+The old image returns 503 for the published v2 policy because it only validates
+`workload-measurement-policy.v1`; the prepared image contains the tested
+backward-compatible v2 validator and is expected to restore the policy view.
+
+An exact live-template clone using Container Apps API `2025-07-01`, with only
+the image digest and revision suffix changed, passed
+`az deployment group validate` with `provisioningState: Succeeded`. Validation
+is complete for the immutable digest above. The governance automation owner
+must still make the approved storage exception durable before October 1;
+deployment does not resolve that external dependency.
+
+### September 19 deployment result
+
+- GitHub source commit `ee94205` was pushed to
+  `origin/tokengov/pcr-169289ebca`.
+- Container App revision:
+  `ca-tokeneconomics-studio--accumulated-20260918`.
+- Deployed immutable image:
+  `crtokeneconomicsjf6s7lqw.azurecr.io/tokeneconomics-studio@sha256:01beb767ed6b53f9f90b075d332dba3556f6a68ddb2ff614bed039ad6c95eca5`.
+- Provisioning succeeded; the revision is Healthy, ready, running with one
+  replica, zero restarts, and 100% traffic.
+- `/`, `/health`, `/livez`, `/readyz`, `/api/reports`,
+  `/api/reports/RPT-20260908-CA037FE9`, and `/api/policy` return HTTP 200.
+- The policy view now loads version `2026-09-18.campaign.1`, content hash
+  `f66271ac192a008e83f51cdafc2eaa6d21ca698b24b2fcb0264512918ad33d1e`,
+  and Azure App Configuration ETag
+  `1c72Cdf_wHabwrCb7UarYctyFlgNFVTfWZDBKTEqku0`.
+- The existing cloud report remains available. The local September 18 report
+  and campaign were not migrated or resumed.
+- The local campaign remains stopped at `repetition_incomplete`, with
+  `$0.0111568` response-model allocation, no quality record, pending human
+  review, and no operational promotion.
+- Live managed-identity roles are unchanged: scoped `AcrPull`,
+  `App Configuration Data Reader`, and cost-export
+  `Storage Blob Data Reader`.
+
+The application release is deployed, but storage availability is not durable:
+shared-key access was temporarily restored under the approved exception after
+governance reversed it again. The governance automation owner must preserve the
+exception through October 1 or approve a replacement persistence design.
 
 Generated: 2026-09-01T16:51:28Z
 
