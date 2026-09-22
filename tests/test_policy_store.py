@@ -1,6 +1,8 @@
 from __future__ import annotations
 
 import json
+from copy import deepcopy
+from pathlib import Path
 from types import SimpleNamespace
 
 import pytest
@@ -11,8 +13,11 @@ from costgov.policy_store import (
     PolicyLoadError,
     admit_receipt,
     load_policy_from_environment,
+    validate_measurement_policy,
     validate_policy,
 )
+
+ROOT = Path(__file__).resolve().parents[1]
 
 
 def _policy() -> dict:
@@ -54,6 +59,102 @@ def test_policy_validation_rejects_invalid_evaluation_control():
 
     with pytest.raises(PolicyLoadError, match="min_quality"):
         validate_policy(policy)
+
+
+def test_measurement_policy_v1_remains_compatible():
+    policy = json.loads(
+        (
+            ROOT
+            / "data"
+            / "policies"
+            / "tokengov-te003-live-proof.2026-09-17.measurement.1.json"
+        ).read_text(encoding="utf-8")
+    )
+
+    assert validate_policy(policy)["measurement"]["schema_version"] == (
+        "workload-measurement-policy.v1"
+    )
+
+
+def test_exact_merged_campaign_policy_is_valid_v2_fixture():
+    policy = json.loads(
+        (
+            ROOT
+            / "data"
+            / "policies"
+            / "tokengov-te003-live-proof.2026-09-18.campaign.1.json"
+        ).read_text(encoding="utf-8")
+    )
+
+    assert validate_policy(policy)["measurement"]["schema_version"] == (
+        "workload-measurement-policy.v2"
+    )
+
+
+@pytest.mark.parametrize(
+    ("field", "value"),
+    [
+        ("max_questions", 26),
+        ("max_output_tokens", 4097),
+        ("max_elapsed_seconds", 601),
+        ("max_campaign_repetitions", 101),
+        ("max_campaign_questions", 2501),
+        ("max_evaluation_runs", 101),
+        ("max_evaluation_rows_per_run", 26),
+        ("campaign_observed_model_cost_stop_usd", 25.01),
+        ("require_explicit_campaign_id", False),
+    ],
+)
+def test_measurement_policy_v2_fails_closed_on_bounds(field, value):
+    measurement = _campaign_measurement()
+    measurement[field] = value
+
+    with pytest.raises(PolicyLoadError, match=field):
+        validate_measurement_policy(measurement)
+
+
+@pytest.mark.parametrize(
+    ("changes", "message"),
+    [
+        (
+            {"max_campaign_repetitions": 2, "max_campaign_questions": 51},
+            "repetitions",
+        ),
+        (
+            {
+                "max_questions": 10,
+                "max_campaign_questions": 1000,
+                "max_evaluation_rows_per_run": 11,
+            },
+            "max_evaluation_rows_per_run",
+        ),
+        (
+            {
+                "observed_model_cost_stop_usd": 1.0,
+                "campaign_observed_model_cost_stop_usd": 0.5,
+            },
+            "per-execution",
+        ),
+    ],
+)
+def test_measurement_policy_v2_fails_closed_on_relations(changes, message):
+    measurement = _campaign_measurement()
+    measurement.update(changes)
+
+    with pytest.raises(PolicyLoadError, match=message):
+        validate_measurement_policy(measurement)
+
+
+def _campaign_measurement() -> dict:
+    policy = json.loads(
+        (
+            ROOT
+            / "data"
+            / "policies"
+            / "tokengov-te003-live-proof.2026-09-18.campaign.1.json"
+        ).read_text(encoding="utf-8")
+    )
+    return deepcopy(policy["measurement"])
 
 
 def test_file_policy_requires_explicit_development_mode(tmp_path, monkeypatch):
