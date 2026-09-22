@@ -23,10 +23,30 @@ production readiness, or calibrated tail-risk claims.
 
 ## Current scope
 
-Studio provides a five-view workflow: **Plan -> Govern -> Runs -> Observe -> Reconcile**.
-Plan forecasts Foundry model usage and commercial meter stacks for Microsoft Copilot,
-Copilot Studio, Cowork, Work IQ, and GitHub Copilot. New plans preserve versioned workload
-analysis, pricing evidence, meter stacks, and immutable receipt identities.
+Studio now presents four operator workspaces:
+
+```text
+Home -> Forecast -> Policy -> Execute & Review -> Performance & Decisions
+```
+
+The underlying governance lifecycle remains:
+
+```text
+predict -> compare policy -> admit -> execute -> evaluate -> respond -> reconcile -> learn
+```
+
+**Forecast** models Foundry usage, infrastructure, and commercial meter stacks for
+Microsoft Copilot, Copilot Studio, Cowork, Work IQ, and GitHub Copilot. Subscriptions,
+entitlements, Microsoft Copilot Credits, GitHub AI Credits, model tokens, and Azure
+resource meters remain separate evidence; TokenEconomics does not invent a conversion
+between them. New forecasts preserve versioned workload analysis, pricing evidence,
+infrastructure assumptions, meter ledgers, and immutable receipt identities.
+
+**Policy** exposes the exact fail-closed Azure App Configuration authority and supports
+reviewed policy change requests without giving the browser publication credentials.
+**Execute & Review** joins admitted execution, Foundry evaluation, and append-only human
+acceptance. **Performance & Decisions** combines governance, accepted-task economics,
+reconciliation, and learning while preserving their distinct evidence boundaries.
 
 The repository also contains a policy-bound Microsoft Foundry RAG adapter that captured
 one measured reference trajectory through a Foundry prompt agent, Foundry IQ knowledge
@@ -48,14 +68,50 @@ reusable TokenGov contracts remain under `costgov/`.
 | Multi-meter trajectory ledger (TE-006) | Complete | Native quantities, currencies, entitlements, allocations, unknown costs, and coverage-aware reconciliation remain explicit |
 | Accepted-task Observe economics (TE-007) | Complete | Read-only denominator, segment, native-meter, entitlement, priced-cost, and uncovered-cost views reopen verified immutable run evidence |
 | Immutable policy candidates (TE-008) | Complete | Hash-bound candidate revisions validate control authority/capability without mutating active Azure policy |
+| Copilot/native-meter forecasting | Complete prototype | Microsoft Copilot Credits, GitHub AI Credits, entitlements, model tokens, and infrastructure charges remain separate |
+| Human quality acceptance | Complete prototype | Foundry grades remain advisory; reviewers append `accepted`, `rejected`, or `inconclusive` outcomes |
+| Campaign authorization | Published | Azure policy `2026-09-18.campaign.1` authorizes bounded 25-case, 100-repetition measurement |
+| Repeated quality campaign | Paused | First repetition preserved 17 responses; eight undispatched calls require a tested no-replay continuation contract |
+| Cross-report portfolio Home | Complete prototype | Read-only evidence readiness, attention queue, and decision matrix across reports |
+| Hosted Studio release | Deployed | Container App revision `ca-tokeneconomics-studio--accumulated-20260918` |
 
-The current measured local regression boundary is **160 TokenEconomics tests** and
-**500 FutureTokenPredictor tests**. This proves the local contracts and modeled
+The current measured local regression boundary is **1,428 TokenEconomics tests passed**
+with one skipped and **530 FutureTokenPredictor tests passed** through its evidence
+runner. This proves the local contracts and modeled
 calculations at the tested revision; it is not production-capacity evidence.
 
-The remaining end-to-end work is material: segment-level sample sufficiency,
-decision-grade candidate comparison, calibrated budget-risk evidence, bounded response,
-independent billing reconciliation, predictor learning, and a non-Foundry portability proof.
+The remaining end-to-end work is material: safe within-repetition continuation,
+representative segment samples, complete-trajectory cost, calibrated budget-risk
+evidence, bounded response/reversion, independent billing reconciliation, demonstrated
+predictor improvement, and a decision-grade non-Foundry portability proof.
+
+## Architecture at a glance
+
+![TokenEconomics Azure reference architecture](docs/architecture/token-economics-azure-architecture-v4.png)
+
+The architecture preserves two planes:
+
+| Plane | Responsibility |
+|---|---|
+| Control plane | Studio, FutureTokenPredictor, TokenGov policy comparison, evaluation, decisions, reconciliation, and learning |
+| Workload/data plane | The Foundry prompt agent, model calls, Foundry IQ retrieval, Azure AI Search, and runtime evidence emission |
+
+Azure App Configuration is the authoritative policy source and is read fail-closed.
+GitHub Actions publishes reviewed policy through a separately authorized OIDC identity.
+The Studio runtime uses managed identity with narrowly scoped App Configuration reader,
+ACR pull, and cost-export reader roles. Azure Files stores persistent Studio evidence;
+Application Insights, Log Analytics, Cost Management, and evidence stores support
+observability and reconciliation.
+
+Microsoft 365 and Copilot product meters enter Forecast as versioned native-meter
+evidence. They do not become Azure TokenGov runtime controls, and workload-specific RAG
+logic remains under `rag/` rather than in reusable `costgov/` core.
+
+Editable [draw.io](docs/architecture/token-economics-azure-architecture.drawio) and
+[Excalidraw](docs/architecture/token-economics-azure-architecture.excalidraw) versions,
+an [SVG](docs/architecture/token-economics-azure-architecture.svg), a
+[PowerPoint slide](docs/architecture/token-economics-azure-architecture.pptx), and the
+[Mermaid source](docs/architecture/token-economics-azure-architecture.mmd) are included.
 
 ## Run Studio locally
 
@@ -119,18 +175,6 @@ For a field-by-field, screenshot-based walkthrough of every Studio route and lif
 view, see the [TokenEconomics Studio user guide](docs/TOKEN_STUDIO_USER_GUIDE.md) or its
 [formatted PDF edition](docs/TOKEN_STUDIO_USER_GUIDE.pdf).
 
-### Azure reference architecture
-
-![TokenEconomics Azure reference architecture](docs/architecture/token-economics-azure-architecture-v4.png)
-
-The architecture shows the deployed Studio control plane, measured Foundry RAG workload
-plane, protected policy-publication path, evidence/observability path, and external
-native-meter product domains. Editable
-[draw.io](docs/architecture/token-economics-azure-architecture.drawio) and
-[Excalidraw](docs/architecture/token-economics-azure-architecture.excalidraw) versions,
-an [SVG](docs/architecture/token-economics-azure-architecture.svg), and a
-[PowerPoint slide](docs/architecture/token-economics-azure-architecture.pptx) are included.
-
 ### What each test proves
 
 | Test | Purpose | Evidence classification |
@@ -167,10 +211,10 @@ and makes billable Foundry calls, so do not rerun it merely to inspect existing 
    .\.venv\Scripts\python.exe -c "from costgov.policy_store import load_policy_from_environment; p=load_policy_from_environment(); print(p.document['version'], p.provenance['etag'])"
    ```
 
-The expected published revision is `2026-08-31.1` with ETag
-`cvO1KGul1sC2Mfpk0wZ0u-CukrL1uXRFczkqujEZPCk`. A different revision is not
+The current published revision is `2026-09-18.campaign.1` with ETag
+`1c72Cdf_wHabwrCb7UarYctyFlgNFVTfWZDBKTEqku0`. A different revision is not
 automatically wrong, but it means the resulting proof is bound to different policy
-evidence and should not be compared as if it were the original run.
+evidence and must not be compared as if it used the current campaign authority.
 
 ### Run the one-task measured smoke proof
 
@@ -180,7 +224,7 @@ policy, invokes the pinned agent, persists the trajectory, and reopens it:
 ```powershell
 .\.venv\Scripts\python.exe .\scripts\run_te003_live_test.py `
   --agent-name tokengov-books-rag-agent `
-  --agent-version 1 `
+  --agent-version 4 `
   --policy-label te003-live-v2
 ```
 
@@ -232,14 +276,16 @@ accepted 28/60 and 23/60 hard tasks in two independent windows and reached
 
 ### Verify existing evidence in Studio
 
+The following reference evidence is available in the local development stores:
+
 1. Start Studio and open its URL.
-2. Select **Home**, then open report `RPT-20260901-67BA6BBE`.
-3. In **Runs**, confirm `te009-baseline-20260901` is completed.
-4. In **Observe**, confirm the easy and hard rows retain separate sample counts,
+2. Select **Home**, then open historical report `RPT-20260901-67BA6BBE`.
+3. In **Execute & Review**, confirm `te009-baseline-20260901` is completed.
+4. In **Performance & Decisions**, confirm the easy and hard rows retain separate sample counts,
    acceptance outcomes, native meters, priced cost, and uncovered-cost status.
-5. In **Govern**, confirm the decision is `none_eligible` and no policy mutation was
-   performed.
-6. In **Reconcile**, inspect the ActualCost proof, predictor-learning proof, and
+5. In the Policy/decision evidence, confirm the decision is `none_eligible` and no
+   policy mutation was performed.
+6. In reconciliation evidence, inspect the ActualCost proof, predictor-learning proof, and
    Work IQ portability proof. ActualCost remains `partial`; the missing AI Services
    billing row must not be inferred as zero.
 
@@ -275,7 +321,7 @@ $studio = "https://ca-tokeneconomics-studio.wittysand-085ba2f3.eastus2.azurecont
 Invoke-RestMethod "$studio/health"
 Invoke-RestMethod "$studio/api/policy" |
   Select-Object content_hash, provenance
-Invoke-RestMethod "$studio/api/reports/RPT-20260901-67BA6BBE" |
+Invoke-RestMethod "$studio/api/reports/RPT-20260908-CA037FE9" |
   ConvertTo-Json -Depth 12
 Invoke-RestMethod "$studio/api/govern/decisions" |
   ConvertTo-Json -Depth 12
@@ -292,10 +338,12 @@ complete-task billing or quality readiness.
 
 The health response must report `healthy` and `research_prototype`. The policy response
 must identify Azure App Configuration, label `te003-live-v2`, and the current
-authoritative version and ETag. The historical baseline remains bound to its
-recorded policy, not silently rebound to today's version. The report and Govern checks must preserve the
-easy/hard segment split and `none_eligible` outcome; do not rerun the billable 120-task
-baseline merely to inspect this existing evidence.
+authoritative version, content hash, and ETag. The cloud evidence store currently
+contains report `RPT-20260908-CA037FE9`. Local report `RPT-20260918-302EDAF6`,
+its human-review workspace, and the paused campaign were intentionally not migrated
+by the image deployment. Historical evidence remains bound to its recorded policy,
+not silently rebound to today's version; do not rerun billable work merely to inspect
+an existing record.
 
 The current Azure Files mount requires a narrowly scoped Azure Policy exemption because
 Container Apps uses a storage-account key for this mount type. Exemption
@@ -305,11 +353,17 @@ references, and expires on 2026-10-01. Anonymous blob access remains disabled. R
 this exception with identity-native persistence, or explicitly review its renewal,
 before that date.
 
-The September 11 update (`20260911.feedback2`) includes the combined dashboard,
-billing/learning controls and twelve persistent Studio stores. Immutable evidence
+The September 19 deployment runs immutable image digest
+`sha256:01beb767ed6b53f9f90b075d332dba3556f6a68ddb2ff614bed039ad6c95eca5`
+on revision `ca-tokeneconomics-studio--accumulated-20260918`. It includes the
+four-workspace Studio, Copilot/native-meter forecasting, policy v2 validation,
+human quality review, campaign evidence, portfolio Home, billing/learning controls,
+and twelve persistent Studio stores. Immutable evidence
 publication uses a create-only rename on Azure Files, which does not support hard
 links; an existing record is never replaced. Image updates exclude local runtime
 stores and preserve existing cloud records rather than migrating local reports.
+Its active policy content hash is
+`f66271ac192a008e83f51cdafc2eaa6d21ca698b24b2fcb0264512918ad33d1e`.
 
 Billing export access is a separate deployment dependency. As of September 11,
 the source account `stxbk6ickycmp22` has public networking disabled and no private
@@ -386,12 +440,18 @@ attributed.
 The prior report `RPT-20260915-D4B31FF1` is retired from active lists but its
 immutable report, forecasts, runs, and evaluation evidence remain preserved.
 Replacement report `RPT-20260918-302EDAF6` is the clean 25-case Assessment
-workspace. The active measurement policy still permits at most ten questions
-per execution, so the intended campaign uses five runs of five questions and
-one 25-row Foundry dataset evaluation. The evaluation transport accepts up to
-25 captured rows, while execution remains policy-bound. No VM, Azure Run
-Command, public storage exception, or custom blob shuttle is part of this
-prototype.
+workspace. Active policy `2026-09-18.campaign.1` authorizes up to 25 questions
+per execution, 100 repetitions, 2,500 response attempts, 100 evaluations, and
+25 rows per evaluation, with separate per-execution and campaign-level observed
+response-model allocation stops. These are not hard spend guarantees and exclude
+managed retrieval, judge, evaluation-service, infrastructure, and other
+complete-task costs.
+
+Campaign `campaign-5c1b823fd5934343bdbdaa3c0cdc45d8` is intentionally paused.
+Its first repetition completed 17 responses and left eight undispatched when the
+600-second elapsed-time limit was reached. No Foundry evaluation was submitted.
+The 17 completed provider calls must not be replayed; continuation requires the
+pending per-question at-most-once and immutable aggregate-repetition contract.
 
 Foundry run results can retain the service-returned `report_url`, which Studio
 renders as **Open in Foundry**. Exact response content is not copied into
@@ -497,7 +557,7 @@ Historical catalog releases and receipts remain immutable.
 ```text
 TokenEconomics/
   studio.py                  # local HTTP API and asynchronous run service
-  studio.html                # five-view operator interface
+  studio.html                # four-workspace operator interface plus Home
   plan_studio.py             # Plan-only release boundary
   costgov/                   # reusable planning, policy, telemetry, and contracts
   data/                      # versioned commercial, model, and schema evidence
