@@ -1,9 +1,13 @@
 from __future__ import annotations
 
+import json
 from pathlib import Path
+
+import pytest
 
 from costgov.learning_evidence import (
     IdempotentLearningStore,
+    LearningEvidenceStore,
     build_learning_proof,
     weighted_absolute_percentage_error,
 )
@@ -47,3 +51,32 @@ def test_learning_boundary_writer_runs_once_across_restarts(tmp_path: Path) -> N
     assert created_again is False
     assert first == second
     assert len(calls) == 1
+
+
+def test_learning_proof_store_is_append_only_and_integrity_checked(tmp_path: Path) -> None:
+    proof = build_learning_proof(
+        reconciliation_reference={"id": "r1", "content_hash": "a" * 64},
+        before_forecast_reference={"id": "f1", "content_hash": "b" * 64},
+        after_forecast_reference={"id": "f2", "content_hash": "c" * 64},
+        before_forecasts=[10],
+        after_forecasts=[10],
+        actuals=[8],
+        predictor_write_reference={"id": "p1"},
+        commercial_calibration_reference={"id": "c1"},
+        quality_calibration_reference={"id": "q1"},
+    )
+    store = LearningEvidenceStore(tmp_path)
+    first, created = store.append(proof)
+    second, created_again = store.append(proof)
+
+    assert created is True
+    assert created_again is False
+    assert first == second
+    assert store.list() == [proof]
+
+    path = tmp_path / f"{proof['learning_proof_id']}.json"
+    payload = json.loads(path.read_text(encoding="utf-8"))
+    payload["result"] = "improved"
+    path.write_text(json.dumps(payload), encoding="utf-8")
+    with pytest.raises(ValueError, match="integrity"):
+        store.list()

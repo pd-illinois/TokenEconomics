@@ -1,0 +1,45 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://tokeneconomics.dev/contracts/forecast-learning-link.v1.schema.json",
+  "title": "Later forecast to route learning link",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "created_at",
+    "learning_receipt_id",
+    "learning_receipt_content_hash",
+    "learning_result",
+    "forecast_id",
+    "forecast_revision",
+    "forecast_content_hash",
+    "calibration_revision",
+    "calibration_content_hash",
+    "source_verifiable_revision_change",
+    "evidence_based_unchanged",
+    "historical_forecast_mutated",
+    "link_id",
+    "content_hash"
+  ],
+  "properties": {
+    "schema_version": {"const": "forecast-learning-link.v1"},
+    "created_at": {"type": "string", "format": "date-time"},
+    "learning_receipt_id": {"$ref": "#/$defs/nonEmpty"},
+    "learning_receipt_content_hash": {"$ref": "#/$defs/hash"},
+    "learning_result": {"enum": ["revised", "unchanged_insufficient_evidence"]},
+    "forecast_id": {"$ref": "#/$defs/nonEmpty"},
+    "forecast_revision": {"$ref": "#/$defs/nonEmpty"},
+    "forecast_content_hash": {"$ref": "#/$defs/hash"},
+    "calibration_revision": {"$ref": "#/$defs/nonEmpty"},
+    "calibration_content_hash": {"$ref": "#/$defs/hash"},
+    "source_verifiable_revision_change": {"type": "boolean"},
+    "evidence_based_unchanged": {"type": "boolean"},
+    "historical_forecast_mutated": {"const": false},
+    "link_id": {"$ref": "#/$defs/nonEmpty"},
+    "content_hash": {"$ref": "#/$defs/hash"}
+  },
+  "$defs": {
+    "nonEmpty": {"type": "string", "minLength": 1},
+    "hash": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
+  }
+}

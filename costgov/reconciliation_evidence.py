@@ -14,6 +14,8 @@ from pathlib import Path
 from typing import Any, Iterable, Mapping
 from uuid import uuid4
 
+from .atomic_publish import publish_immutable
+
 from .acceptance_contracts import AcceptanceDecision, AcceptanceOutcome
 from .meter_ledger import CostCoverage, MeterLedgerEntry
 from .observe_economics import load_verified_run_evidence
@@ -105,9 +107,27 @@ def load_actual_cost_export(
         )
         if resource_id.lower() not in allowed:
             continue
-        cost_text = row.get("CostInBillingCurrency") or row.get("Cost") or ""
-        currency = row.get("BillingCurrencyCode") or row.get("Currency") or ""
-        date_text = row.get("Date") or row.get("UsageDate") or ""
+        cost_text = (
+            row.get("CostInBillingCurrency")
+            or row.get("costInBillingCurrency")
+            or row.get("Cost")
+            or row.get("cost")
+            or ""
+        )
+        currency = (
+            row.get("BillingCurrencyCode")
+            or row.get("billingCurrency")
+            or row.get("Currency")
+            or row.get("currency")
+            or ""
+        )
+        date_text = (
+            row.get("Date")
+            or row.get("date")
+            or row.get("UsageDate")
+            or row.get("usageDate")
+            or ""
+        )
         canonical_row = _canonical(row)
         result.append(
             BillingActual(
@@ -117,8 +137,20 @@ def load_actual_cost_export(
                 source_row_hash=hashlib.sha256(canonical_row.encode()).hexdigest(),
                 billing_period=date_text[:7],
                 resource_id=resource_id,
-                service_name=row.get("ServiceName") or row.get("ConsumedService") or "unknown",
-                meter_name=row.get("MeterName") or row.get("MeterCategory") or "unknown",
+                service_name=(
+                    row.get("ServiceName")
+                    or row.get("serviceName")
+                    or row.get("ConsumedService")
+                    or row.get("consumedService")
+                    or "unknown"
+                ),
+                meter_name=(
+                    row.get("MeterName")
+                    or row.get("meterName")
+                    or row.get("MeterCategory")
+                    or row.get("meterCategory")
+                    or "unknown"
+                ),
                 cost=float(cost_text),
                 currency=currency,
             )
@@ -226,6 +258,7 @@ def build_reconciliation_evidence(
     billing_actuals: tuple[BillingActual, ...],
     prediction_reference: Mapping[str, str],
     decision_reference: Mapping[str, str],
+    required_billing_resource_ids: Iterable[str] = (),
 ) -> dict[str, Any]:
     budget = _finite(budget_usd, "budget_usd")
     if budget <= 0:
@@ -262,8 +295,13 @@ def build_reconciliation_evidence(
     missing: list[str] = []
     if any(row["incomplete_cost_task_ids"] for row in segment_rows):
         missing.append("complete_priced_task_ledger")
+    required_resources = {item.lower() for item in required_billing_resource_ids}
+    observed_resources = {item.resource_id.lower() for item in billing_actuals}
+    missing_resources = sorted(required_resources - observed_resources)
     if not billing_actuals:
         missing.append("subscription_actual_cost_export")
+    elif missing_resources:
+        missing.append("billing_actual_resource_coverage")
 
     currencies = sorted({item.currency for item in billing_actuals})
     billing_total = (
@@ -318,6 +356,9 @@ def build_reconciliation_evidence(
             "row_hashes": sorted(item.source_row_hash for item in billing_actuals),
             "currencies": currencies,
             "total_cost": billing_total,
+            "required_resource_ids": sorted(required_resources),
+            "observed_resource_ids": sorted(observed_resources),
+            "missing_resource_ids": missing_resources,
             "claim": (
                 "Billing actuals remain independent from task allocation; they do not "
                 "replace provider usage or ledger allocation evidence."
@@ -365,7 +406,29 @@ class ReconciliationEvidenceStore:
                 stream.write("\n")
                 stream.flush()
                 os.fsync(stream.fileno())
-            os.link(temporary, path)
+            publish_immutable(temporary, path)
         finally:
             temporary.unlink(missing_ok=True)
         return payload, True
+
+    def list(self) -> list[dict[str, Any]]:
+        if not self.root.exists():
+            return []
+        evidence = []
+        for path in self.root.glob("*.json"):
+            payload = json.loads(path.read_text(encoding="utf-8"))
+            content_hash = payload.get("content_hash")
+            calculated = _hash(
+                {key: value for key, value in payload.items() if key != "content_hash"}
+            )
+            if (
+                path.stem != payload.get("idempotency_key")
+                or content_hash != calculated
+            ):
+                raise ValueError("reconciliation evidence integrity check failed")
+            evidence.append(payload)
+        return sorted(
+            evidence,
+            key=lambda item: item.get("created_at", ""),
+            reverse=True,
+        )

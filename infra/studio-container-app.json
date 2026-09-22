@@ -1,0 +1,487 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "metadata": {
+    "_generator": {
+      "name": "bicep",
+      "version": "0.42.1.51946",
+      "templateHash": "14688254767002624864"
+    }
+  },
+  "parameters": {
+    "location": {
+      "type": "string",
+      "defaultValue": "[resourceGroup().location]",
+      "metadata": {
+        "description": "Deployment location. Use the existing TokenEconomics resource group location."
+      }
+    },
+    "containerImage": {
+      "type": "string",
+      "defaultValue": "mcr.microsoft.com/azuredocs/containerapps-helloworld:latest",
+      "metadata": {
+        "description": "Container image. The first deployment may use the public placeholder image."
+      }
+    },
+    "policyLabel": {
+      "type": "string",
+      "defaultValue": "te003-live-v2",
+      "metadata": {
+        "description": "Authoritative TokenGov policy label."
+      }
+    },
+    "policyApprovalUrl": {
+      "type": "string",
+      "defaultValue": "https://github.com/pd-illinois/TokenEconomics/actions/workflows/publish-tokengov-policy.yml",
+      "metadata": {
+        "description": "GitHub Actions workflow page used to submit reviewed TokenGov policy publication."
+      }
+    },
+    "policyApprovalEnvironment": {
+      "type": "string",
+      "defaultValue": "tokengov-production",
+      "metadata": {
+        "description": "Protected GitHub environment that approves TokenGov policy publication."
+      }
+    },
+    "policyReviewGitHubAppId": {
+      "type": "string",
+      "defaultValue": "",
+      "metadata": {
+        "description": "GitHub App ID used only for policy review pull requests."
+      }
+    },
+    "policyReviewGitHubInstallationId": {
+      "type": "string",
+      "defaultValue": "",
+      "metadata": {
+        "description": "GitHub App installation ID for the TokenEconomics repository."
+      }
+    },
+    "policyReviewGitHubRepository": {
+      "type": "string",
+      "defaultValue": "pd-illinois/TokenEconomics",
+      "metadata": {
+        "description": "Repository receiving versioned policy review pull requests."
+      }
+    },
+    "policyReviewGitHubBaseBranch": {
+      "type": "string",
+      "defaultValue": "main",
+      "metadata": {
+        "description": "GitHub base branch receiving approved policy reviews."
+      }
+    },
+    "policyReviewGitHubPrivateKeySecretUri": {
+      "type": "string",
+      "defaultValue": "",
+      "metadata": {
+        "description": "Key Vault secret URI containing the GitHub App private key. Grant the Studio identity Key Vault Secrets User separately."
+      }
+    },
+    "policyReviewAllowedPrincipal": {
+      "type": "string",
+      "defaultValue": "",
+      "metadata": {
+        "description": "Entra principal object ID allowed to submit policy review pull requests through authenticated Studio ingress."
+      }
+    },
+    "studioAuthClientId": {
+      "type": "string",
+      "defaultValue": "",
+      "metadata": {
+        "description": "Microsoft Entra application client ID used by Container Apps built-in authentication."
+      }
+    },
+    "studioAuthTenantId": {
+      "type": "string",
+      "defaultValue": "[tenant().tenantId]",
+      "metadata": {
+        "description": "Microsoft Entra tenant ID for Studio authentication."
+      }
+    },
+    "studioAuthClientSecretUri": {
+      "type": "string",
+      "defaultValue": "",
+      "metadata": {
+        "description": "Key Vault secret URI containing the Studio authentication application client secret."
+      }
+    },
+    "logAnalyticsWorkspaceName": {
+      "type": "string",
+      "defaultValue": "logs-xbk6ickycmp22",
+      "metadata": {
+        "description": "Existing Log Analytics workspace."
+      }
+    },
+    "applicationInsightsName": {
+      "type": "string",
+      "defaultValue": "appi-xbk6ickycmp22",
+      "metadata": {
+        "description": "Existing Application Insights component."
+      }
+    },
+    "appConfigurationName": {
+      "type": "string",
+      "defaultValue": "appcs-xbk6ickycmp22",
+      "metadata": {
+        "description": "Existing Azure App Configuration policy authority."
+      }
+    }
+  },
+  "variables": {
+    "suffix": "[uniqueString(resourceGroup().id)]",
+    "containerAppName": "ca-tokeneconomics-studio",
+    "environmentName": "cae-tokeneconomics",
+    "identityName": "id-tokeneconomics-studio",
+    "registryName": "[replace(format('crtokeneconomics{0}', substring(variables('suffix'), 0, 8)), '-', '')]",
+    "storageName": "[format('ststudio{0}', substring(variables('suffix'), 0, 12))]",
+    "fileShareName": "studio-state",
+    "storageMountName": "studio-state"
+  },
+  "resources": [
+    {
+      "type": "Microsoft.ManagedIdentity/userAssignedIdentities",
+      "apiVersion": "2023-01-31",
+      "name": "[variables('identityName')]",
+      "location": "[parameters('location')]",
+      "tags": {
+        "workload": "TokenEconomics",
+        "evidenceStatus": "research-prototype"
+      }
+    },
+    {
+      "type": "Microsoft.ContainerRegistry/registries",
+      "apiVersion": "2023-07-01",
+      "name": "[variables('registryName')]",
+      "location": "[parameters('location')]",
+      "sku": {
+        "name": "Basic"
+      },
+      "properties": {
+        "adminUserEnabled": false,
+        "publicNetworkAccess": "Enabled",
+        "policies": {
+          "quarantinePolicy": {
+            "status": "disabled"
+          },
+          "retentionPolicy": {
+            "days": 7,
+            "status": "disabled"
+          },
+          "trustPolicy": {
+            "type": "Notary",
+            "status": "disabled"
+          }
+        }
+      },
+      "tags": {
+        "workload": "TokenEconomics",
+        "evidenceStatus": "research-prototype"
+      }
+    },
+    {
+      "type": "Microsoft.Authorization/roleAssignments",
+      "apiVersion": "2022-04-01",
+      "scope": "[resourceId('Microsoft.ContainerRegistry/registries', variables('registryName'))]",
+      "name": "[guid(resourceId('Microsoft.ContainerRegistry/registries', variables('registryName')), resourceId('Microsoft.ManagedIdentity/userAssignedIdentities', variables('identityName')), 'AcrPull')]",
+      "properties": {
+        "roleDefinitionId": "[subscriptionResourceId('Microsoft.Authorization/roleDefinitions', '7f951dda-4ed3-4680-a7ca-43fe172d538d')]",
+        "principalId": "[reference(resourceId('Microsoft.ManagedIdentity/userAssignedIdentities', variables('identityName')), '2023-01-31').principalId]",
+        "principalType": "ServicePrincipal"
+      },
+      "dependsOn": [
+        "[resourceId('Microsoft.ManagedIdentity/userAssignedIdentities', variables('identityName'))]",
+        "[resourceId('Microsoft.ContainerRegistry/registries', variables('registryName'))]"
+      ]
+    },
+    {
+      "type": "Microsoft.Authorization/roleAssignments",
+      "apiVersion": "2022-04-01",
+      "scope": "[resourceId('Microsoft.AppConfiguration/configurationStores', parameters('appConfigurationName'))]",
+      "name": "[guid(resourceId('Microsoft.AppConfiguration/configurationStores', parameters('appConfigurationName')), resourceId('Microsoft.ManagedIdentity/userAssignedIdentities', variables('identityName')), 'AppConfigurationDataReader')]",
+      "properties": {
+        "roleDefinitionId": "[subscriptionResourceId('Microsoft.Authorization/roleDefinitions', '516239f1-63e1-4d78-a4de-a74fb236a071')]",
+        "principalId": "[reference(resourceId('Microsoft.ManagedIdentity/userAssignedIdentities', variables('identityName')), '2023-01-31').principalId]",
+        "principalType": "ServicePrincipal"
+      },
+      "dependsOn": [
+        "[resourceId('Microsoft.ManagedIdentity/userAssignedIdentities', variables('identityName'))]"
+      ]
+    },
+    {
+      "type": "Microsoft.Storage/storageAccounts",
+      "apiVersion": "2023-05-01",
+      "name": "[variables('storageName')]",
+      "location": "[parameters('location')]",
+      "kind": "StorageV2",
+      "sku": {
+        "name": "Standard_LRS"
+      },
+      "properties": {
+        "allowBlobPublicAccess": false,
+        "allowCrossTenantReplication": false,
+        "allowSharedKeyAccess": true,
+        "defaultToOAuthAuthentication": true,
+        "minimumTlsVersion": "TLS1_2",
+        "publicNetworkAccess": "Enabled",
+        "supportsHttpsTrafficOnly": true,
+        "networkAcls": {
+          "bypass": "AzureServices",
+          "defaultAction": "Allow"
+        }
+      },
+      "tags": {
+        "workload": "TokenEconomics",
+        "purpose": "Container Apps Azure Files mount",
+        "evidenceStatus": "research-prototype"
+      }
+    },
+    {
+      "type": "Microsoft.Storage/storageAccounts/fileServices",
+      "apiVersion": "2023-05-01",
+      "name": "[format('{0}/{1}', variables('storageName'), 'default')]",
+      "dependsOn": [
+        "[resourceId('Microsoft.Storage/storageAccounts', variables('storageName'))]"
+      ]
+    },
+    {
+      "type": "Microsoft.Storage/storageAccounts/fileServices/shares",
+      "apiVersion": "2023-05-01",
+      "name": "[format('{0}/{1}/{2}', variables('storageName'), 'default', variables('fileShareName'))]",
+      "properties": {
+        "enabledProtocols": "SMB",
+        "shareQuota": 5
+      },
+      "dependsOn": [
+        "[resourceId('Microsoft.Storage/storageAccounts/fileServices', variables('storageName'), 'default')]"
+      ]
+    },
+    {
+      "type": "Microsoft.App/managedEnvironments",
+      "apiVersion": "2024-03-01",
+      "name": "[variables('environmentName')]",
+      "location": "[parameters('location')]",
+      "properties": {
+        "appLogsConfiguration": {
+          "destination": "log-analytics",
+          "logAnalyticsConfiguration": {
+            "customerId": "[reference(resourceId('Microsoft.OperationalInsights/workspaces', parameters('logAnalyticsWorkspaceName')), '2023-09-01').customerId]",
+            "sharedKey": "[listKeys(resourceId('Microsoft.OperationalInsights/workspaces', parameters('logAnalyticsWorkspaceName')), '2023-09-01').primarySharedKey]"
+          }
+        }
+      },
+      "tags": {
+        "workload": "TokenEconomics",
+        "evidenceStatus": "research-prototype"
+      }
+    },
+    {
+      "type": "Microsoft.App/managedEnvironments/storages",
+      "apiVersion": "2024-03-01",
+      "name": "[format('{0}/{1}', variables('environmentName'), variables('storageMountName'))]",
+      "properties": {
+        "azureFile": {
+          "accountName": "[variables('storageName')]",
+          "accountKey": "[listKeys(resourceId('Microsoft.Storage/storageAccounts', variables('storageName')), '2023-05-01').keys[0].value]",
+          "shareName": "[variables('fileShareName')]",
+          "accessMode": "ReadWrite"
+        }
+      },
+      "dependsOn": [
+        "[resourceId('Microsoft.App/managedEnvironments', variables('environmentName'))]",
+        "[resourceId('Microsoft.Storage/storageAccounts/fileServices/shares', variables('storageName'), 'default', variables('fileShareName'))]",
+        "[resourceId('Microsoft.Storage/storageAccounts', variables('storageName'))]"
+      ]
+    },
+    {
+      "type": "Microsoft.App/containerApps",
+      "apiVersion": "2024-03-01",
+      "name": "[variables('containerAppName')]",
+      "location": "[parameters('location')]",
+      "identity": {
+        "type": "UserAssigned",
+        "userAssignedIdentities": {
+          "[format('{0}', resourceId('Microsoft.ManagedIdentity/userAssignedIdentities', variables('identityName')))]": {}
+        }
+      },
+      "properties": {
+        "environmentId": "[resourceId('Microsoft.App/managedEnvironments', variables('environmentName'))]",
+        "configuration": {
+          "activeRevisionsMode": "Single",
+          "secrets": "[concat(if(empty(parameters('policyReviewGitHubPrivateKeySecretUri')), createArray(), createArray(createObject('name', 'tokengov-github-app-private-key', 'keyVaultUrl', parameters('policyReviewGitHubPrivateKeySecretUri'), 'identity', resourceId('Microsoft.ManagedIdentity/userAssignedIdentities', variables('identityName'))))), if(empty(parameters('studioAuthClientSecretUri')), createArray(), createArray(createObject('name', 'tokengov-studio-auth-client-secret', 'keyVaultUrl', parameters('studioAuthClientSecretUri'), 'identity', resourceId('Microsoft.ManagedIdentity/userAssignedIdentities', variables('identityName'))))))]",
+          "ingress": {
+            "external": true,
+            "allowInsecure": false,
+            "targetPort": 8765,
+            "transport": "auto"
+          },
+          "registries": [
+            {
+              "server": "[reference(resourceId('Microsoft.ContainerRegistry/registries', variables('registryName')), '2023-07-01').loginServer]",
+              "identity": "[resourceId('Microsoft.ManagedIdentity/userAssignedIdentities', variables('identityName'))]"
+            }
+          ]
+        },
+        "template": {
+          "containers": [
+            {
+              "name": "studio",
+              "image": "[parameters('containerImage')]",
+              "env": "[concat(createArray(createObject('name', 'TOKENECONOMICS_HOST', 'value', '0.0.0.0'), createObject('name', 'TOKENECONOMICS_PORT', 'value', '8765'), createObject('name', 'TOKENECONOMICS_STATE_ROOT', 'value', '/data'), createObject('name', 'AZURE_CLIENT_ID', 'value', reference(resourceId('Microsoft.ManagedIdentity/userAssignedIdentities', variables('identityName')), '2023-01-31').clientId), createObject('name', 'AZURE_TOKEN_CREDENTIALS', 'value', 'prod'), createObject('name', 'AZURE_APPCONFIG_ENDPOINT', 'value', reference(resourceId('Microsoft.AppConfiguration/configurationStores', parameters('appConfigurationName')), '2023-03-01').endpoint), createObject('name', 'TOKENGOV_POLICY_KEY', 'value', 'tokengov:policy'), createObject('name', 'TOKENGOV_POLICY_LABEL', 'value', parameters('policyLabel')), createObject('name', 'TOKENGOV_POLICY_SOURCE', 'value', 'azure'), createObject('name', 'TOKENGOV_APPROVAL_URL', 'value', parameters('policyApprovalUrl')), createObject('name', 'TOKENGOV_APPROVAL_ENVIRONMENT', 'value', parameters('policyApprovalEnvironment')), createObject('name', 'TOKENGOV_GITHUB_APP_ID', 'value', parameters('policyReviewGitHubAppId')), createObject('name', 'TOKENGOV_GITHUB_APP_INSTALLATION_ID', 'value', parameters('policyReviewGitHubInstallationId')), createObject('name', 'TOKENGOV_GITHUB_REPOSITORY', 'value', parameters('policyReviewGitHubRepository')), createObject('name', 'TOKENGOV_GITHUB_BASE_BRANCH', 'value', parameters('policyReviewGitHubBaseBranch')), createObject('name', 'TOKENGOV_REVIEW_ALLOWED_PRINCIPAL', 'value', parameters('policyReviewAllowedPrincipal')), createObject('name', 'TOKENGOV_REVIEW_AUTHENTICATED_INGRESS', 'value', if(and(not(empty(parameters('studioAuthClientId'))), not(empty(parameters('studioAuthClientSecretUri')))), 'container_apps', '')), createObject('name', 'APPLICATIONINSIGHTS_CONNECTION_STRING', 'value', reference(resourceId('Microsoft.Insights/components', parameters('applicationInsightsName')), '2020-02-02').ConnectionString)), if(empty(parameters('policyReviewGitHubPrivateKeySecretUri')), createArray(), createArray(createObject('name', 'TOKENGOV_GITHUB_APP_PRIVATE_KEY', 'secretRef', 'tokengov-github-app-private-key'))))]",
+              "resources": {
+                "cpu": "[json('0.5')]",
+                "memory": "1Gi"
+              },
+              "probes": [
+                {
+                  "type": "Startup",
+                  "httpGet": {
+                    "path": "/livez",
+                    "port": 8765
+                  },
+                  "initialDelaySeconds": 1,
+                  "periodSeconds": 5,
+                  "failureThreshold": 30
+                },
+                {
+                  "type": "Liveness",
+                  "httpGet": {
+                    "path": "/livez",
+                    "port": 8765
+                  },
+                  "initialDelaySeconds": 10,
+                  "periodSeconds": 30,
+                  "failureThreshold": 3
+                },
+                {
+                  "type": "Readiness",
+                  "httpGet": {
+                    "path": "/readyz",
+                    "port": 8765
+                  },
+                  "initialDelaySeconds": 5,
+                  "periodSeconds": 10,
+                  "timeoutSeconds": 3,
+                  "failureThreshold": 3
+                }
+              ],
+              "volumeMounts": [
+                {
+                  "volumeName": "studio-state",
+                  "mountPath": "/data"
+                }
+              ]
+            }
+          ],
+          "scale": {
+            "minReplicas": 1,
+            "maxReplicas": 1
+          },
+          "volumes": [
+            {
+              "name": "studio-state",
+              "storageType": "AzureFile",
+              "storageName": "[variables('storageMountName')]"
+            }
+          ]
+        }
+      },
+      "tags": {
+        "workload": "TokenEconomics",
+        "evidenceStatus": "research-prototype"
+      },
+      "dependsOn": [
+        "[extensionResourceId(resourceId('Microsoft.ContainerRegistry/registries', variables('registryName')), 'Microsoft.Authorization/roleAssignments', guid(resourceId('Microsoft.ContainerRegistry/registries', variables('registryName')), resourceId('Microsoft.ManagedIdentity/userAssignedIdentities', variables('identityName')), 'AcrPull'))]",
+        "[extensionResourceId(resourceId('Microsoft.AppConfiguration/configurationStores', parameters('appConfigurationName')), 'Microsoft.Authorization/roleAssignments', guid(resourceId('Microsoft.AppConfiguration/configurationStores', parameters('appConfigurationName')), resourceId('Microsoft.ManagedIdentity/userAssignedIdentities', variables('identityName')), 'AppConfigurationDataReader'))]",
+        "[resourceId('Microsoft.App/managedEnvironments', variables('environmentName'))]",
+        "[resourceId('Microsoft.App/managedEnvironments/storages', variables('environmentName'), variables('storageMountName'))]",
+        "[resourceId('Microsoft.ManagedIdentity/userAssignedIdentities', variables('identityName'))]",
+        "[resourceId('Microsoft.ContainerRegistry/registries', variables('registryName'))]"
+      ]
+    },
+    {
+      "condition": "[and(and(not(empty(parameters('studioAuthClientId'))), not(empty(parameters('studioAuthClientSecretUri')))), not(empty(parameters('policyReviewAllowedPrincipal'))))]",
+      "type": "Microsoft.App/containerApps/authConfigs",
+      "apiVersion": "2024-03-01",
+      "name": "[format('{0}/{1}', variables('containerAppName'), 'current')]",
+      "properties": {
+        "platform": {
+          "enabled": true
+        },
+        "globalValidation": {
+          "excludedPaths": [
+            "/health",
+            "/livez",
+            "/readyz"
+          ],
+          "redirectToProvider": "azureActiveDirectory",
+          "unauthenticatedClientAction": "RedirectToLoginPage"
+        },
+        "httpSettings": {
+          "requireHttps": true
+        },
+        "identityProviders": {
+          "azureActiveDirectory": {
+            "enabled": true,
+            "registration": {
+              "clientId": "[parameters('studioAuthClientId')]",
+              "clientSecretSettingName": "tokengov-studio-auth-client-secret",
+              "openIdIssuer": "[format('{0}{1}/v2.0', environment().authentication.loginEndpoint, parameters('studioAuthTenantId'))]"
+            },
+            "validation": {
+              "allowedAudiences": [
+                "[parameters('studioAuthClientId')]",
+                "[format('api://{0}', parameters('studioAuthClientId'))]"
+              ],
+              "defaultAuthorizationPolicy": {
+                "allowedPrincipals": {
+                  "identities": [
+                    "[parameters('policyReviewAllowedPrincipal')]"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      },
+      "dependsOn": [
+        "[resourceId('Microsoft.App/containerApps', variables('containerAppName'))]"
+      ]
+    }
+  ],
+  "outputs": {
+    "containerAppName": {
+      "type": "string",
+      "value": "[variables('containerAppName')]"
+    },
+    "containerAppFqdn": {
+      "type": "string",
+      "value": "[reference(resourceId('Microsoft.App/containerApps', variables('containerAppName')), '2024-03-01').configuration.ingress.fqdn]"
+    },
+    "containerRegistryName": {
+      "type": "string",
+      "value": "[variables('registryName')]"
+    },
+    "containerRegistryLoginServer": {
+      "type": "string",
+      "value": "[reference(resourceId('Microsoft.ContainerRegistry/registries', variables('registryName')), '2023-07-01').loginServer]"
+    },
+    "managedEnvironmentName": {
+      "type": "string",
+      "value": "[variables('environmentName')]"
+    },
+    "managedIdentityName": {
+      "type": "string",
+      "value": "[variables('identityName')]"
+    },
+    "storageAccountName": {
+      "type": "string",
+      "value": "[variables('storageName')]"
+    },
+    "fileShareName": {
+      "type": "string",
+      "value": "[variables('fileShareName')]"
+    }
+  }
+}

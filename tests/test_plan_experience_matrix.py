@@ -229,6 +229,9 @@ def test_nine_case_fixture_covers_every_catalog_route_once():
 def test_plan_experience_has_correct_end_to_end_arithmetic(
     case, tmp_path, monkeypatch
 ):
+    monkeypatch.setattr(
+        plan_studio, "route_requires_infrastructure", lambda _route: False
+    )
     analyze_calls: list[str] = []
     predict_calls: list[str] = []
 

@@ -1,0 +1,100 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://tokeneconomics.dev/contracts/route-admission-readiness.v1.schema.json",
+  "title": "TokenEconomics route-aware admission readiness",
+  "$comment": "Applicable evidence resolution and integrity are enforced by costgov.route_admission.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "route_id",
+    "plan_receipt_hash",
+    "capability_profile_version",
+    "capability_profile_hash",
+    "created_at",
+    "outcome",
+    "reason_codes",
+    "evidence",
+    "enforcement_scopes",
+    "missing_requirements",
+    "inconclusive_requirements",
+    "mutation_performed"
+  ],
+  "properties": {
+    "schema_version": {"const": "route-admission-readiness.v1"},
+    "route_id": {"$ref": "#/$defs/nonEmpty"},
+    "plan_receipt_hash": {"$ref": "#/$defs/sha256"},
+    "capability_profile_version": {"$ref": "#/$defs/nonEmpty"},
+    "capability_profile_hash": {"$ref": "#/$defs/sha256"},
+    "created_at": {"$ref": "#/$defs/utcTimestamp"},
+    "outcome": {
+      "enum": [
+        "ready_for_admission",
+        "blocked",
+        "inconclusive",
+        "advisory_only"
+      ]
+    },
+    "reason_codes": {"$ref": "#/$defs/nonEmptyArray"},
+    "evidence": {
+      "type": "array",
+      "minItems": 1,
+      "items": {"$ref": "#/$defs/evidence"}
+    },
+    "enforcement_scopes": {"$ref": "#/$defs/nonEmptyArray"},
+    "missing_requirements": {
+      "type": "array",
+      "items": {"$ref": "#/$defs/nonEmpty"}
+    },
+    "inconclusive_requirements": {
+      "type": "array",
+      "items": {"$ref": "#/$defs/nonEmpty"}
+    },
+    "mutation_performed": {"const": false}
+  },
+  "$defs": {
+    "nonEmpty": {"type": "string", "minLength": 1},
+    "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "utcTimestamp": {
+      "type": "string",
+      "format": "date-time",
+      "pattern": "(Z|[+]00:00)$"
+    },
+    "nonEmptyArray": {
+      "type": "array",
+      "minItems": 1,
+      "items": {"$ref": "#/$defs/nonEmpty"}
+    },
+    "evidence": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "requirement",
+        "state",
+        "authority",
+        "evidence_revision",
+        "content_hash",
+        "reason"
+      ],
+      "properties": {
+        "requirement": {"$ref": "#/$defs/nonEmpty"},
+        "state": {
+          "enum": [
+            "satisfied",
+            "failed",
+            "missing",
+            "stale",
+            "inconclusive"
+          ]
+        },
+        "authority": {"type": ["string", "null"]},
+        "evidence_revision": {"type": ["string", "null"]},
+        "content_hash": {
+          "type": ["string", "null"],
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "reason": {"type": ["string", "null"]}
+      }
+    }
+  }
+}

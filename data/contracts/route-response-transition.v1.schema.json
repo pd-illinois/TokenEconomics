@@ -1,0 +1,119 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://tokeneconomics.dev/contracts/route-response-transition.v1.schema.json",
+  "title": "Route-aware response transition",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "recorded_at",
+    "route_id",
+    "capability_profile",
+    "candidate_id",
+    "candidate_version",
+    "candidate_content_hash",
+    "candidate_is_active",
+    "segment_id",
+    "segment_version",
+    "target_leg",
+    "window",
+    "previous_status",
+    "status",
+    "reason_code",
+    "consecutive_failures",
+    "required_failures",
+    "consecutive_recoveries",
+    "required_recoveries",
+    "authority_mode",
+    "authorities",
+    "response_ladder",
+    "publisher_handoff",
+    "azure_mutation_performed",
+    "historical_evidence_mutated",
+    "transition_id",
+    "content_hash"
+  ],
+  "properties": {
+    "schema_version": {"const": "route-response-transition.v1"},
+    "recorded_at": {"type": "string", "format": "date-time"},
+    "route_id": {"$ref": "#/$defs/route"},
+    "capability_profile": {"type": "object"},
+    "candidate_id": {"$ref": "#/$defs/nonEmpty"},
+    "candidate_version": {"$ref": "#/$defs/nonEmpty"},
+    "candidate_content_hash": {"$ref": "#/$defs/hash"},
+    "candidate_is_active": {"type": "boolean"},
+    "segment_id": {"$ref": "#/$defs/nonEmpty"},
+    "segment_version": {"$ref": "#/$defs/nonEmpty"},
+    "target_leg": {"$ref": "#/$defs/nonEmpty"},
+    "window": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "content_hash", "outcome", "evaluated_at"],
+      "properties": {
+        "id": {"$ref": "#/$defs/nonEmpty"},
+        "content_hash": {"$ref": "#/$defs/hash"},
+        "outcome": {"enum": ["sufficient_fail", "sufficient_pass", "insufficient"]},
+        "evaluated_at": {"type": "string", "format": "date-time"}
+      }
+    },
+    "previous_status": {"$ref": "#/$defs/nonEmpty"},
+    "status": {
+      "enum": [
+        "inconclusive",
+        "breach_observed",
+        "candidate_blocked",
+        "reviewed_reversion_required",
+        "product_admin_action_required",
+        "advisory_recommendation",
+        "recovery_observed",
+        "recovery_review_required",
+        "recovery_ready",
+        "eligible"
+      ]
+    },
+    "reason_code": {"$ref": "#/$defs/nonEmpty"},
+    "consecutive_failures": {"type": "integer", "minimum": 0, "maximum": 2},
+    "required_failures": {"const": 2},
+    "consecutive_recoveries": {"type": "integer", "minimum": 0},
+    "required_recoveries": {"const": 2},
+    "authority_mode": {"enum": ["azure_reviewed_publication", "external_admin_or_application", "advisory"]},
+    "authorities": {"type": "array", "minItems": 1, "items": {"$ref": "#/$defs/nonEmpty"}},
+    "response_ladder": {"type": "array", "minItems": 1, "items": {"$ref": "#/$defs/nonEmpty"}},
+    "publisher_handoff": {
+      "oneOf": [
+        {"type": "null"},
+        {
+          "type": "object",
+          "required": ["handoff_state", "requires_review", "mutation_performed", "least_privilege_publisher_required"],
+          "properties": {
+            "handoff_state": {"const": "proposed"},
+            "requires_review": {"const": true},
+            "mutation_performed": {"const": false},
+            "least_privilege_publisher_required": {"const": true}
+          }
+        }
+      ]
+    },
+    "azure_mutation_performed": {"const": false},
+    "historical_evidence_mutated": {"const": false},
+    "transition_id": {"$ref": "#/$defs/nonEmpty"},
+    "content_hash": {"$ref": "#/$defs/hash"}
+  },
+  "$defs": {
+    "nonEmpty": {"type": "string", "minLength": 1},
+    "hash": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "route": {
+      "enum": [
+        "included",
+        "cowork",
+        "agent_builder",
+        "copilot_studio",
+        "work_iq",
+        "foundry",
+        "github_copilot",
+        "copilot_studio_byom",
+        "foundry_work_iq"
+      ]
+    }
+  }
+}

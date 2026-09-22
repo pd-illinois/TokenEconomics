@@ -13,6 +13,8 @@ from pathlib import Path
 from typing import Any, Mapping
 from uuid import uuid4
 
+from .atomic_publish import publish_immutable
+
 EXPERIMENT_SCHEMA_VERSION = "experiment-manifest.v1"
 OBSERVATION_UNIT = "complete_task_trajectory"
 EVIDENCE_CATEGORIES = frozenset(
@@ -403,7 +405,7 @@ class ExperimentManifestStore:
                 stream.write("\n")
                 stream.flush()
                 os.fsync(stream.fileno())
-            os.link(temporary, path)
+            publish_immutable(temporary, path)
         finally:
             temporary.unlink(missing_ok=True)
         return record

@@ -1,0 +1,44 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Read-only exact-receipt workload source preview",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "plan_id", "receipt_id", "receipt_hash", "run_id", "adapter_id", "adapter_hash", "writes_performed", "billable_execution_permitted", "compatible", "reason", "segments", "preview_hash"],
+  "properties": {
+    "schema_version": {"const": "studio-source-preview.v1"},
+    "plan_id": {"type": "string", "minLength": 1},
+    "receipt_id": {"type": "string", "minLength": 1},
+    "receipt_hash": {"$ref": "#/$defs/hash"},
+    "run_id": {"type": "string", "minLength": 1},
+    "adapter_id": {"type": "string", "minLength": 1},
+    "adapter_hash": {"$ref": "#/$defs/hash"},
+    "writes_performed": {"const": false},
+    "billable_execution_permitted": {"const": false},
+    "compatible": {"type": "boolean"},
+    "reason": {"type": "string"},
+    "result_hash": {"$ref": "#/$defs/hash"},
+    "acceptance_rule_sources_hash": {"$ref": "#/$defs/hash"},
+    "evidence_classification": {"type": "string"},
+    "task_count": {"type": "integer", "minimum": 1},
+    "acceptance_count": {"type": "integer", "minimum": 0},
+    "meter_entry_count": {"type": "integer", "minimum": 0},
+    "segments": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["segment_id", "segment_version", "task_count", "acceptance_count", "rules", "suggested_rule_hash"],
+        "properties": {
+          "segment_id": {"type": "string", "minLength": 1},
+          "segment_version": {"type": "string", "minLength": 1},
+          "task_count": {"type": "integer", "minimum": 1},
+          "acceptance_count": {"type": "integer", "minimum": 0},
+          "rules": {"type": "array", "items": {"type": "object"}},
+          "suggested_rule_hash": {"anyOf": [{"$ref": "#/$defs/hash"}, {"type": "null"}]}
+        }
+      }
+    },
+    "preview_hash": {"$ref": "#/$defs/hash"}
+  },
+  "$defs": {"hash": {"type": "string", "pattern": "^[a-f0-9]{64}$"}},
+  "description": "Compatibility does not establish acceptance, costs or admission. Rule references may prepare a proposed requirement; null means no single verified source rule was available. Sources are reverified at attachment."
+}

@@ -1,0 +1,40 @@
+{
+  "schema_version": "studio-billing-source.v1",
+  "version": "2026-09-14.1",
+  "query": {
+    "schema_version": "studio-billing-query-source.v1",
+    "scope": "/subscriptions/a91cc1ba-bd19-43a7-90ea-120794c0fbc6",
+    "api_version": "2023-11-01",
+    "grouping": "Meter"
+  },
+  "agent_name": "tokengov-books-rag-agent",
+  "agent_binding": {
+    "agent_name": "tokengov-books-rag-agent",
+    "agent_version": "4",
+    "deployment": "rag-agent-runtime-gpt-4-1-mini",
+    "model": "gpt-4.1-mini",
+    "model_version": "2025-04-14"
+  },
+  "retrieval_configuration_hash": "95acd7451a49232a8d6edf2a7a086cd139fb9a231d1e30767dbaece38206b71b",
+  "account_url": "https://stxbk6ickycmp22.blob.core.windows.net",
+  "container": "cost-exports",
+  "prefix": "tokengov/actual-cost/tokengov-actual-cost-daily/",
+  "export_id": "/subscriptions/a91cc1ba-bd19-43a7-90ea-120794c0fbc6/providers/Microsoft.CostManagement/exports/tokengov-actual-cost-daily",
+  "binding": {
+    "schema_version": "workload-resource-binding.v1",
+    "binding_id": "books-rag-azure",
+    "revision": "2026-09-09.1",
+    "valid_from": "2026-09-01",
+    "valid_to": "2030-01-01",
+    "resources": [
+      {"resource_id": "/subscriptions/a91cc1ba-bd19-43a7-90ea-120794c0fbc6/resourceGroups/rg-tokeneconomics/providers/Microsoft.CognitiveServices/accounts/ai-account-xbk6ickycmp22", "role": "model_and_embedding", "allocation_method": "unallocated"},
+      {"resource_id": "/subscriptions/a91cc1ba-bd19-43a7-90ea-120794c0fbc6/resourceGroups/rg-tokeneconomics/providers/Microsoft.Search/searchServices/search-xbk6ickycmp22", "role": "managed_retrieval", "allocation_method": "unallocated"},
+      {"resource_id": "/subscriptions/a91cc1ba-bd19-43a7-90ea-120794c0fbc6/resourceGroups/rg-tokeneconomics/providers/Microsoft.Storage/storageAccounts/stxbk6ickycmp22", "role": "evidence_and_exports", "allocation_method": "unallocated"},
+      {"resource_id": "/subscriptions/a91cc1ba-bd19-43a7-90ea-120794c0fbc6/resourceGroups/rg-tokeneconomics/providers/Microsoft.OperationalInsights/workspaces/logs-xbk6ickycmp22", "role": "observability", "allocation_method": "unallocated"},
+      {"resource_id": "/subscriptions/a91cc1ba-bd19-43a7-90ea-120794c0fbc6/resourceGroups/rg-tokeneconomics/providers/Microsoft.AppConfiguration/configurationStores/appcs-xbk6ickycmp22", "role": "policy_configuration", "allocation_method": "unallocated"},
+      {"resource_id": "/subscriptions/a91cc1ba-bd19-43a7-90ea-120794c0fbc6/resourceGroups/rg-tokeneconomics/providers/Microsoft.App/containerApps/ca-tokeneconomics-studio", "role": "studio_hosting", "allocation_method": "unallocated"},
+      {"resource_id": "/subscriptions/a91cc1ba-bd19-43a7-90ea-120794c0fbc6/resourceGroups/rg-tokeneconomics/providers/Microsoft.ContainerRegistry/registries/crtokeneconomicsjf6s7lqw", "role": "image_registry", "allocation_method": "unallocated"},
+      {"resource_id": "/subscriptions/a91cc1ba-bd19-43a7-90ea-120794c0fbc6/resourceGroups/rg-tokeneconomics/providers/Microsoft.Storage/storageAccounts/ststudiojf6s7lqws6o4", "role": "studio_persistence", "allocation_method": "unallocated"}
+    ]
+  }
+}

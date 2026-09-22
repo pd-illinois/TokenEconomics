@@ -9,6 +9,8 @@ from datetime import datetime, timezone
 from pathlib import Path
 from uuid import uuid4
 
+from .atomic_publish import publish_immutable
+
 from .governance_decisions import (
     CandidateConstraintEvidence,
     ConstraintOutcome,
@@ -42,6 +44,7 @@ class DecisionStateStore:
         *,
         required_breaches: int = 2,
         required_recoveries: int = 2,
+        candidate_is_active: bool = True,
         last_verified_policy: dict | None = None,
         recorded_at: str | None = None,
     ) -> list[dict]:
@@ -78,6 +81,8 @@ class DecisionStateStore:
                 current.update(
                     status=(
                         "revert_required"
+                        if breaches >= required_breaches and candidate_is_active
+                        else "admission_blocked"
                         if breaches >= required_breaches
                         else "breach_observed"
                     ),
@@ -86,6 +91,8 @@ class DecisionStateStore:
                 )
                 reason = (
                     "consecutive_breach_threshold_reached"
+                    if breaches >= required_breaches and candidate_is_active
+                    else "consecutive_breach_threshold_reached_candidate_blocked"
                     if breaches >= required_breaches
                     else "awaiting_consecutive_breach_evidence"
                 )
@@ -93,6 +100,7 @@ class DecisionStateStore:
                 recoveries = current["consecutive_recoveries"] + 1
                 if previous in {
                     "breach_observed",
+                    "admission_blocked",
                     "revert_required",
                     "reverted",
                     "recovery_observed",
@@ -230,6 +238,6 @@ class DecisionStateStore:
                 json.dumps(event, indent=2, allow_nan=False, sort_keys=True) + "\n",
                 encoding="utf-8",
             )
-            os.link(temporary, path)
+            publish_immutable(temporary, path)
         finally:
             temporary.unlink(missing_ok=True)

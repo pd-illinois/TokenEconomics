@@ -1,0 +1,10 @@
+{
+  "change_id": "PCR-AF3CDFC769",
+  "policy_path": "data/policies/tokengov-te003-live-proof.2026-09-09.measurement.1.json",
+  "expected_etag": "UQazk7hn1tyDcGJmCEyid7wnrQx9RphdXKHCyUCqPGM",
+  "base_version": "2026-08-31.2",
+  "base_content_hash": "280736a50dd3baff366714035315b2040f8633b2210b5656fde0d3f24d773aba",
+  "supersedes_change_id": "PCR-D5C0B7884A",
+  "reason": "User-authorized Studio-only measurement. No guaranteed full-task spend cap; production budget, quality rules and protected publication are unchanged.",
+  "publication_mode": "protected_workflow_dispatch_after_review"
+}

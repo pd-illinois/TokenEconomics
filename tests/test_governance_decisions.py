@@ -6,6 +6,7 @@ import pytest
 
 from costgov.decision_state import DecisionStateStore
 from costgov.governance_decisions import (
+    _acceptance_reference_hashes,
     DECISION_CONSTRAINT_SCHEMA_VERSION,
     CandidateConstraintEvidence,
     ConstraintOutcome,
@@ -16,6 +17,16 @@ from costgov.governance_decisions import (
     select_candidate,
     wilson_lower,
 )
+
+
+def test_live_acceptance_references_can_bind_by_outcome_id() -> None:
+    outcome_hash = "a" * 64
+    references = [{"outcome_id": "acceptance-task-1", "content_hash": outcome_hash}]
+
+    by_task, by_outcome = _acceptance_reference_hashes(references)
+
+    assert by_task == {}
+    assert by_outcome["acceptance-task-1"] == outcome_hash
 
 HASH = "a" * 64
 
@@ -166,3 +177,21 @@ def test_hysteresis_does_not_count_the_same_window_twice(tmp_path):
     assert store.get("candidate-a", "bench-rag.v1", "hard")[
         "consecutive_breaches"
     ] == 1
+
+
+def test_inactive_candidate_is_blocked_instead_of_reverted(tmp_path):
+    store = DecisionStateStore(tmp_path)
+    first = store.record(
+        _evidence(_segment(breaches=1), window="breach-1"),
+        candidate_is_active=False,
+    )
+    second = store.record(
+        _evidence(_segment(breaches=1), window="breach-2"),
+        candidate_is_active=False,
+    )
+
+    assert first[0]["status"] == "breach_observed"
+    assert second[0]["status"] == "admission_blocked"
+    assert second[0]["reason_code"] == (
+        "consecutive_breach_threshold_reached_candidate_blocked"
+    )

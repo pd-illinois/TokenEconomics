@@ -163,12 +163,25 @@ def _score(answer: str, expected: list[str]) -> tuple[float, dict[str, Any]]:
     return float(evidence["score"]), evidence
 
 
+def _get_or_create_report(
+    report_store: ReportStore, description: str, report_id: str | None
+) -> dict[str, Any]:
+    if report_id is None:
+        return report_store.create(description)
+    report = report_store.get(report_id)
+    if report is None:
+        raise ValueError(f"shared report does not exist: {report_id}")
+    return report
+
+
 def _create_plan_and_admission(
     description: str,
+    *,
+    report_id: str | None = None,
 ) -> tuple[dict[str, Any], dict[str, Any], dict[str, Any]]:
     report_store = ReportStore(ROOT / "studio_reports")
     plan_store = PlanStore(ROOT / "studio_plans")
-    report = report_store.create(description)
+    report = _get_or_create_report(report_store, description, report_id)
     parameters = {
         "route": "foundry",
         "model": "gpt-4.1-mini",
@@ -314,6 +327,7 @@ def _meter_entry(
 def _parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser()
     parser.add_argument("--run-id")
+    parser.add_argument("--report-id")
     parser.add_argument("--agent-name", default="tokengov-books-rag-agent")
     parser.add_argument("--agent-version", default="2")
     parser.add_argument("--arm-id", default="live-baseline")
@@ -376,7 +390,10 @@ def main() -> int:
         receipt = progress["receipt"]
         handoff = progress["handoff"]
     else:
-        report, receipt, handoff = _create_plan_and_admission(description)
+        report, receipt, handoff = _create_plan_and_admission(
+            description,
+            report_id=args.report_id,
+        )
         progress = {
             "run_id": run_id,
             "report": report,

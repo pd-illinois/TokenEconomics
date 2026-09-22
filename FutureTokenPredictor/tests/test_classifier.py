@@ -2,7 +2,9 @@
 
 from __future__ import annotations
 
-from future_token_predictor.classifier import classify
+import pytest
+
+from future_token_predictor.classifier import analyze_workload, classify
 from future_token_predictor.models.schemas import (
     AgentPattern,
     AgentType,
@@ -173,6 +175,57 @@ class TestAgentTypeDetection:
 
 
 # ── Complexity Detection ─────────────────────────────────────────────────
+
+
+class TestRetrievalTopology:
+    @pytest.mark.parametrize("suffix", [
+        "",
+        " There is no multi-agent delegation.",
+        " This runs without multi-agent delegation.",
+        " This is not a multi-agent system.",
+    ])
+    def test_gutenberg_single_retrieval_generation_pipeline(self, suffix, monkeypatch):
+        for key in ("CLASSIFIER_API_KEY", "CLASSIFIER_ENDPOINT", "CLASSIFIER_MODEL",
+                    "AZURE_OPENAI_API_KEY", "AZURE_OPENAI_ENDPOINT",
+                    "AZURE_OPENAI_CLASSIFIER_DEPLOYMENT", "OPENAI_API_KEY"):
+            monkeypatch.delenv(key, raising=False)
+        description = (
+            "A RAG pipeline for a Project Gutenberg book collection. "
+            "A reader submits a question. The application embeds the question, "
+            "performs hybrid retrieval against the existing Azure AI Search books "
+            "index, and passes the retrieved book excerpts and question to "
+            "Microsoft Foundry GPT-5.6 Luna. A single answer-generation call "
+            "produces a grounded text answer with book citations. The workload "
+            "is a retrieval-augmented generation pipeline with one retrieval "
+            "stage and one generation stage. Sample questions concern characters, "
+            "events, themes and comparisons in the indexed books."
+        ) + suffix
+
+        analysis = analyze_workload(description)
+        assert analysis.topology.selected == AgentPattern.RAG_PIPELINE
+        assert analysis.topology.evidence[0].rule == "retrieval_pipeline"
+        assert "workflow_steps" not in analysis.quantities
+        assert analysis.agent_count.value == 1
+        assert Tool.FILE_SEARCH in analysis.tools
+        assert classify(description).agent_pattern == AgentPattern.RAG_PIPELINE
+
+    @pytest.mark.parametrize(("description", "expected"), [
+        ("A RAG pipeline over a knowledge base.", AgentPattern.RAG_PIPELINE),
+        ("A pipeline with retrieval and a six-step workflow with branching.",
+         AgentPattern.WORKFLOW),
+        ("A retrieval pipeline ingests documents, extracts facts, and validates results.",
+         AgentPattern.WORKFLOW),
+        ("An autonomous RAG pipeline retrieves evidence and executes actions.",
+         AgentPattern.TOOL_AGENT),
+        ("A RAG pipeline retrieves policies and submits a refund request.",
+         AgentPattern.TOOL_AGENT),
+        ("A multi-agent RAG pipeline delegates to specialists.", AgentPattern.MULTI_AGENT),
+        ("No multi-agent delegation in retrieval. A separate multi-agent team reviews answers.",
+         AgentPattern.MULTI_AGENT),
+        ("A multi-step workflow pipeline.", AgentPattern.WORKFLOW),
+    ])
+    def test_stronger_topology_signals_are_preserved(self, description, expected):
+        assert analyze_workload(description).topology.selected == expected
 
 
 class TestComplexityDetection:

@@ -1,0 +1,71 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://tokeneconomics.dev/contracts/composite-route-reconciliation.v1.schema.json",
+  "title": "Composite route reconciliation",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "reconciliation_scope_id",
+    "created_at",
+    "status",
+    "reconciliation_order",
+    "source_imports",
+    "native_variances",
+    "monetary_allocations",
+    "purchase_views",
+    "unattributed",
+    "coverage_gaps",
+    "idempotency_key",
+    "source_observations_mutated",
+    "historical_forecasts_mutated",
+    "reconciliation_id",
+    "content_hash"
+  ],
+  "properties": {
+    "schema_version": {"const": "composite-route-reconciliation.v1"},
+    "reconciliation_scope_id": {"$ref": "#/$defs/nonEmpty"},
+    "created_at": {"type": "string", "format": "date-time"},
+    "status": {"enum": ["provisional", "finalized"]},
+    "reconciliation_order": {
+      "const": ["native_quantity_variance", "approved_monetary_allocation"]
+    },
+    "source_imports": {"type": "array", "minItems": 1, "items": {"type": "object"}},
+    "native_variances": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["forecast_evidence_hash", "actual_evidence_hashes", "quantity_variance"],
+        "properties": {
+          "forecast_evidence_hash": {"$ref": "#/$defs/hash"},
+          "actual_evidence_hashes": {"type": "array", "minItems": 2, "items": {"$ref": "#/$defs/hash"}},
+          "quantity_variance": {"type": "number"}
+        }
+      }
+    },
+    "monetary_allocations": {"type": "array", "items": {"type": "object"}},
+    "purchase_views": {
+      "type": "array",
+      "minItems": 6,
+      "maxItems": 6,
+      "items": {
+        "type": "object",
+        "required": ["purchase_model"],
+        "properties": {
+          "purchase_model": {"enum": ["seat", "pack", "p3", "payg", "github_allowance", "azure_cost"]}
+        }
+      }
+    },
+    "unattributed": {"type": "array", "items": {"type": "object"}},
+    "coverage_gaps": {"type": "array", "items": {"type": "object"}},
+    "idempotency_key": {"$ref": "#/$defs/hash"},
+    "source_observations_mutated": {"const": false},
+    "historical_forecasts_mutated": {"const": false},
+    "reconciliation_id": {"$ref": "#/$defs/nonEmpty"},
+    "content_hash": {"$ref": "#/$defs/hash"}
+  },
+  "$defs": {
+    "nonEmpty": {"type": "string", "minLength": 1},
+    "hash": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
+  }
+}

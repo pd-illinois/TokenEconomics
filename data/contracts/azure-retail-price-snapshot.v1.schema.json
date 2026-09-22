@@ -1,0 +1,30 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "azure-retail-price-snapshot.v1.schema.json",
+  "title": "TokenEconomics Azure retail-price snapshot",
+  "type": "object",
+  "required": ["schema_version", "status", "currency", "price_type", "lines"],
+  "properties": {
+    "schema_version": {"const": "azure-retail-price-snapshot.v1"},
+    "status": {"enum": ["complete", "partial", "unavailable"]},
+    "currency": {"const": "USD"},
+    "price_type": {"const": "Consumption"},
+    "captured_at": {"type": "string", "format": "date-time"},
+    "lines": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["line_id", "service_name", "sku_name", "meter_name", "quantity", "quantity_source", "material", "evidence_status", "monthly_cost_usd"],
+        "properties": {
+          "line_id": {"type": "string", "minLength": 1},
+          "quantity": {"type": "number", "minimum": 0},
+          "material": {"type": "boolean"},
+          "evidence_status": {"enum": ["sourced", "unpriced"]},
+          "monthly_cost_usd": {"type": ["number", "null"], "minimum": 0}
+        },
+        "additionalProperties": true
+      }
+    }
+  },
+  "additionalProperties": true
+}

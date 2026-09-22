@@ -1,0 +1,28 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Separately authorized Studio workload measurement",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version", "mode", "workload_scope", "max_questions",
+    "max_output_tokens", "max_elapsed_seconds", "observed_model_cost_stop_usd",
+    "expires_at", "acknowledge_incomplete_costs", "hard_spend_cap_guaranteed",
+    "operational_promotion"
+  ],
+  "properties": {
+    "schema_version": {"const": "workload-measurement-policy.v1"},
+    "mode": {"const": "measurement_only"},
+    "workload_scope": {"const": "studio_batches"},
+    "max_questions": {"type": "integer", "minimum": 1, "maximum": 10},
+    "max_output_tokens": {"type": "integer", "minimum": 1, "maximum": 4096},
+    "max_elapsed_seconds": {"type": "integer", "minimum": 1, "maximum": 600},
+    "observed_model_cost_stop_usd": {
+      "type": "number", "exclusiveMinimum": 0, "maximum": 5,
+      "description": "Observed model allocation stop before the next question, not a full-task spend guarantee."
+    },
+    "expires_at": {"type": "string", "format": "date-time", "pattern": "(Z|\\+00:00)$"},
+    "acknowledge_incomplete_costs": {"const": true},
+    "hard_spend_cap_guaranteed": {"const": false},
+    "operational_promotion": {"const": false}
+  }
+}

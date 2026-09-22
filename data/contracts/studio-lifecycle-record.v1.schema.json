@@ -1,0 +1,19 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Append-only exact-receipt Studio lifecycle record envelope",
+  "type": "object",
+  "required": ["schema_version", "id", "kind", "created_at", "report_id", "plan_id", "receipt_id", "receipt_hash", "content_hash"],
+  "properties": {
+    "schema_version": {"enum": ["studio-requirements.v1", "studio-attachment.v1", "studio-evaluation.v1", "studio-reassessment.v1", "studio-comparison.v1", "studio-operational-admission.v1", "studio-reconciliation.v1"]},
+    "id": {"type": "string", "pattern": "^[A-Za-z0-9_-]{1,128}$"},
+    "kind": {"enum": ["requirements", "attachment", "evaluation", "reassessment", "comparison", "operational-admission", "reconciliation"]},
+    "created_at": {"type": "string", "format": "date-time"},
+    "report_id": {"type": "string", "minLength": 1},
+    "plan_id": {"type": "string", "minLength": 1},
+    "receipt_id": {"type": "string", "minLength": 1},
+    "receipt_hash": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+    "content_hash": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+    "billable_execution_permitted": {"const": false}
+  },
+  "description": "Kind-specific payloads are validated by StudioLifecycle. Hash covers the full canonical record except content_hash. This envelope grants no network execution or policy publication."
+}

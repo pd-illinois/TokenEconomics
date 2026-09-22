@@ -1,0 +1,230 @@
+{
+  "schema_version": "rag-qna-dataset.v1",
+  "dataset_id": "gutenberg-five-books-qna-pilot",
+  "revision": "2026-09-14.v1",
+  "segment_revision": "qna-segments.v1",
+  "family_revision": "qna-families.v1",
+  "content_hash": "5b702a79fe72332311ebe49e66b85079c633dd89048e612a83f23d4b153f30cb",
+  "evidence_status": "proposed",
+  "human_review_status": "pending",
+  "operational_admission": false,
+  "heldout_scored_proof": false,
+  "notes": [
+    "Drafted seed pilot, not human-reviewed quality ground truth. Expected answers and rubrics are proposed.",
+    "Development/holdout names are family-aware design partitions only, not evidence of a sealed or scored held-out experiment.",
+    "Families were manually drafted to avoid close paraphrases across partitions; semantic leakage has not been independently reviewed.",
+    "Legacy golden_set.rag.json remains a separate keyword-substring diagnostic, not a human-reviewed acceptance set.",
+    "Unanswerable cases name the searched source scope; a locator is not proof that an absent fact was exhaustively ruled out.",
+    "Local source hashes establish byte integrity, not source authentication. No corpus passages are copied into this dataset.",
+    "Five cases per segment are insufficient for decision-grade quality floors, calibrated tail-risk claims, or production promotion."
+  ],
+  "sources": [
+    {"source_id": "pg1342", "file": "pg1342.txt", "title": "Pride and Prejudice", "sha256": "6542952d9e0df48e86ba83cbd0090b5d19047a0b651d4de724750f1aee5ab9ea"},
+    {"source_id": "pg84", "file": "pg84.txt", "title": "Frankenstein", "sha256": "d5f201b59928b643ee77ecc4328d1b20acba5baa169c8a470ca13810fca3a751"},
+    {"source_id": "pg345", "file": "pg345.txt", "title": "Dracula", "sha256": "4a4c043649ee733da0f2eee65bd38eea70775eeb44f530f58f1042448010f80a"},
+    {"source_id": "pg1661", "file": "pg1661.txt", "title": "The Adventures of Sherlock Holmes", "sha256": "92a451294b188159db12c46f10d576dafa7159e37c64c610abb8a103b2ce3827"},
+    {"source_id": "pg11", "file": "pg11.txt", "title": "Alice's Adventures in Wonderland", "sha256": "6b9af8325db3adaf54fc72879bd3586c1869fb65bd018ac4f0fb6008149f3234"}
+  ],
+  "cases": [
+    {
+      "case_id": "qna-f01", "family_id": "bennet-inheritance", "segment_id": "factual", "partition": "development",
+      "question": "Who is expected to inherit Longbourn instead of Mr. Bennet's daughters, and what legal arrangement explains this?",
+      "expected_answer": "Mr. Collins is the expected heir because the estate is entailed away from the female line.",
+      "rubric": ["Identify Mr. Collins, not Mr. Darcy or Mr. Bingley.", "Explain the entail without suggesting that the daughters freely renounce the estate.", "Cite the relevant Longbourn inheritance discussion."],
+      "source_locators": [{"source_id": "pg1342", "locator": "Chapter 13; Mr. Bennet introduces the expected visit from Mr. Collins and the entail."}],
+      "answer_behavior": "answer", "expected_answer_status": "proposed", "human_review_status": "pending"
+    },
+    {
+      "case_id": "qna-f02", "family_id": "demeter-arrival", "segment_id": "factual", "partition": "development",
+      "question": "Name the ship that arrives at Whitby during the storm in Dracula, and describe the captain's condition when it is found.",
+      "expected_answer": "The Demeter arrives at Whitby; its dead captain is tied to the wheel.",
+      "rubric": ["Identify the Demeter and Whitby.", "Distinguish the dead captain from the missing crew.", "Cite the newspaper account or ship's log."],
+      "source_locators": [{"source_id": "pg345", "locator": "Chapter VII; Dailygraph storm account and Log of the Demeter."}],
+      "answer_behavior": "answer", "expected_answer_status": "proposed", "human_review_status": "pending"
+    },
+    {
+      "case_id": "qna-f03", "family_id": "wonderland-holmes-evidence", "segment_id": "factual", "partition": "holdout",
+      "question": "In the Queen's croquet game, which animals serve as mallets and balls?",
+      "expected_answer": "Live flamingos are used as mallets and live hedgehogs as balls.",
+      "rubric": ["Correctly map flamingos to mallets and hedgehogs to balls.", "Do not substitute the soldiers, who form the arches.", "Cite the croquet scene."],
+      "source_locators": [{"source_id": "pg11", "locator": "Chapter VIII, The Queen's Croquet-Ground; description of the equipment."}],
+      "answer_behavior": "answer", "expected_answer_status": "proposed", "human_review_status": "pending"
+    },
+    {
+      "case_id": "qna-f04", "family_id": "victor-university", "segment_id": "factual", "partition": "holdout",
+      "question": "At which university does Victor Frankenstein study, and name one professor he encounters there?",
+      "expected_answer": "Victor studies at Ingolstadt; either M. Krempe or M. Waldman is a valid professor.",
+      "rubric": ["Identify Ingolstadt.", "Accept Krempe or Waldman without requiring both.", "Do not identify Walton as a professor; cite Victor's arrival at university."],
+      "source_locators": [{"source_id": "pg84", "locator": "Chapter 3; arrival at Ingolstadt and meetings with Krempe and Waldman."}],
+      "answer_behavior": "answer", "expected_answer_status": "proposed", "human_review_status": "pending"
+    },
+    {
+      "case_id": "qna-f05", "family_id": "wonderland-holmes-evidence", "segment_id": "factual", "partition": "holdout",
+      "question": "In The Adventure of the Blue Carbuncle, where is the stolen jewel unexpectedly discovered?",
+      "expected_answer": "It is discovered inside the crop of a goose prepared by Peterson's wife.",
+      "rubric": ["Identify a goose, preferably its crop.", "Distinguish discovery of the jewel from the discarded hat.", "Cite the scene where Peterson returns with the stone."],
+      "source_locators": [{"source_id": "pg1661", "locator": "The Adventure of the Blue Carbuncle; Peterson's return after the goose is prepared."}],
+      "answer_behavior": "answer", "expected_answer_status": "proposed", "human_review_status": "pending"
+    },
+    {
+      "case_id": "qna-s01", "family_id": "charlotte-pragmatism", "segment_id": "synthesis", "partition": "development",
+      "question": "Why does Charlotte Lucas accept Mr. Collins, and how does Elizabeth's response reveal their different views of marriage?",
+      "expected_answer": "Charlotte prioritizes a secure home and practical prospects over romantic affection. Elizabeth is dismayed because she expects greater affection and compatibility.",
+      "rubric": ["Explain Charlotte's economic and social pragmatism without claiming she is in love with Collins.", "Contrast Elizabeth's view using the proposal aftermath.", "Support the interpretation with source evidence, not modern assumptions alone."],
+      "source_locators": [{"source_id": "pg1342", "locator": "Chapters 22-23; Charlotte's engagement and conversation with Elizabeth."}],
+      "answer_behavior": "answer", "expected_answer_status": "proposed", "human_review_status": "pending"
+    },
+    {
+      "case_id": "qna-s02", "family_id": "holmes-bennet-evidence", "segment_id": "synthesis", "partition": "development",
+      "question": "Explain why the Red-Headed League pays Wilson to copy an encyclopedia and how Holmes connects that job to the crime.",
+      "expected_answer": "The job keeps Wilson away from his shop while his assistant and accomplice dig a tunnel toward the bank. Holmes links the assistant's behavior, premises, and nearby bank to the planned robbery.",
+      "rubric": ["Explain the job as a diversion rather than a genuine charitable task.", "Connect absence from the shop to tunneling and the bank.", "Use the investigation and resolution; distinguish inference from directly observed facts."],
+      "source_locators": [{"source_id": "pg1661", "locator": "The Red-Headed League; Wilson's work, Holmes's street inspection, and bank-cellar resolution."}],
+      "answer_behavior": "answer", "expected_answer_status": "proposed", "human_review_status": "pending"
+    },
+    {
+      "case_id": "qna-s03", "family_id": "mina-information-work", "segment_id": "synthesis", "partition": "development",
+      "question": "How does Mina's work organizing the group's records help the pursuit of Dracula?",
+      "expected_answer": "Mina types, transcribes, and collates accounts, including Seward's recordings, making scattered experiences available to the group as a shared chronology and evidence.",
+      "rubric": ["Describe concrete organizational work rather than merely calling Mina intelligent.", "Explain how shared records support coordination.", "Avoid claiming the records alone defeat Dracula."],
+      "source_locators": [{"source_id": "pg345", "locator": "Chapters XIV and XVII-XVIII; Mina's typewriting, phonograph transcription, and shared records."}],
+      "answer_behavior": "answer", "expected_answer_status": "proposed", "human_review_status": "pending"
+    },
+    {
+      "case_id": "qna-s04", "family_id": "creature-social-learning", "segment_id": "synthesis", "partition": "holdout",
+      "question": "How does observing the De Lacey household educate the creature, and why does approaching the family fail to secure companionship?",
+      "expected_answer": "He learns language and human relationships by watching the family, including lessons given to Safie. The blind father initially listens, but the returning family reacts fearfully or violently to his appearance.",
+      "rubric": ["Connect observation and Safie's lessons to learning.", "Distinguish the blind father's response from the sighted family's response.", "Explain the failed hope of companionship without erasing the creature's agency."],
+      "source_locators": [{"source_id": "pg84", "locator": "Chapters 12-15; cottage observations, Safie's lessons, and encounter with blind De Lacey."}],
+      "answer_behavior": "answer", "expected_answer_status": "proposed", "human_review_status": "pending"
+    },
+    {
+      "case_id": "qna-s05", "family_id": "wonderland-holmes-evidence", "segment_id": "synthesis", "partition": "holdout",
+      "question": "How does the trial of the Knave of Hearts parody fair legal procedure? Give two distinct examples.",
+      "expected_answer": "Examples include the Queen demanding sentence before verdict, treating an unexplained set of verses as incriminating evidence, and the King's improvised rule aimed at removing Alice.",
+      "rubric": ["Give two distinct text-supported procedural absurdities.", "Explain why each undermines fair procedure rather than only listing characters.", "Do not assert that the Knave's guilt is reliably established."],
+      "source_locators": [{"source_id": "pg11", "locator": "Chapters XI-XII; tart trial, Rule Forty-two, verses, and sentence before verdict."}],
+      "answer_behavior": "answer", "expected_answer_status": "proposed", "human_review_status": "pending"
+    },
+    {
+      "case_id": "qna-x01", "family_id": "holmes-bennet-evidence", "segment_id": "cross-book", "partition": "development",
+      "question": "Compare Elizabeth's reassessment after Darcy's letter with Holmes's reasoning in The Red-Headed League. How does new evidence change an initial explanation?",
+      "expected_answer": "Elizabeth reconsiders her assumptions about Darcy and Wickham after reading and reflecting on the letter. Holmes treats the apparently generous copying job as a clue to a hidden diversion and tests it against the physical setting.",
+      "rubric": ["Use one concrete evidence-based change from each book.", "Distinguish Elizabeth's personal self-correction from Holmes's investigation.", "Cite both works; avoid presenting all of Darcy's statements as independently verified merely because he wrote them."],
+      "source_locators": [{"source_id": "pg1342", "locator": "Chapters 35-36; Darcy's letter and Elizabeth's reflections."}, {"source_id": "pg1661", "locator": "The Red-Headed League; shop inspection and final explanation."}],
+      "answer_behavior": "answer", "expected_answer_status": "proposed", "human_review_status": "pending"
+    },
+    {
+      "case_id": "qna-x02", "family_id": "wonderland-holmes-evidence", "segment_id": "cross-book", "partition": "holdout",
+      "question": "Contrast Victor's pursuit of scientific mastery with the Queen of Hearts' exercise of authority. How does each text expose limits of control?",
+      "expected_answer": "Victor seeks mastery over life but cannot control or responsibly manage the consequences of creating the creature. The Queen issues extravagant threats while croquet and court proceedings remain unstable and absurd.",
+      "rubric": ["Anchor each comparison in a concrete scene.", "Distinguish tragic consequences from comic absurdity.", "Treat this as an interpretation, not a claim that the authors share an identical argument."],
+      "source_locators": [{"source_id": "pg84", "locator": "Chapters 4-5; creation and immediate aftermath."}, {"source_id": "pg11", "locator": "Chapters VIII and XII; croquet commands and trial."}],
+      "answer_behavior": "answer", "expected_answer_status": "proposed", "human_review_status": "pending"
+    },
+    {
+      "case_id": "qna-x03", "family_id": "domestic-security-threats", "segment_id": "cross-book", "partition": "development",
+      "question": "Compare threats to domestic security in the Bennet inheritance problem and Lucy's bedroom scenes in Dracula.",
+      "expected_answer": "The Bennet daughters face economic insecurity through the entail and marriage pressures. Lucy's bedroom is physically vulnerable to supernatural intrusion; protective measures such as garlic and supervision prove fragile.",
+      "rubric": ["Identify the distinct economic and bodily threats.", "Use evidence from both works.", "Do not collapse the threats into the same mechanism or claim that marriage solves every Bennet family concern."],
+      "source_locators": [{"source_id": "pg1342", "locator": "Chapters 13 and 20; entail and pressure around Collins's proposal."}, {"source_id": "pg345", "locator": "Chapters X-XI; Lucy's room, garlic, and disrupted protections."}],
+      "answer_behavior": "answer", "expected_answer_status": "proposed", "human_review_status": "pending"
+    },
+    {
+      "case_id": "qna-x04", "family_id": "wonderland-holmes-evidence", "segment_id": "cross-book", "partition": "holdout",
+      "question": "Contrast the goose in The Blue Carbuncle with the animals in Alice's croquet game. What different roles do these animals play in the action?",
+      "expected_answer": "The goose conceals the stolen jewel and becomes a traceable link in Holmes's investigation. The flamingos and hedgehogs are unwilling game equipment whose independent movement makes the Queen's game chaotic.",
+      "rubric": ["Explain the goose as a material clue and carrier.", "Explain the croquet animals' resistance to stable rules.", "Cite both texts and avoid inventing a shared symbolic meaning."],
+      "source_locators": [{"source_id": "pg1661", "locator": "The Adventure of the Blue Carbuncle; jewel discovery and tracing the goose."}, {"source_id": "pg11", "locator": "Chapter VIII; unruly croquet equipment."}],
+      "answer_behavior": "answer", "expected_answer_status": "proposed", "human_review_status": "pending"
+    },
+    {
+      "case_id": "qna-x05", "family_id": "wonderland-holmes-evidence", "segment_id": "cross-book", "partition": "holdout",
+      "question": "Compare Justine's prosecution in Frankenstein with John Horner's accusation in The Blue Carbuncle. How can misleading evidence endanger an innocent person?",
+      "expected_answer": "Justine is implicated by the portrait placed on her and makes a pressured false confession; she is executed. Horner is accused because of his access and prior record, while the jewel investigation exposes Ryder's role.",
+      "rubric": ["Identify the misleading evidence or assumptions in both cases.", "Distinguish the tragic outcome for Justine from Holmes's discovery concerning Horner.", "Do not claim that Horner has already been convicted or that Holmes rescues Justine."],
+      "source_locators": [{"source_id": "pg84", "locator": "Chapters 7-8 and 16; Justine's trial, confession, and the creature's account of the portrait."}, {"source_id": "pg1661", "locator": "The Adventure of the Blue Carbuncle; newspaper accusation and Ryder's confession."}],
+      "answer_behavior": "answer", "expected_answer_status": "proposed", "human_review_status": "pending"
+    },
+    {
+      "case_id": "qna-a01", "family_id": "ambiguous-monster-reference", "segment_id": "ambiguous", "partition": "development",
+      "question": "Why did the monster do it?",
+      "expected_answer": "Ask which book or character and which action the user means before assigning a motive.",
+      "rubric": ["Identify both the missing referent and action.", "Ask a concise clarification.", "Do not silently choose Dracula or Frankenstein's creature and invent the event."],
+      "source_locators": [{"source_id": "pg84", "locator": "Whole-work candidate scope; creature's actions differ by episode."}, {"source_id": "pg345", "locator": "Whole-work candidate scope; Dracula is a different possible referent."}],
+      "answer_behavior": "clarify", "expected_answer_status": "proposed", "human_review_status": "pending"
+    },
+    {
+      "case_id": "qna-a02", "family_id": "ambiguous-letter-reference", "segment_id": "ambiguous", "partition": "development",
+      "question": "What does the letter prove?",
+      "expected_answer": "Ask which letter and book are intended; explain that letters in the corpus provide differing claims and evidence.",
+      "rubric": ["Request identification of the letter.", "Do not assume Darcy's letter or Walton's correspondence.", "Avoid claiming that an unidentified letter proves anything."],
+      "source_locators": [{"source_id": "pg1342", "locator": "Chapter 35; one possible letter, not an established referent."}, {"source_id": "pg84", "locator": "Opening letters; alternative candidate scope."}],
+      "answer_behavior": "clarify", "expected_answer_status": "proposed", "human_review_status": "pending"
+    },
+    {
+      "case_id": "qna-a03", "family_id": "ambiguous-ending-evaluation", "segment_id": "ambiguous", "partition": "development",
+      "question": "Was the ending happy for her?",
+      "expected_answer": "Ask which work and female character the user means, and optionally what they mean by a happy ending.",
+      "rubric": ["Clarify character and work.", "Do not silently substitute Elizabeth, Mina, or Alice.", "Do not provide an unsupported yes/no verdict."],
+      "source_locators": [{"source_id": "pg1342", "locator": "Final chapter; possible but unspecified character outcomes."}, {"source_id": "pg345", "locator": "Final chapter and Note; alternative candidate ending."}, {"source_id": "pg11", "locator": "Chapter XII; alternative candidate ending."}],
+      "answer_behavior": "clarify", "expected_answer_status": "proposed", "human_review_status": "pending"
+    },
+    {
+      "case_id": "qna-a04", "family_id": "ambiguous-doctor-reference", "segment_id": "ambiguous", "partition": "holdout",
+      "question": "Did the doctor make the right decision?",
+      "expected_answer": "Ask which doctor, story, and decision the user wants assessed before making a judgment.",
+      "rubric": ["Recognize that Watson, Seward, and Van Helsing are possible but unconfirmed referents.", "Request the specific decision.", "Do not invent a medical action or moral verdict."],
+      "source_locators": [{"source_id": "pg1661", "locator": "Whole collection; Dr. Watson is one possible referent."}, {"source_id": "pg345", "locator": "Whole novel; Seward and Van Helsing are other possible referents."}],
+      "answer_behavior": "clarify", "expected_answer_status": "proposed", "human_review_status": "pending"
+    },
+    {
+      "case_id": "qna-a05", "family_id": "ambiguous-wonderland-size", "segment_id": "ambiguous", "partition": "holdout",
+      "question": "How tall was Alice after she ate it?",
+      "expected_answer": "Ask which eating episode or food is meant, since Alice changes size repeatedly.",
+      "rubric": ["Identify the missing episode/food.", "Avoid selecting one height as unambiguously correct.", "A supported conditional example is allowed only alongside explicit clarification."],
+      "source_locators": [{"source_id": "pg11", "locator": "Chapters I-II and V; cake and mushroom episodes cause different size changes."}],
+      "answer_behavior": "clarify", "expected_answer_status": "proposed", "human_review_status": "pending"
+    },
+    {
+      "case_id": "qna-u01", "family_id": "unsupported-darcy-email", "segment_id": "unanswerable", "partition": "development",
+      "question": "What is Mr. Darcy's email address in Pride and Prejudice?",
+      "expected_answer": "The novel supplies no email address; decline to invent one and explain that email is outside the story's setting.",
+      "rubric": ["Explicitly abstain from providing an address.", "Distinguish absence in the source from retrieval certainty.", "Do not invent a Pemberley domain or substitute a real person's contact details."],
+      "source_locators": [{"source_id": "pg1342", "locator": "Whole novel search scope; no claimed positive passage for an email address."}],
+      "answer_behavior": "abstain", "expected_answer_status": "proposed", "human_review_status": "pending"
+    },
+    {
+      "case_id": "qna-u02", "family_id": "unsupported-creature-genome", "segment_id": "unanswerable", "partition": "development",
+      "question": "Give the complete DNA sequence of Victor's creature as specified in Frankenstein.",
+      "expected_answer": "The novel does not provide a DNA sequence; no complete sequence can be recovered from this corpus.",
+      "rubric": ["Decline to generate a purported sequence.", "State the source limitation.", "Do not turn speculative reconstruction into textual fact."],
+      "source_locators": [{"source_id": "pg84", "locator": "Chapters 4-5 and whole novel scope; creation account is not a genomic specification."}],
+      "answer_behavior": "abstain", "expected_answer_status": "proposed", "human_review_status": "pending"
+    },
+    {
+      "case_id": "qna-u03", "family_id": "unsupported-dracula-bank-pin", "segment_id": "unanswerable", "partition": "development",
+      "question": "What four-digit bank-card PIN does Count Dracula use in the novel?",
+      "expected_answer": "No bank-card PIN is given in Dracula; do not invent a number.",
+      "rubric": ["Explicitly state the requested datum is absent from the novel.", "Do not supply a guessed PIN.", "Keep the response grounded in corpus scope rather than implying access to private accounts."],
+      "source_locators": [{"source_id": "pg345", "locator": "Whole novel search scope; no positive locator for a bank-card PIN."}],
+      "answer_behavior": "abstain", "expected_answer_status": "proposed", "human_review_status": "pending"
+    },
+    {
+      "case_id": "qna-u04", "family_id": "out-of-corpus-hound", "segment_id": "unanswerable", "partition": "holdout",
+      "question": "Using only the five indexed books, identify the culprit in The Hound of the Baskervilles and cite the revealing passage.",
+      "expected_answer": "The Hound of the Baskervilles is not one of the five indexed books; the requested source-grounded answer and citation cannot be supplied from this corpus.",
+      "rubric": ["Abstain on the corpus-bounded request even if the model knows the answer externally.", "Explain that The Adventures of Sherlock Holmes is a different collection.", "Do not fabricate a revealing passage or cite an unrelated Holmes story."],
+      "source_locators": [{"source_id": "pg1661", "locator": "Contents listing; corpus-scope check, not a passage resolving The Hound of the Baskervilles."}],
+      "answer_behavior": "abstain", "expected_answer_status": "proposed", "human_review_status": "pending"
+    },
+    {
+      "case_id": "qna-u05", "family_id": "unsupported-alice-birthdate", "segment_id": "unanswerable", "partition": "holdout",
+      "question": "What exact day, month, and year was the fictional Alice born, according to Alice's Adventures in Wonderland?",
+      "expected_answer": "This novel does not establish the fictional Alice's full date of birth; do not replace it with the historical Alice Liddell's birthday.",
+      "rubric": ["Abstain from asserting an exact birthdate.", "Distinguish fictional character evidence from biographical knowledge about Alice Liddell.", "Do not infer a complete birthdate from incidental calendar references."],
+      "source_locators": [{"source_id": "pg11", "locator": "Whole novel scope, including Chapter VII calendar references; no asserted full birthdate locator."}],
+      "answer_behavior": "abstain", "expected_answer_status": "proposed", "human_review_status": "pending"
+    }
+  ]
+}

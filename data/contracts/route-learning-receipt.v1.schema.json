@@ -1,0 +1,85 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://tokeneconomics.dev/contracts/route-learning-receipt.v1.schema.json",
+  "title": "Domain-isolated route learning receipt",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "created_at",
+    "route_id",
+    "domain",
+    "target_system",
+    "reconciliation_reference",
+    "prior_calibration_reference",
+    "result",
+    "sufficiency",
+    "observation_hashes",
+    "effective_calibration",
+    "untouched_domains",
+    "cross_domain_updates_performed",
+    "distribution_semantics",
+    "historical_receipts_mutated",
+    "historical_decisions_mutated",
+    "learning_receipt_id",
+    "content_hash"
+  ],
+  "properties": {
+    "schema_version": {"const": "route-learning-receipt.v1"},
+    "created_at": {"type": "string", "format": "date-time"},
+    "route_id": {"$ref": "#/$defs/nonEmpty"},
+    "domain": {"enum": ["model_tokens", "commercial_demand", "purchase_utilization", "segment_acceptance"]},
+    "target_system": {"enum": ["future_token_predictor", "commercial_scenario_calibration", "allocation_calibration", "segment_acceptance_evidence"]},
+    "reconciliation_reference": {"$ref": "#/$defs/reference"},
+    "prior_calibration_reference": {"$ref": "#/$defs/reference"},
+    "result": {"enum": ["revised", "unchanged_insufficient_evidence"]},
+    "sufficiency": {
+      "type": "object",
+      "required": ["sufficient", "sample_count", "independent_group_count", "reason_codes"],
+      "properties": {
+        "sufficient": {"type": "boolean"},
+        "sample_count": {"type": "integer", "minimum": 1},
+        "independent_group_count": {"type": "integer", "minimum": 1},
+        "reason_codes": {"type": "array", "minItems": 1, "items": {"$ref": "#/$defs/nonEmpty"}}
+      }
+    },
+    "observation_hashes": {"type": "array", "minItems": 1, "items": {"$ref": "#/$defs/hash"}},
+    "effective_calibration": {
+      "type": "object",
+      "required": ["revision", "content_hash", "payload"],
+      "properties": {
+        "revision": {"$ref": "#/$defs/nonEmpty"},
+        "content_hash": {"$ref": "#/$defs/hash"},
+        "payload": {"type": "object"}
+      }
+    },
+    "untouched_domains": {"type": "array", "minItems": 3, "maxItems": 3, "items": {"$ref": "#/$defs/nonEmpty"}},
+    "cross_domain_updates_performed": {"const": []},
+    "distribution_semantics": {
+      "type": "object",
+      "required": ["modeled_percentiles_remain_distinct", "empirical_calibration_applied", "calibrated_tail_risk_claim"],
+      "properties": {
+        "modeled_percentiles_remain_distinct": {"const": true},
+        "empirical_calibration_applied": {"type": "boolean"},
+        "calibrated_tail_risk_claim": {"const": false}
+      }
+    },
+    "historical_receipts_mutated": {"const": false},
+    "historical_decisions_mutated": {"const": false},
+    "learning_receipt_id": {"$ref": "#/$defs/nonEmpty"},
+    "content_hash": {"$ref": "#/$defs/hash"}
+  },
+  "$defs": {
+    "nonEmpty": {"type": "string", "minLength": 1},
+    "hash": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "reference": {
+      "type": "object",
+      "required": ["id", "revision", "content_hash"],
+      "properties": {
+        "id": {"$ref": "#/$defs/nonEmpty"},
+        "revision": {"$ref": "#/$defs/nonEmpty"},
+        "content_hash": {"$ref": "#/$defs/hash"}
+      }
+    }
+  }
+}

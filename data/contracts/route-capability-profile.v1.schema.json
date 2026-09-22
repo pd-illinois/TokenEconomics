@@ -1,0 +1,116 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://tokeneconomics.dev/contracts/route-capability-profile.v1.schema.json",
+  "title": "TokenEconomics route capability profile",
+  "$comment": "Authority/capability matching, meter-stack binding, freshness, and content-hash integrity are enforced by costgov.route_capabilities.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "route_id",
+    "version",
+    "meter_stack_id",
+    "meter_stack_version",
+    "meter_stack_content_hash",
+    "forecast_method",
+    "acceptance_contract",
+    "controls",
+    "actual_usage_sources",
+    "response_actions",
+    "evidence_requirements",
+    "coverage_gaps",
+    "effective_from",
+    "review_after",
+    "source_revisions"
+  ],
+  "properties": {
+    "schema_version": {"const": "route-capability-profile.v1"},
+    "route_id": {"$ref": "#/$defs/nonEmpty"},
+    "version": {"$ref": "#/$defs/nonEmpty"},
+    "meter_stack_id": {"$ref": "#/$defs/nonEmpty"},
+    "meter_stack_version": {"$ref": "#/$defs/nonEmpty"},
+    "meter_stack_content_hash": {"$ref": "#/$defs/sha256"},
+    "forecast_method": {
+      "enum": [
+        "deterministic_allocation",
+        "scenario_distribution",
+        "trajectory_distribution",
+        "composite_distribution"
+      ]
+    },
+    "acceptance_contract": {"const": "acceptance-rule.v1"},
+    "controls": {
+      "type": "array",
+      "minItems": 1,
+      "items": {"$ref": "#/$defs/control"}
+    },
+    "actual_usage_sources": {
+      "type": "array",
+      "minItems": 1,
+      "items": {"$ref": "#/$defs/usageSource"}
+    },
+    "response_actions": {"$ref": "#/$defs/nonEmptyArray"},
+    "evidence_requirements": {"$ref": "#/$defs/nonEmptyArray"},
+    "coverage_gaps": {
+      "type": "array",
+      "items": {"$ref": "#/$defs/nonEmpty"}
+    },
+    "effective_from": {"type": "string", "format": "date"},
+    "review_after": {"type": "string", "format": "date"},
+    "source_revisions": {
+      "type": "array",
+      "minItems": 1,
+      "items": {"type": "string", "format": "uri", "pattern": "^https://"}
+    }
+  },
+  "$defs": {
+    "nonEmpty": {"type": "string", "minLength": 1},
+    "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "nonEmptyArray": {
+      "type": "array",
+      "minItems": 1,
+      "items": {"$ref": "#/$defs/nonEmpty"}
+    },
+    "control": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "control_id",
+        "control_kind",
+        "authority",
+        "capability",
+        "enforcement_scope",
+        "target_leg"
+      ],
+      "properties": {
+        "control_id": {"$ref": "#/$defs/nonEmpty"},
+        "control_kind": {"$ref": "#/$defs/nonEmpty"},
+        "authority": {"$ref": "#/$defs/nonEmpty"},
+        "capability": {"$ref": "#/$defs/nonEmpty"},
+        "enforcement_scope": {
+          "enum": [
+            "runtime_enforced",
+            "control_plane_enforced",
+            "product_admin_enforced",
+            "design_time_enforced",
+            "external_requirement",
+            "advisory",
+            "correlation_only"
+          ]
+        },
+        "target_leg": {"$ref": "#/$defs/nonEmpty"}
+      }
+    },
+    "usageSource": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["source_id", "authority", "location", "granularity"],
+      "properties": {
+        "source_id": {"$ref": "#/$defs/nonEmpty"},
+        "authority": {"$ref": "#/$defs/nonEmpty"},
+        "location": {"type": "string", "format": "uri", "pattern": "^https://"},
+        "granularity": {"$ref": "#/$defs/nonEmpty"}
+      }
+    }
+  }
+}

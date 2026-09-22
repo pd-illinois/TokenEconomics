@@ -1,0 +1,12 @@
+{
+  "schema_version": "workload-evidence-adapter.v1",
+  "adapter_id": "studio-immutable-runs",
+  "version": "1.0",
+  "kind": "immutable_run_store",
+  "network_execution": false,
+  "maximum_tasks": 10000,
+  "required_cost_families": ["direct_token", "retrieval", "tool", "resource", "evaluation", "observability"],
+  "description": "Framework-neutral, server-owned trajectory-envelope.v1, acceptance-outcome.v1 and meter-ledger.v1 import. Supports registered RAG and other workload exports without dispatching them.",
+  "live_evaluation": "unsupported",
+  "operational_dispatch": "unsupported"
+}

@@ -1,0 +1,50 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://tokeneconomics.local/contracts/route-govern-decision.v1.schema.json",
+  "title": "Route Govern Decision v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "decision_id",
+    "schema_version",
+    "candidate_id",
+    "candidate_hash",
+    "route_id",
+    "evaluated_at",
+    "status",
+    "checks",
+    "native_meter",
+    "mutation",
+    "content_hash"
+  ],
+  "properties": {
+    "decision_id": {"type": "string", "minLength": 1},
+    "schema_version": {"const": "route-govern-decision.v1"},
+    "candidate_id": {"type": "string", "minLength": 1},
+    "candidate_hash": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "route_id": {"type": "string", "minLength": 1},
+    "evaluated_at": {"type": "string", "format": "date-time"},
+    "status": {
+      "enum": ["eligible", "blocked", "inconclusive", "advisory_only"]
+    },
+    "checks": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["name", "outcome", "passed", "reason", "actual", "expected"],
+        "properties": {
+          "name": {"type": "string", "minLength": 1},
+          "outcome": {
+            "enum": ["passed", "failed", "inconclusive", "not_applicable"]
+          },
+          "passed": {"type": "boolean"},
+          "reason": {"type": "string", "minLength": 1}
+        }
+      }
+    },
+    "native_meter": {"type": "object"},
+    "mutation": {"type": "object"},
+    "content_hash": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
+  }
+}

@@ -70,6 +70,7 @@ def build_publication_preview(
         "admission",
         "execution",
         "mutation",
+        "measurement",
     }
     if forbidden:
         raise ValueError(

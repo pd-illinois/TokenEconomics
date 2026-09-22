@@ -1,0 +1,161 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://tokeneconomics.dev/contracts/route-usage-observation.v1.schema.json",
+  "title": "TokenEconomics route-native usage observation",
+  "$comment": "Source decimal precision, attribution, latency, finalization, and unavailable-evidence invariants are enforced by costgov.route_usage.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "observation_id",
+    "route_id",
+    "leg_id",
+    "meter_family",
+    "meter_id",
+    "native_unit",
+    "native_currency",
+    "quantity",
+    "allowance_quantity",
+    "disposition",
+    "included_usage",
+    "evidence_label",
+    "source",
+    "source_state",
+    "refresh_state",
+    "finalization_state",
+    "latency_class",
+    "coverage_state",
+    "granularity",
+    "snapshot_semantics",
+    "observed_at",
+    "snapshot_at",
+    "refreshed_at",
+    "refresh_latency_seconds",
+    "retention_until",
+    "attribution_state",
+    "task_id",
+    "trajectory_id",
+    "step_id",
+    "segment_id",
+    "preflight_enforcement_eligible",
+    "unavailable_reason"
+  ],
+  "properties": {
+    "schema_version": {"const": "route-usage-observation.v1"},
+    "observation_id": {"$ref": "#/$defs/nonEmpty"},
+    "route_id": {"$ref": "#/$defs/nonEmpty"},
+    "leg_id": {"$ref": "#/$defs/nonEmpty"},
+    "meter_family": {
+      "enum": [
+        "subscription",
+        "included",
+        "native_credit",
+        "token_derived_credit",
+        "direct_token",
+        "resource",
+        "retrieval",
+        "tool",
+        "evaluation",
+        "observability"
+      ]
+    },
+    "meter_id": {"$ref": "#/$defs/nonEmpty"},
+    "native_unit": {"$ref": "#/$defs/nonEmpty"},
+    "native_currency": {"$ref": "#/$defs/nonEmpty"},
+    "quantity": {"$ref": "#/$defs/nativeQuantity"},
+    "allowance_quantity": {
+      "oneOf": [{"$ref": "#/$defs/nativeQuantity"}, {"type": "null"}]
+    },
+    "disposition": {
+      "enum": [
+        "metered",
+        "included",
+        "allowance_drawdown",
+        "overage",
+        "unattributed"
+      ]
+    },
+    "included_usage": {"type": "boolean"},
+    "evidence_label": {
+      "enum": ["measured", "modeled", "simulated", "blocked", "unavailable"]
+    },
+    "source": {"$ref": "#/$defs/source"},
+    "source_state": {"enum": ["available", "delayed", "unavailable"]},
+    "refresh_state": {"enum": ["fresh", "stale", "pending", "unavailable"]},
+    "finalization_state": {"enum": ["provisional", "finalized", "unavailable"]},
+    "latency_class": {"enum": ["real_time", "delayed", "periodic"]},
+    "coverage_state": {"enum": ["complete", "partial", "unavailable"]},
+    "granularity": {
+      "enum": ["event", "task", "user", "environment", "tenant", "billing_period"]
+    },
+    "snapshot_semantics": {"$ref": "#/$defs/nonEmpty"},
+    "observed_at": {"$ref": "#/$defs/utcTimestamp"},
+    "snapshot_at": {"$ref": "#/$defs/utcTimestamp"},
+    "refreshed_at": {"$ref": "#/$defs/utcTimestamp"},
+    "refresh_latency_seconds": {"type": "integer", "minimum": 0},
+    "retention_until": {
+      "oneOf": [{"$ref": "#/$defs/utcTimestamp"}, {"type": "null"}]
+    },
+    "attribution_state": {
+      "enum": ["attributed", "unattributed", "unavailable"]
+    },
+    "task_id": {"type": ["string", "null"]},
+    "trajectory_id": {"type": ["string", "null"]},
+    "step_id": {"type": ["string", "null"]},
+    "segment_id": {"type": ["string", "null"]},
+    "preflight_enforcement_eligible": {"type": "boolean"},
+    "unavailable_reason": {"type": ["string", "null"]}
+  },
+  "$defs": {
+    "nonEmpty": {"type": "string", "minLength": 1},
+    "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "utcTimestamp": {
+      "type": "string",
+      "format": "date-time",
+      "pattern": "(Z|[+]00:00)$"
+    },
+    "nativeQuantity": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["value", "precision", "source_scale"],
+      "properties": {
+        "value": {
+          "type": ["string", "null"],
+          "pattern": "^(0|[1-9][0-9]*)([.][0-9]+)?$"
+        },
+        "precision": {
+          "enum": ["exact", "source_reported", "rounded", "estimated", "unavailable"]
+        },
+        "source_scale": {"type": ["integer", "null"], "minimum": 0}
+      }
+    },
+    "source": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "source_id",
+        "source_kind",
+        "authority",
+        "record_id",
+        "revision",
+        "content_hash"
+      ],
+      "properties": {
+        "source_id": {"$ref": "#/$defs/nonEmpty"},
+        "source_kind": {
+          "enum": [
+            "microsoft_365",
+            "power_platform",
+            "github",
+            "azure",
+            "workload_owned"
+          ]
+        },
+        "authority": {"$ref": "#/$defs/nonEmpty"},
+        "record_id": {"$ref": "#/$defs/nonEmpty"},
+        "revision": {"$ref": "#/$defs/nonEmpty"},
+        "content_hash": {"$ref": "#/$defs/sha256"}
+      }
+    }
+  }
+}

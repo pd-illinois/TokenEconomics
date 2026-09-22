@@ -10,6 +10,8 @@ from pathlib import Path
 from typing import Any, Callable, Iterable, Mapping
 from uuid import uuid4
 
+from .atomic_publish import publish_immutable
+
 LEARNING_EVIDENCE_SCHEMA_VERSION = "learning-evidence.v1"
 
 
@@ -81,6 +83,7 @@ def build_learning_proof(
         },
         "historical_forecast_mutated": False,
     }
+    proof["learning_proof_id"] = f"learning-{_hash(proof)[:32]}"
     proof["content_hash"] = _hash(proof)
     return proof
 
@@ -130,7 +133,61 @@ class IdempotentLearningStore:
                 stream.write("\n")
                 stream.flush()
                 os.fsync(stream.fileno())
-            os.link(temporary, path)
+            publish_immutable(temporary, path)
         finally:
             temporary.unlink(missing_ok=True)
         return record, True
+
+
+class LearningEvidenceStore:
+    """Append-only, integrity-checked learning proofs."""
+
+    def __init__(self, root: str | Path) -> None:
+        self.root = Path(root)
+
+    def append(self, proof: Mapping[str, Any]) -> tuple[dict[str, Any], bool]:
+        payload = dict(proof)
+        proof_id = payload.get("learning_proof_id")
+        if not isinstance(proof_id, str) or not proof_id:
+            raise ValueError("learning_proof_id is required")
+        content_hash = payload.get("content_hash")
+        calculated = _hash(
+            {key: value for key, value in payload.items() if key != "content_hash"}
+        )
+        if content_hash != calculated:
+            raise ValueError("learning proof content hash is invalid")
+        path = self.root / f"{proof_id}.json"
+        self.root.mkdir(parents=True, exist_ok=True)
+        if path.exists():
+            existing = json.loads(path.read_text(encoding="utf-8"))
+            if existing != payload:
+                raise ValueError("learning proof identity collision")
+            return existing, False
+        temporary = self.root / f".{proof_id}.{uuid4().hex}.tmp"
+        try:
+            with temporary.open("x", encoding="utf-8") as stream:
+                json.dump(payload, stream, indent=2, allow_nan=False, sort_keys=True)
+                stream.write("\n")
+                stream.flush()
+                os.fsync(stream.fileno())
+            publish_immutable(temporary, path)
+        finally:
+            temporary.unlink(missing_ok=True)
+        return payload, True
+
+    def list(self) -> list[dict[str, Any]]:
+        if not self.root.exists():
+            return []
+        proofs = []
+        for path in self.root.glob("learning-*.json"):
+            payload = json.loads(path.read_text(encoding="utf-8"))
+            calculated = _hash(
+                {key: value for key, value in payload.items() if key != "content_hash"}
+            )
+            if (
+                path.stem != payload.get("learning_proof_id")
+                or payload.get("content_hash") != calculated
+            ):
+                raise ValueError("learning evidence integrity check failed")
+            proofs.append(payload)
+        return sorted(proofs, key=lambda item: item["learning_proof_id"], reverse=True)

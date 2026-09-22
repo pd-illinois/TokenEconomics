@@ -1,0 +1,45 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:tokeneconomics:rag-qna-evaluator-record:v1",
+  "title": "Workload adapter evaluator record (not a Foundry API wire schema)",
+  "description": "The authorized cloud transport explicitly maps supported API output to this contract. One output_item_id identifies one evaluated provider response and is shared by its graders. Hashes verify integrity, not authenticity. Missing or invalid grader evidence must normalize to inconclusive.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "case_id", "family_id", "segment_id", "run_id", "question", "provider_response_id",
+    "evaluation_id", "evaluation_run_id", "output_item_id", "evaluator_id", "revision",
+    "model", "dataset_hash", "acceptance_rules_revision", "status", "score"
+  ],
+  "properties": {
+    "case_id": {"$ref": "#/$defs/nonempty"},
+    "family_id": {"$ref": "#/$defs/nonempty"},
+    "segment_id": {"enum": ["factual", "synthesis", "cross-book", "ambiguous", "unanswerable"]},
+    "run_id": {"$ref": "#/$defs/nonempty"},
+    "question": {"$ref": "#/$defs/nonempty"},
+    "provider_response_id": {"$ref": "#/$defs/nonempty"},
+    "evaluation_id": {"$ref": "#/$defs/nonempty"},
+    "evaluation_run_id": {"$ref": "#/$defs/nonempty"},
+    "output_item_id": {"$ref": "#/$defs/nonempty"},
+    "evaluator_id": {"enum": ["groundedness", "relevance", "correctness", "completeness", "citation", "abstention"]},
+    "revision": {"$ref": "#/$defs/nonempty"},
+    "model": {"$ref": "#/$defs/nonempty"},
+    "dataset_hash": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "acceptance_rules_revision": {"$ref": "#/$defs/nonempty"},
+    "status": {"enum": ["completed", "failed"]},
+    "score": {"type": ["number", "null"], "minimum": 1, "maximum": 5},
+    "judge_usage": {"$ref": "#/$defs/usage"}
+  },
+  "$defs": {
+    "nonempty": {"type": "string", "minLength": 1, "pattern": "\\S"},
+    "usage": {
+      "type": ["object", "null"],
+      "description": "Judge usage only; never agent usage. Omitted or null values mean unknown, not zero. Costs are USD within the stated partial evaluation scope.",
+      "additionalProperties": false,
+      "properties": {
+        "input_tokens": {"type": ["integer", "null"], "minimum": 0},
+        "output_tokens": {"type": ["integer", "null"], "minimum": 0},
+        "cost_usd": {"type": ["number", "null"], "minimum": 0}
+      }
+    }
+  }
+}

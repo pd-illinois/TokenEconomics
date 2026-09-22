@@ -40,7 +40,7 @@ from future_token_predictor.models.schemas import (
 logger = logging.getLogger(__name__)
 
 ANALYSIS_SCHEMA_VERSION = "1.0"
-RULE_SET_VERSION = "enterprise-semantics-2026-07-28.3"
+RULE_SET_VERSION = "enterprise-semantics-2026-09-08.1"
 
 # --- Pattern Definitions ---
 
@@ -203,7 +203,8 @@ _BOUNDED_WORKFLOW_PATTERNS = re.compile(
 
 _SINGLE_AGENT_ACTION_PATTERNS = re.compile(
     r"\bexecutes?\b|\bresolves?\b|\benrich\w*\b|\brecommend\w*\b|"
-    r"\btriage\b|\bsubmits?\b|\bcreates?\s+transactions?\b|"
+    r"\btriage\b|\bsubmits?\b(?!\s+(?:(?:a|the|their)\s+)?(?:question|query|prompt)\b)|"
+    r"\bcreates?\s+transactions?\b|"
     r"\bgathers?\b.*\b(?:create|synthesi[sz])\w*\b",
     re.IGNORECASE,
 )
@@ -379,14 +380,26 @@ def analyze_workload(description: str) -> WorkloadAnalysis:
     description_hash = hashlib.sha256(normalized.encode("utf-8")).hexdigest()
     roles, role_evidence = _infer_role_agents(normalized)
     autonomous = _AUTONOMOUS_LOOP_PATTERNS.search(normalized)
-    workflow = _BOUNDED_WORKFLOW_PATTERNS.search(normalized) or _WORKFLOW_PATTERNS.search(normalized)
     retrieval = _RETRIEVAL_PATTERNS.search(normalized)
+    # "Pipeline" alone describes RAG too; retain any stronger workflow evidence.
+    workflow = _BOUNDED_WORKFLOW_PATTERNS.search(normalized) or next(
+        (match for match in _WORKFLOW_PATTERNS.finditer(normalized)
+         if not (retrieval and match.group(0).lower() == "pipeline")),
+        None,
+    )
     action = _SINGLE_AGENT_ACTION_PATTERNS.search(normalized)
     code_execution = _CODE_EXECUTION_PATTERNS.search(normalized)
-    explicit_multi = re.search(
-        r"\bmulti[ -]?agent\b|\bagent.to.agent\b|\bnetwork of autonomous agents\b",
-        normalized,
-        re.IGNORECASE,
+    explicit_multi = next(
+        (match for match in re.finditer(
+            r"\bmulti[ -]?agent\b|\bagent.to.agent\b|\bnetwork of autonomous agents\b",
+            normalized,
+            re.IGNORECASE,
+        ) if not re.search(
+            r"\b(?:no|not|without)\s+(?:(?:a|an|any)\s+)?$",
+            normalized[:match.start()],
+            re.IGNORECASE,
+        )),
+        None,
     )
 
     alternatives: list[AgentPattern] = []
