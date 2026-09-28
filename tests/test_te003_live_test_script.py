@@ -25,7 +25,9 @@ def test_te003_profile_pins_deployed_rag_without_overriding_general_plan_models(
     assert parameters["users"] * parameters["calls_per_user_per_day"] == 500
     assert parameters["confirmed_profile"]["agent_pattern"] == "rag_pipeline"
     assert parameters["confirmed_profile"]["searches_per_call"] == 1
-    assert module._parser().parse_args([]).policy_label == "te003-live-v1"
+    parsed = module._parser().parse_args([])
+    assert parsed.agent_name is None
+    assert parsed.policy_label is None
 
 
 def test_te003_selected_controls_override_conflicting_description_values():

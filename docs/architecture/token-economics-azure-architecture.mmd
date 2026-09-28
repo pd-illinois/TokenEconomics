@@ -6,7 +6,7 @@ flowchart LR
     operator --> products --> meters
   end
 
-  subgraph control["Azure control plane · rg-tokeneconomics · eastus2"]
+  subgraph control["Azure control plane"]
     subgraph publication["Protected policy publication"]
       repository["Policy source"] --> actions["GitHub Actions"] --> publisher["OIDC publisher"]
     end

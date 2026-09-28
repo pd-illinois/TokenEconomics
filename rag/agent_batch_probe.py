@@ -2,13 +2,16 @@
 
 from __future__ import annotations
 
+import os
 import re
 import time
 
 from rag import agent_batch as b
 
 _NAME = re.compile(r"[A-Za-z0-9][A-Za-z0-9_-]{0,127}")
-_SEARCH = "https://search-xbk6ickycmp22.search.windows.net"
+_SEARCH = os.environ.get(
+    "RAG_BATCH_SEARCH_ENDPOINT", "https://example.search.windows.net"
+)
 _API_VERSIONS = {"2026-05-01-preview", "2026-08-01-preview"}
 _FIELDS = {
     "schema_version", "knowledge_base", "knowledge_source", "index", "vectorizer",

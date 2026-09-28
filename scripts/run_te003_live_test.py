@@ -71,19 +71,16 @@ def _parser() -> argparse.ArgumentParser:
     )
     parser.add_argument(
         "--project-endpoint",
-        default=(
-            "https://ai-account-xbk6ickycmp22.services.ai.azure.com/api/projects/"
-            "ai-project-tokeneconomics-te003"
-        ),
+        default=None,
     )
-    parser.add_argument("--agent-name", default="tokengov-books-rag-agent")
+    parser.add_argument("--agent-name", default=None)
     parser.add_argument("--agent-version", default="1")
     parser.add_argument(
         "--policy-endpoint",
-        default="https://appcs-xbk6ickycmp22.azconfig.io",
+        default=None,
     )
     parser.add_argument("--policy-key", default="tokengov:policy")
-    parser.add_argument("--policy-label", default="te003-live-v1")
+    parser.add_argument("--policy-label", default=None)
     parser.add_argument("--description", default=DEFAULT_DESCRIPTION)
     parser.add_argument("--question", default=DEFAULT_QUESTION)
     parser.add_argument("--segment-id", default="factual-lookup")
@@ -199,6 +196,18 @@ def _record_studio_run(
 
 def main() -> int:
     args = _parser().parse_args()
+    args.project_endpoint = args.project_endpoint or os.environ.get("RAG_BATCH_PROJECT_ENDPOINT")
+    args.agent_name = args.agent_name or os.environ.get("RAG_BATCH_AGENT_NAME")
+    args.policy_endpoint = args.policy_endpoint or os.environ.get("AZURE_APPCONFIG_ENDPOINT")
+    args.policy_label = args.policy_label or os.environ.get("TOKENGOV_POLICY_LABEL")
+    if not args.project_endpoint:
+        raise ValueError("--project-endpoint or RAG_BATCH_PROJECT_ENDPOINT is required")
+    if not args.agent_name:
+        raise ValueError("--agent-name or RAG_BATCH_AGENT_NAME is required")
+    if not args.policy_endpoint:
+        raise ValueError("--policy-endpoint or AZURE_APPCONFIG_ENDPOINT is required")
+    if not args.policy_label:
+        raise ValueError("--policy-label or TOKENGOV_POLICY_LABEL is required")
     os.environ["AZURE_APPCONFIG_ENDPOINT"] = args.policy_endpoint
     os.environ["TOKENGOV_POLICY_KEY"] = args.policy_key
     os.environ["TOKENGOV_POLICY_LABEL"] = args.policy_label

@@ -162,13 +162,13 @@
     {
       "category": "infrastructure",
       "evidence_id": "rag-azure-infrastructure",
-      "revision": "te003-2026-08-25",
-      "applicability": "applicable",
-      "status": "measured",
-      "authority": "Azure Resource Manager",
-      "content_hash": "b6bb46ef354be0bbd5ec7694452fc1c02bdc6ead822f230f099ed5d0ad32bf73",
-      "location": "repo:infra/main.bicep",
-      "reason": null
+      "revision": "public-redacted.v1",
+      "applicability": "unavailable",
+      "status": "blocked",
+      "authority": "Private Azure deployment evidence",
+      "content_hash": null,
+      "location": null,
+      "reason": "The public repository contains a generic infrastructure template. Exact measured deployment evidence is retained privately and is not published."
     },
     {
       "category": "external_governance",

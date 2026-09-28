@@ -5,13 +5,13 @@ param location string = resourceGroup().location
 param containerImage string = 'mcr.microsoft.com/azuredocs/containerapps-helloworld:latest'
 
 @description('Authoritative TokenGov policy label.')
-param policyLabel string = 'te003-live-v2'
+param policyLabel string
 
 @description('GitHub Actions workflow page used to submit reviewed TokenGov policy publication.')
-param policyApprovalUrl string = 'https://github.com/pd-illinois/TokenEconomics/actions/workflows/publish-tokengov-policy.yml'
+param policyApprovalUrl string
 
 @description('Protected GitHub environment that approves TokenGov policy publication.')
-param policyApprovalEnvironment string = 'tokengov-production'
+param policyApprovalEnvironment string
 
 @description('GitHub App ID used only for policy review pull requests.')
 param policyReviewGitHubAppId string = ''
@@ -20,7 +20,7 @@ param policyReviewGitHubAppId string = ''
 param policyReviewGitHubInstallationId string = ''
 
 @description('Repository receiving versioned policy review pull requests.')
-param policyReviewGitHubRepository string = 'pd-illinois/TokenEconomics'
+param policyReviewGitHubRepository string
 
 @description('GitHub base branch receiving approved policy reviews.')
 param policyReviewGitHubBaseBranch string = 'main'
@@ -41,19 +41,19 @@ param studioAuthTenantId string = tenant().tenantId
 param studioAuthClientSecretUri string = ''
 
 @description('Existing Log Analytics workspace.')
-param logAnalyticsWorkspaceName string = 'logs-xbk6ickycmp22'
+param logAnalyticsWorkspaceName string
 
 @description('Existing Application Insights component.')
-param applicationInsightsName string = 'appi-xbk6ickycmp22'
+param applicationInsightsName string
 
 @description('Existing Azure App Configuration policy authority.')
-param appConfigurationName string = 'appcs-xbk6ickycmp22'
+param appConfigurationName string
 
 var suffix = uniqueString(resourceGroup().id)
-var containerAppName = 'ca-tokeneconomics-studio'
-var environmentName = 'cae-tokeneconomics'
-var identityName = 'id-tokeneconomics-studio'
-var registryName = replace('crtokeneconomics${substring(suffix, 0, 8)}', '-', '')
+var containerAppName = 'token-economics-studio-${substring(suffix, 0, 6)}'
+var environmentName = 'token-economics-env-${substring(suffix, 0, 6)}'
+var identityName = 'token-economics-id-${substring(suffix, 0, 6)}'
+var registryName = replace('crte${substring(suffix, 0, 10)}', '-', '')
 var storageName = 'ststudio${substring(suffix, 0, 12)}'
 var fileShareName = 'studio-state'
 var storageMountName = 'studio-state'

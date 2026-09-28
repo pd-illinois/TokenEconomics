@@ -275,7 +275,7 @@ def _validate_result_v1(result):
 def configuration():
     endpoint = os.environ.get(
         "RAG_BATCH_PROJECT_ENDPOINT",
-        "https://ai-account-xbk6ickycmp22.services.ai.azure.com/api/projects/ai-project-tokeneconomics-te003",
+        "https://example.services.ai.azure.com/api/projects/example-project",
     )
     parsed = urlparse(endpoint)
     if (parsed.scheme != "https" or not (parsed.hostname or "").endswith(".services.ai.azure.com")
@@ -288,7 +288,7 @@ def configuration():
         raise ValueError("Batch agent version must be an exact positive version number")
     return {
         "project_endpoint": endpoint,
-        "agent_name": _identifier(os.environ.get("RAG_BATCH_AGENT_NAME", "tokengov-books-rag-agent")),
+        "agent_name": _identifier(os.environ.get("RAG_BATCH_AGENT_NAME", "example-rag-agent")),
         "agent_version": version or None,
     }
 
@@ -333,10 +333,14 @@ def _probe_agent_inventory(config):
             deployment = _identifier(definition.get("model"))
             model = _mapping(project.deployments.get(deployment))
             tools = definition.get("tools", [])
+            search_endpoint = os.environ.get(
+                "RAG_BATCH_SEARCH_ENDPOINT", "https://example.search.windows.net"
+            ).rstrip("/")
             mcp = [
                 item for item in tools if isinstance(item, dict) and item.get("type") == "mcp"
                 and re.fullmatch(
-                    r"https://search-xbk6ickycmp22\.search\.windows\.net/knowledgebases/books-knowledge-base(?:-[A-Za-z0-9-]+)?/mcp\?api-version=[0-9A-Za-z-]+",
+                    re.escape(search_endpoint)
+                    + r"/knowledgebases/books-knowledge-base(?:-[A-Za-z0-9-]+)?/mcp\?api-version=[0-9A-Za-z-]+",
                     item.get("server_url", ""),
                 )
                 and item.get("project_connection_id")

@@ -1,8 +1,8 @@
 // main.bicep - declarative infra for the live prototype.
 // Deploy with Azure MCP (VS Code) or:
 //   PRINCIPAL=$(az ad signed-in-user show --query id -o tsv)
-//   az group create -n rg-tokengov -l eastus2
-//   az deployment group create -g rg-tokengov -f infra/main.bicep \
+//   az group create -n <resource-group> -l <location>
+//   az deployment group create -g <resource-group> -f infra/main.bicep \
 //     -p principalId=$PRINCIPAL
 //
 // Model deployments MUST be serial (an account rejects parallel deploys), so each
@@ -12,7 +12,7 @@
 param location string = 'eastus2'
 
 @description('Cognitive Services (AI Services) account name — also the custom subdomain.')
-param accountName string = 'tokengov-aoai'
+param accountName string
 
 @description('Object id of the user/principal to grant data-plane access (Entra ID).')
 param principalId string

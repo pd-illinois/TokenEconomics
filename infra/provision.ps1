@@ -13,9 +13,9 @@ Run from the repository root:
 
 [CmdletBinding()]
 param(
-  [string]$Rg           = $(if ($env:RG)   { $env:RG }   else { 'rg-tokengov' }),
+  [string]$Rg           = $(if ($env:RG)   { $env:RG }   else { 'example-token-economics-rg' }),
   [string]$Loc          = $(if ($env:LOC)  { $env:LOC }  else { 'eastus2' }),   # Model Router GA: eastus2 | swedencentral
-  [string]$Acct         = $(if ($env:ACCT) { $env:ACCT } else { 'tokengov-aoai' }),
+  [string]$Acct         = $(if ($env:ACCT) { $env:ACCT } else { 'example-ai-account' }),
   [string]$AppCfg       = 'tokengov-appcfg',
   [string]$AppIns       = 'tokengov-ai',
   [bool]  $DeployOptional = $true,

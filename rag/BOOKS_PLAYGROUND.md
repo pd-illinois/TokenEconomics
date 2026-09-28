@@ -14,8 +14,8 @@ quality results are never accepted from the browser.
 
 | Setting | Default |
 | --- | --- |
-| `RAG_PLAYGROUND_SEARCH_ENDPOINT` | `https://search-xbk6ickycmp22.search.windows.net` |
-| `RAG_PLAYGROUND_MODEL_ENDPOINT` | `https://ai-account-xbk6ickycmp22.cognitiveservices.azure.com` |
+| `RAG_PLAYGROUND_SEARCH_ENDPOINT` | Required private Azure AI Search endpoint |
+| `RAG_PLAYGROUND_MODEL_ENDPOINT` | Required private Azure AI model endpoint |
 | `RAG_PLAYGROUND_DEPLOYMENT` | `gpt-5-6-luna` (only supported deployment) |
 
 These server-only overrides may live in the existing root `.env`. The dedicated

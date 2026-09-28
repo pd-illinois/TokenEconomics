@@ -47,9 +47,9 @@ from rag.foundry_trajectory_adapter import (
     create_foundry_openai_client,
 )
 
-PROJECT_ENDPOINT = (
-    "https://ai-account-xbk6ickycmp22.services.ai.azure.com/api/projects/"
-    "ai-project-tokeneconomics-te003"
+PROJECT_ENDPOINT = os.environ.get(
+    "RAG_BATCH_PROJECT_ENDPOINT",
+    "https://example.services.ai.azure.com/api/projects/example-project",
 )
 DESCRIPTION = (
     "A Microsoft Foundry prompt agent answers a representative 120-task "
@@ -294,7 +294,7 @@ def _meter_entry(
         trajectory_id=envelope.trajectory_id,
         step_id=None,
         segment_id=task["segment_id"],
-        tenant_id="6435fdd8-5f2e-4832-8f52-cc4e715685f6",
+        tenant_id=os.environ.get("TOKENECONOMICS_TENANT_ID", "example-tenant"),
         product="microsoft_foundry",
         environment="tokeneconomics-te003",
         meter_stack_id=candidate.meter_stack_id,
@@ -328,7 +328,7 @@ def _parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser()
     parser.add_argument("--run-id")
     parser.add_argument("--report-id")
-    parser.add_argument("--agent-name", default="tokengov-books-rag-agent")
+    parser.add_argument("--agent-name", default=None)
     parser.add_argument("--agent-version", default="2")
     parser.add_argument("--arm-id", default="live-baseline")
     parser.add_argument(
@@ -340,16 +340,23 @@ def _parse_args() -> argparse.Namespace:
         choices=("all", "easy", "hard"),
         default="all",
     )
-    parser.add_argument("--policy-label", default="te003-live-v2")
+    parser.add_argument("--policy-label", default=None)
     parser.add_argument("--max-attempts", type=int, default=6)
     return parser.parse_args()
 
 
 def main() -> int:
     args = _parse_args()
+    args.agent_name = args.agent_name or os.environ.get("RAG_BATCH_AGENT_NAME")
+    args.policy_label = args.policy_label or os.environ.get("TOKENGOV_POLICY_LABEL")
+    if not os.environ.get("AZURE_APPCONFIG_ENDPOINT", "").strip():
+        raise ValueError("AZURE_APPCONFIG_ENDPOINT must be configured outside the repository")
+    if not args.agent_name:
+        raise ValueError("--agent-name or RAG_BATCH_AGENT_NAME is required")
+    if not args.policy_label:
+        raise ValueError("--policy-label or TOKENGOV_POLICY_LABEL is required")
     os.environ.update(
-        AZURE_APPCONFIG_ENDPOINT="https://appcs-xbk6ickycmp22.azconfig.io",
-        TOKENGOV_POLICY_KEY="tokengov:policy",
+        TOKENGOV_POLICY_KEY=os.environ.get("TOKENGOV_POLICY_KEY", "tokengov:policy"),
         TOKENGOV_POLICY_LABEL=args.policy_label,
         TOKENGOV_POLICY_SOURCE="azure",
     )

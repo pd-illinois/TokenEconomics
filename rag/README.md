@@ -6,10 +6,10 @@ It is currently a grounded batch benchmark, not a hosted agent. Each request per
 
 ## Azure boundary
 
-- Search service: `tokengov-rag-6ayi7` in `rg-tokengov-rag`
+- Search service and resource group: supplied through private deployment configuration
 - Index: `books`
-- Model and embedding deployments: Azure AI Services in `rg-tokengov`
-- Request telemetry: existing Application Insights resource `tokengov-aoai-ai`
+- Model and embedding deployments: supplied through private deployment configuration
+- Request telemetry: an environment-specific Application Insights resource
 - Authentication: Entra ID through `DefaultAzureCredential`; no Search or model keys
 
 The developer identity needs these roles scoped to the Search service:
@@ -25,7 +25,7 @@ The Search service must allow `aadOrApiKey` authentication. Local-key authentica
 Set these values in the gitignored `../.env` file. Do not commit credentials or connection strings.
 
 ```dotenv
-AZURE_SEARCH_ENDPOINT=https://tokengov-rag-6ayi7.search.windows.net
+AZURE_SEARCH_ENDPOINT=https://<search-service>.search.windows.net
 AZURE_SEARCH_INDEX=books
 AZURE_DEPLOYMENT_EMBEDDING=text-embed
 RAG_TOP_K=12

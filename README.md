@@ -62,7 +62,7 @@ reusable TokenGov contracts remain under `costgov/`.
 | Copilot and GitHub economics | Complete | Subscriptions, entitlements, Microsoft Copilot Credits, GitHub AI Credits, model tokens, and resource meters remain separate |
 | Foundry model release `2026-08-25.2` | Complete | 98 sourced OpenAI/Anthropic offerings; 50 verified coordinator models are selectable |
 | Framework-neutral trajectory contract | Complete | Stable workload, task, trajectory, segment, prediction, policy, run, and trace identities |
-| Foundry RAG adapter (TE-003) | Complete | Live report `RPT-20260825-3C4ABA0C` preserves one policy-bound deployed trajectory |
+| Foundry RAG adapter (TE-003) | Complete | A versioned report preserves one policy-bound deployed trajectory |
 | Experiment manifest (TE-004) | Complete | `experiment-manifest.v1` pins shared evidence and machine-readable arm differences |
 | Accepted-task outcomes (TE-005) | Complete | Segment-specific rules produce immutable `accepted`, `rejected`, or `inconclusive` evidence distinct from raw scores |
 | Multi-meter trajectory ledger (TE-006) | Complete | Native quantities, currencies, entitlements, allocations, unknown costs, and coverage-aware reconciliation remain explicit |
@@ -70,10 +70,10 @@ reusable TokenGov contracts remain under `costgov/`.
 | Immutable policy candidates (TE-008) | Complete | Hash-bound candidate revisions validate control authority/capability without mutating active Azure policy |
 | Copilot/native-meter forecasting | Complete prototype | Microsoft Copilot Credits, GitHub AI Credits, entitlements, model tokens, and infrastructure charges remain separate |
 | Human quality acceptance | Complete prototype | Foundry grades remain advisory; reviewers append `accepted`, `rejected`, or `inconclusive` outcomes |
-| Campaign authorization | Published | Azure policy `2026-09-18.campaign.1` authorizes bounded 25-case, 100-repetition measurement |
+| Campaign authorization | Published | A versioned Azure policy authorizes bounded repeated measurement |
 | Repeated quality campaign | Paused | First repetition preserved 17 responses; eight undispatched calls require a tested no-replay continuation contract |
 | Cross-report portfolio Home | Complete prototype | Read-only evidence readiness, attention queue, and decision matrix across reports |
-| Hosted Studio release | Deployed | Container App revision `ca-tokeneconomics-studio--accumulated-20260918` |
+| Hosted Studio pattern | Reference implementation | Environment-specific endpoints and deployment evidence are intentionally private |
 
 The current measured local regression boundary is **1,428 TokenEconomics tests passed**
 with one skipped and **530 FutureTokenPredictor tests passed** through its evidence
@@ -87,7 +87,17 @@ predictor improvement, and a decision-grade non-Foundry portability proof.
 
 ## Architecture at a glance
 
-![TokenEconomics Azure reference architecture](docs/architecture/token-economics-azure-architecture-v4.png)
+```mermaid
+flowchart LR
+    U[Operator] --> S[TokenEconomics Studio]
+    S --> P[FutureTokenPredictor]
+    S --> G[TokenGov control plane]
+    G --> A[Authoritative Azure policy]
+    G --> W[Workload adapter]
+    W --> F[Foundry agent, retrieval and tools]
+    F --> E[Immutable evidence]
+    E --> G
+```
 
 The architecture preserves two planes:
 
@@ -107,11 +117,9 @@ Microsoft 365 and Copilot product meters enter Forecast as versioned native-mete
 evidence. They do not become Azure TokenGov runtime controls, and workload-specific RAG
 logic remains under `rag/` rather than in reusable `costgov/` core.
 
-Editable [draw.io](docs/architecture/token-economics-azure-architecture.drawio) and
-[Excalidraw](docs/architecture/token-economics-azure-architecture.excalidraw) versions,
-an [SVG](docs/architecture/token-economics-azure-architecture.svg), a
-[PowerPoint slide](docs/architecture/token-economics-azure-architecture.pptx), and the
-[Mermaid source](docs/architecture/token-economics-azure-architecture.mmd) are included.
+The public [Mermaid source](docs/architecture/token-economics-azure-architecture.mmd)
+uses generic resource roles. Environment-specific diagrams and deployment evidence are
+kept outside the public repository.
 
 ## Run Studio locally
 
@@ -171,9 +179,8 @@ segment-specific acceptance rules, and preserves the resulting meter and governa
 evidence. Foundry/RAG-specific translation stays under `rag/`; reusable contracts stay
 under `costgov/`.
 
-For a field-by-field, screenshot-based walkthrough of every Studio route and lifecycle
-view, see the [TokenEconomics Studio user guide](docs/TOKEN_STUDIO_USER_GUIDE.md) or its
-[formatted PDF edition](docs/TOKEN_STUDIO_USER_GUIDE.pdf).
+For a public-safe walkthrough of each Studio responsibility, see the
+[TokenEconomics Studio user guide](docs/TOKEN_STUDIO_USER_GUIDE.md).
 
 ### What each test proves
 
@@ -190,31 +197,30 @@ and makes billable Foundry calls, so do not rerun it merely to inspect existing 
 ### Prerequisites
 
 1. Install the local environment from [Run Studio locally](#run-studio-locally).
-2. Authenticate to the tenant and select the TokenEconomics subscription:
+2. Authenticate to an authorized Azure tenant and subscription:
 
    ```powershell
-   az login --tenant 6435fdd8-5f2e-4832-8f52-cc4e715685f6
-   az account set --subscription a91cc1ba-bd19-43a7-90ea-120794c0fbc6
+   az login --tenant <tenant-id>
+   az account set --subscription <subscription-id>
    az account show --query "{name:name,id:id,tenantId:tenantId}" -o table
    ```
 
-3. Confirm that your identity can read `appcs-xbk6ickycmp22`, invoke the Foundry
-   project and agent, and read the Foundry IQ/Search path. Authentication is Entra ID;
-   no API key belongs in `.env`.
+3. Confirm that your identity can read the configured App Configuration authority,
+   invoke the intended Foundry project and agent, and read the retrieval path.
+   Authentication is Entra ID; no API key belongs in `.env`.
 4. Confirm the authoritative policy is readable:
 
    ```powershell
-   $env:AZURE_APPCONFIG_ENDPOINT = "https://appcs-xbk6ickycmp22.azconfig.io"
-   $env:TOKENGOV_POLICY_KEY = "tokengov:policy"
-   $env:TOKENGOV_POLICY_LABEL = "te003-live-v2"
+   $env:AZURE_APPCONFIG_ENDPOINT = "https://<app-configuration-name>.azconfig.io"
+   $env:TOKENGOV_POLICY_KEY = "<policy-key>"
+   $env:TOKENGOV_POLICY_LABEL = "<policy-label>"
    $env:TOKENGOV_POLICY_SOURCE = "azure"
    .\.venv\Scripts\python.exe -c "from costgov.policy_store import load_policy_from_environment; p=load_policy_from_environment(); print(p.document['version'], p.provenance['etag'])"
    ```
 
-The current published revision is `2026-09-18.campaign.1` with ETag
-`1c72Cdf_wHabwrCb7UarYctyFlgNFVTfWZDBKTEqku0`. A different revision is not
-automatically wrong, but it means the resulting proof is bound to different policy
-evidence and must not be compared as if it used the current campaign authority.
+Policy versions, content hashes, and ETags are environment-specific evidence. Do not
+publish them in public documentation or compare runs as if they used the same authority
+unless their immutable provenance matches.
 
 ### Run the one-task measured smoke proof
 
@@ -223,9 +229,9 @@ policy, invokes the pinned agent, persists the trajectory, and reopens it:
 
 ```powershell
 .\.venv\Scripts\python.exe .\scripts\run_te003_live_test.py `
-  --agent-name tokengov-books-rag-agent `
+  --agent-name <agent-name> `
   --agent-version 4 `
-  --policy-label te003-live-v2
+  --policy-label <policy-label>
 ```
 
 A successful result exits with code `0` and prints JSON containing:
@@ -249,20 +255,20 @@ unique run ID; rerunning a completed ID reopens its result instead of duplicatin
 ```powershell
 .\.venv\Scripts\python.exe .\rag\run_live_policy_evaluation.py `
   --run-id te009-baseline-<yyyymmdd> `
-  --agent-name tokengov-books-rag-agent `
+  --agent-name <agent-name> `
   --agent-version 2 `
   --arm-id live-baseline `
   --candidate data/policy_candidates/live-gpt-4-1-mini-topk4.2026-09-01.1.json `
   --segments all `
-  --policy-label te003-live-v2
+  --policy-label <policy-label>
 ```
 
 For troubleshooting or bounded verification, select only `easy` or `hard`, but a
 single segment must still complete all 60 tasks before it is sufficient for the current
 decision criteria. Do not combine partial runs and call them one decision window.
 
-The measured reference run is `te009-baseline-20260901` in report
-`RPT-20260901-67BA6BBE`. Its expected evidence is:
+The measured reference cohort is retained in an environment-specific report. Its
+expected evidence is:
 
 | Segment | Accepted | Quality lower bound | Budget breaches | Monetary upper bound | Outcome |
 |---|---:|---:|---:|---:|---|
@@ -279,8 +285,8 @@ accepted 28/60 and 23/60 hard tasks in two independent windows and reached
 The following reference evidence is available in the local development stores:
 
 1. Start Studio and open its URL.
-2. Select **Home**, then open historical report `RPT-20260901-67BA6BBE`.
-3. In **Execute & Review**, confirm `te009-baseline-20260901` is completed.
+2. Select **Home**, then open the authorized historical report.
+3. In **Execute & Review**, confirm the reference run is completed.
 4. In **Performance & Decisions**, confirm the easy and hard rows retain separate sample counts,
    acceptance outcomes, native meters, priced cost, and uncovered-cost status.
 5. In the Policy/decision evidence, confirm the decision is `none_eligible` and no
@@ -295,81 +301,23 @@ The same evidence can be checked without the browser:
 Invoke-RestMethod http://127.0.0.1:8765/health
 Invoke-RestMethod http://127.0.0.1:8765/api/runs |
   ConvertTo-Json -Depth 8
-Invoke-RestMethod http://127.0.0.1:8765/api/reports/RPT-20260901-67BA6BBE |
+Invoke-RestMethod http://127.0.0.1:8765/api/reports/<report-id> |
   ConvertTo-Json -Depth 12
 Invoke-RestMethod http://127.0.0.1:8765/api/govern/decisions |
   ConvertTo-Json -Depth 12
 ```
 
-### Use the deployed Azure Container App
+### Deploy privately
 
-TokenEconomics Studio is deployed at
-<https://ca-tokeneconomics-studio.wittysand-085ba2f3.eastus2.azurecontainerapps.io>.
-It uses the same immutable evidence and policy contracts described above.
+The public repository does not publish a live hostname, report identifier, resource
+inventory, policy provenance, revision, image digest, security exception, incident
+timeline, or verification transcript. Use the generic infrastructure templates with
+private CI/CD variables and keep environment-specific deployment evidence in a private
+operational system.
 
-The hosted release enables **Microsoft Foundry** only. The other eight delivery
-options remain visible, read-only, with "Planned for a future release" help.
-`TOKENECONOMICS_FOUNDRY_ONLY=true` is the Docker default; native local Studio keeps
-all routes. The forecast API enforces this release scope while preserving readable
-historical evidence. This setting does not grant execution or policy authority.
-
-Verify the deployment from PowerShell:
-
-```powershell
-$studio = "https://ca-tokeneconomics-studio.wittysand-085ba2f3.eastus2.azurecontainerapps.io"
-
-Invoke-RestMethod "$studio/health"
-Invoke-RestMethod "$studio/api/policy" |
-  Select-Object content_hash, provenance
-Invoke-RestMethod "$studio/api/reports/RPT-20260908-CA037FE9" |
-  ConvertTo-Json -Depth 12
-Invoke-RestMethod "$studio/api/govern/decisions" |
-  ConvertTo-Json -Depth 12
-```
-
-`/health` and `/readyz` return HTTP 200 only when persistent storage is ready;
-storage failures return HTTP 503 with a safe diagnostic code. The check verifies
-the hosted mount, all twelve store bindings, directory reads and temporary
-read/write/fsync I/O without changing report evidence. It waits at most one
-second, caches completed results for five seconds, and permits only one worker
-in flight. `/livez` checks only the process so storage outages do not create
-restart loops. Hosting readiness does not authorize execution or establish
-complete-task billing or quality readiness.
-
-The health response must report `healthy` and `research_prototype`. The policy response
-must identify Azure App Configuration, label `te003-live-v2`, and the current
-authoritative version, content hash, and ETag. The cloud evidence store currently
-contains report `RPT-20260908-CA037FE9`. Local report `RPT-20260918-302EDAF6`,
-its human-review workspace, and the paused campaign were intentionally not migrated
-by the image deployment. Historical evidence remains bound to its recorded policy,
-not silently rebound to today's version; do not rerun billable work merely to inspect
-an existing record.
-
-The current Azure Files mount requires a narrowly scoped Azure Policy exemption because
-Container Apps uses a storage-account key for this mount type. Exemption
-`tokeneconomics-studio-files-mount` applies only to the dedicated
-`ststudiojf6s7lqws6o4` account, only to the shared-key and public-network policy
-references, and expires on 2026-10-01. Anonymous blob access remains disabled. Replace
-this exception with identity-native persistence, or explicitly review its renewal,
-before that date.
-
-The September 19 deployment runs immutable image digest
-`sha256:01beb767ed6b53f9f90b075d332dba3556f6a68ddb2ff614bed039ad6c95eca5`
-on revision `ca-tokeneconomics-studio--accumulated-20260918`. It includes the
-four-workspace Studio, Copilot/native-meter forecasting, policy v2 validation,
-human quality review, campaign evidence, portfolio Home, billing/learning controls,
-and twelve persistent Studio stores. Immutable evidence
-publication uses a create-only rename on Azure Files, which does not support hard
-links; an existing record is never replaced. Image updates exclude local runtime
-stores and preserve existing cloud records rather than migrating local reports.
-Its active policy content hash is
-`f66271ac192a008e83f51cdafc2eaa6d21ca698b24b2fcb0264512918ad33d1e`.
-
-Billing export access is a separate deployment dependency. As of September 11,
-the source account `stxbk6ickycmp22` has public networking disabled and no private
-endpoint. The Studio identity has container-scoped Blob Reader, but source reads
-are network-blocked. The approved Studio-files exception does not cover this source
-account; a separately approved network path is required for hosted billing sync.
+Health and readiness endpoints should expose only the minimum information required by
+the hosting platform. Application, policy, evidence, and administration APIs must be
+protected by the target environment's authentication and authorization controls.
 
 An explicit operator-only alternative can read aggregated **ActualCost** through
 the Cost Management Query API. Configure the server-owned `query` section in
@@ -388,11 +336,10 @@ billing rather than an itemized export. Missing meter quantities stay unknown.
 Successive snapshots are alternatives, not additive bills. Recording the same
 batch again does not create another independent learning sample.
 
-The September 14 refresh is imported and visible **locally**, not deployed:
-218 rows total USD 36.2532975858 for September 1-9, including USD 4.277790279
-on September 9. All remain unallocated to the batch. Hosted Query access is not
-established, and no identity, role, network or policy setting was changed. See D96
-in `docs\decision.md` for the evidence and remaining attribution gap.
+Environment-specific billing snapshots and monetary values are intentionally excluded
+from this public repository. Aggregated resource charges remain unallocated to a task
+until a measured allocation rule and compatible evidence scope are established. See D96
+in `docs\decision.md` for the public attribution boundary.
 
 ### Prospective RAG learning and Foundry quality pilot
 
@@ -437,21 +384,12 @@ stay inconclusive. Complete-task cost remains unavailable because retrieval,
 evaluation, infrastructure, and other material cost families are not fully
 attributed.
 
-The prior report `RPT-20260915-D4B31FF1` is retired from active lists but its
-immutable report, forecasts, runs, and evaluation evidence remain preserved.
-Replacement report `RPT-20260918-302EDAF6` is the clean 25-case Assessment
-workspace. Active policy `2026-09-18.campaign.1` authorizes up to 25 questions
-per execution, 100 repetitions, 2,500 response attempts, 100 evaluations, and
-25 rows per evaluation, with separate per-execution and campaign-level observed
-response-model allocation stops. These are not hard spend guarantees and exclude
-managed retrieval, judge, evaluation-service, infrastructure, and other
-complete-task costs.
-
-Campaign `campaign-5c1b823fd5934343bdbdaa3c0cdc45d8` is intentionally paused.
-Its first repetition completed 17 responses and left eight undispatched when the
-600-second elapsed-time limit was reached. No Foundry evaluation was submitted.
-The 17 completed provider calls must not be replayed; continuation requires the
-pending per-question at-most-once and immutable aggregate-repetition contract.
+Historical reports, forecasts, runs, and evaluation evidence remain immutable when
+retired. The current 25-case assessment workspace and repeated campaign identifiers
+are environment-specific and intentionally omitted from public documentation.
+The campaign is paused after a partial repetition; completed provider calls must not
+be replayed. Continuation requires the pending per-question at-most-once and immutable
+aggregate-repetition contract.
 
 Foundry run results can retain the service-returned `report_url`, which Studio
 renders as **Open in Foundry**. Exact response content is not copied into
@@ -530,9 +468,9 @@ written to local stage records. HTTP timeout bounds do not cap remote judge spen
 docker build -t tokeneconomics-studio:local .
 docker volume create tokeneconomics-studio-data
 docker run --rm -p 8765:8765 `
-  -e AZURE_APPCONFIG_ENDPOINT=https://appcs-xbk6ickycmp22.azconfig.io `
-  -e TOKENGOV_POLICY_KEY=tokengov:policy `
-  -e TOKENGOV_POLICY_LABEL=te003-live-v2 `
+  -e AZURE_APPCONFIG_ENDPOINT=https://<app-configuration-name>.azconfig.io `
+  -e TOKENGOV_POLICY_KEY=<policy-key> `
+  -e TOKENGOV_POLICY_LABEL=<policy-label> `
   -e TOKENGOV_POLICY_SOURCE=azure `
   -v tokeneconomics-studio-data:/data `
   tokeneconomics-studio:local
@@ -592,41 +530,14 @@ pwsh .\infra\provision-policy.ps1 -SubscriptionId <subscription-id>
 Studio fails closed when the configured Azure policy or required provenance cannot be
 read. Browser code never receives policy-publisher credentials.
 
-### Configure policy review pull requests
+### Configure policy review privately
 
-Govern can create or edit a policy draft without GitHub credentials. **Send for
-approval** remains disabled until all review controls are configured:
-
-For loopback development, Studio uses the active GitHub CLI keyring identity without
-reading or copying its token. Authenticate the repository owner, set
-`TOKENGOV_REVIEW_ALLOW_LOCAL=true`, and keep Studio bound to `127.0.0.1`. Studio removes
-ambient `GH_TOKEN` and `GITHUB_TOKEN` overrides from the child `gh` process, requires
-push access to the configured repository, and protects PR submission with a per-process
-same-origin request token.
-
-For deployed multi-user Studio:
-
-1. Create a GitHub App installed only on `pd-illinois/TokenEconomics` with **Contents:
-   read/write**, **Pull requests: read/write**, and **Metadata: read** permissions.
-2. Store its private key and the Microsoft Entra application client secret as separate
-   Key Vault secrets. Grant the Studio user-assigned identity **Key Vault Secrets User**
-   on only that vault.
-3. Configure the Entra web application callback for the Container Apps
-   `/.auth/login/aad/callback` endpoint and restrict assignment to the intended Studio
-   operator.
-4. Deploy `infra/studio-container-app.bicep` with the GitHub App ID, installation ID,
-   private-key secret URI, Entra client ID, Entra client-secret URI, and the allowed
-   principal object ID. The template enables Container Apps Easy Auth and leaves only
-   `/health` anonymous.
-5. Keep GitHub environment `tokengov-production` restricted to `main`, require its
-   reviewer, and disallow administrator bypass.
-
-Studio then creates a deterministic review branch containing a versioned policy under
-`data/policies` and a `policy-review.v1` manifest under `data/policy_reviews`. Merging the
-PR invokes the protected publisher. A proposal becomes **Active** only after the Azure
-policy read-back hash matches it. The browser never receives the GitHub CLI token,
-GitHub App private key, installation token, Azure publisher identity, or App
-Configuration write permission.
+Govern can prepare a durable policy change request, but publication must remain in a
+separately authorized workflow. Configure repository permissions, identity federation,
+secret references, authenticated ingress, reviewer gates, and environment restrictions
+outside this public repository. Never place GitHub tokens, private keys, client secrets,
+publisher credentials, or App Configuration write permissions in browser code or
+committed configuration.
 
 ## Validate
 

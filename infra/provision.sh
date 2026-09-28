@@ -9,9 +9,9 @@
 # Override any default via env, e.g.:  LOC=swedencentral ACCT=myaoai bash infra/provision.sh
 set -euo pipefail
 
-RG="${RG:-rg-tokengov}"
+RG="${RG:-example-token-economics-rg}"
 LOC="${LOC:-eastus2}"                 # Model Router GA regions: eastus2 | swedencentral
-ACCT="${ACCT:-tokengov-aoai}"
+ACCT="${ACCT:-example-ai-account}"
 APPCFG="${APPCFG:-tokengov-appcfg}"
 APPINS="${APPINS:-tokengov-ai}"
 DEPLOY_OPTIONAL="${DEPLOY_OPTIONAL:-true}"   # also create App Config + App Insights

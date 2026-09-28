@@ -9,8 +9,8 @@ Run from the repository root:
 param(
   [Parameter(Mandatory)]
   [string]$SubscriptionId,
-  [string]$ResourceGroup = 'rg-tokengov',
-  [string]$StoreName = 'tokengov-aoai-appcfg',
+  [string]$ResourceGroup = 'example-token-economics-rg',
+  [string]$StoreName = 'example-policy-config',
   [string]$PolicyLabel = 'production',
   [string]$PolicyReaderPrincipalId = '',
   [ValidateSet('User', 'ServicePrincipal', 'Group')]

@@ -30,9 +30,9 @@ The report is called **Gutenberg books RAG - live Foundry playground**. Its agen
 
 The saved forecast assumes ten users, each making three requests a day. Studio walks through the workload description, the proposed profile, and the infrastructure before saving the estimate.
 
-![Saved forecast and the four preparation stages](images/token-studio-guide/2026-09-14/02-forecast.png)
-
-*Figure 1. The saved forecast. Earlier versions are still available in the report.*
+*Figure 1 is intentionally omitted from the public repository. The private evidence
+capture shows the saved forecast and its earlier immutable versions without exposing
+report identifiers.*
 
 For RAG, the retrieved text matters as much as the user's question. This forecast includes assumptions about how much document context reaches the model and how long the answer will be. Those assumptions are visible, so I can come back to them after seeing real usage.
 
@@ -46,9 +46,9 @@ Each saved forecast keeps its original inputs and calculations. If I revise the 
 
 The Policy page shows the rules currently stored in **Azure App Configuration**. These include allowed models, spend limits, and quality requirements.
 
-![Current policy settings in Studio](images/token-studio-guide/2026-09-14/05-policy.png)
-
-*Figure 2. Policy settings are read from Azure. Editing a proposal in Studio does not change them immediately.*
+*Figure 2 is intentionally omitted from the public repository. The private evidence
+capture shows Azure policy provenance without publishing live policy identifiers or
+ETags. Editing a proposal in Studio does not change authoritative policy immediately.*
 
 There is a practical example of why this matters in the current report. The permission used for the September 9 measurement batch has expired. The results are still available to review, but that old permission cannot authorize another run.
 
@@ -82,9 +82,8 @@ The batch records usage and completion, but it does not yet have a connected qua
 
 The **Performance & Decisions** page puts the forecast beside the recorded usage.
 
-![Performance dashboard for the saved ten-question batch](images/token-studio-guide/2026-09-14/09-performance.png)
-
-*Figure 3. The run completed, but quality evaluation and full billing are still missing.*
+*Figure 3 is intentionally omitted from the public repository. The private evidence
+capture shows a completed run with quality evaluation and full billing still missing.*
 
 One difference stands out. The forecast assumed **1,200 output tokens per invocation**. The recorded responses averaged **133 output tokens**.
 
@@ -100,15 +99,15 @@ Below the charts, findings point back to the relevant work: review an assumption
 
 The billing panel is where the distinction becomes clearer.
 
-The first billing export arrived before the batch ran. To get a more useful picture, I queried Azure Cost Management again for the eight resources associated with this workload. The newer data shows roughly **$36.25 for September 1–9**, including **$4.28 for September 9**. These are current-period charges, not a final invoice.
+The first billing export arrived before the batch ran. A later Azure Cost Management
+query demonstrated that current-period resource charges and provider token calculations
+can be compared, but assigning a shared resource bill to one batch remains a separate
+evidence problem.
 
-![Updated Azure resource charges in the local Studio billing review](images/token-studio-blog/2026-09-14/04-billing-query-local.png)
-
-*Figure 4. Newer Azure billing now includes model charges. Assigning the resource bill to this batch is still a separate step. This is the updated local Studio reading real Azure billing data; the hosted deployment has not been updated.*
-
-There is a useful cross-check in that day's bill. The GPT-4.1 Mini input and output meters add up to **$0.0058328**, exactly the amount calculated from the batch's recorded tokens. Azure's model diagnostics also show 9,262 input tokens and 1,330 output tokens for that deployment that day.
-
-That agreement is encouraging, but it is not a complete audit trail. The saved batch did not retain Azure request IDs, so I cannot directly link those billing and diagnostic records back to its individual responses. There is also a small embedding charge that I cannot confidently assign to this batch.
+The environment-specific screenshot, monetary values, dates, resource inventory, and
+query evidence are intentionally excluded from this public repository. The key result is
+the attribution boundary: aggregate agreement can be a useful cross-check, but it is not
+a complete audit trail without request correlation and a measured allocation rule.
 
 The bigger costs need a different kind of evidence. Azure AI Search accounts for **$2.424** of the day's bill, and App Configuration for **$1.20**. Those services were available beyond these ten questions. Dividing the whole day's bill by ten would charge this batch for everything, without showing what it actually used.
 
@@ -159,7 +158,10 @@ For now, I can open one report and see what I expected, what the agent reported,
 ### Editor's notes — remove before publication
 
 - **Publication:** Check the four screenshots for information you want to keep private, and replace relative repository links with public URLs. Deployment limitations describe September 14, 2026, not necessarily the publication date.
-- **Example:** Report `RPT-20260908-CA037FE9`, forecast `e997e27b-ac11-49c6-bbf9-bdc8eb3c9bd6`, prediction `5176`, and batch `run-f87aa8eae8ef4c57a05a6defb5da9b79`. The user guide contains the detailed references.
-- **Figure 4 evidence:** The September 14 query returned 218 aggregated rows, not an itemized export. Local snapshot `billing-83ec674cb97148d76484a6ade416dc8e215785a03dbc59a3c199a07c5470477a` retains its exact request and raw response. D96 records the source hashes and attribution limits. Figures 1-3 and the guide/PDF retain their earlier Azure capture; Figure 4 intentionally shows the newer local build.
+- **Example:** An environment-specific report, forecast, prediction, and batch remain
+  linked through immutable identifiers. Public documentation intentionally omits those
+  operational values; the user guide explains the evidence relationship.
+- **Billing evidence:** Environment-specific query results and screenshots are retained
+  privately. D96 records the public attribution limits.
 - **Part 1 source:** The comparison uses the published article's narrative, retrieved from its public structured data, rather than the differing local draft. Equation and diagram images were not independently transcribed.
 - **Possible Part 1 correction:** Its example says halving cost while acceptance falls from 95% to 70% increases cost per accepted task. The stated numbers give `0.5 × 0.95 / 0.70 ≈ 0.679`, a decrease. Consider correcting that example separately; this draft does not repeat it.

@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 from dataclasses import dataclass
 from typing import Any
 
@@ -12,21 +13,23 @@ from azure.core.credentials import TokenCredential
 from azure.identity import AzureCliCredential
 
 
-SEARCH_ENDPOINT = "https://search-xbk6ickycmp22.search.windows.net"
-PROJECT_ENDPOINT = (
-    "https://ai-account-xbk6ickycmp22.services.ai.azure.com/api/projects/"
-    "ai-project-tokeneconomics-te003"
+SEARCH_ENDPOINT = os.environ.get(
+    "RAG_BATCH_SEARCH_ENDPOINT", "https://example.search.windows.net"
 )
-PROJECT_RESOURCE_ID = (
-    "/subscriptions/a91cc1ba-bd19-43a7-90ea-120794c0fbc6/"
-    "resourceGroups/rg-tokeneconomics/providers/Microsoft.CognitiveServices/"
-    "accounts/ai-account-xbk6ickycmp22/projects/"
-    "ai-project-tokeneconomics-te003"
+PROJECT_ENDPOINT = os.environ.get(
+    "RAG_BATCH_PROJECT_ENDPOINT",
+    "https://example.services.ai.azure.com/api/projects/example-project",
+)
+PROJECT_RESOURCE_ID = os.environ.get(
+    "RAG_BATCH_PROJECT_RESOURCE_ID",
+    "/subscriptions/00000000-0000-0000-0000-000000000000/"
+    "resourceGroups/example-rg/providers/Microsoft.CognitiveServices/"
+    "accounts/example-ai/projects/example-project",
 )
 SEARCH_API_VERSION = "2026-08-01-preview"
 ARM_API_VERSION = "2025-06-01"
-AGENT_NAME = "tokengov-books-rag-agent"
-MODEL_DEPLOYMENT = "rag-agent-runtime-gpt-4-1-mini"
+AGENT_NAME = os.environ.get("RAG_BATCH_AGENT_NAME", "example-books-rag-agent")
+MODEL_DEPLOYMENT = os.environ.get("RAG_BATCH_MODEL_DEPLOYMENT", "example-model-deployment")
 INSTRUCTIONS = (
     "You are a grounded assistant for the TE-003 reference corpus.\n"
     "Use the knowledge base tool for every user question and never answer "

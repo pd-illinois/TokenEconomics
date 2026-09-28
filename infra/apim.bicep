@@ -2,7 +2,7 @@
 // Deployed first, bare; the AOAI backend + API + policies are applied after it's up
 // (CLI, per the azure-aigateway skill) so the 40-min clock starts immediately.
 //
-//   az deployment group create -g rg-tokengov -f infra/apim.bicep \
+//   az deployment group create -g <resource-group> -f infra/apim.bicep \
 //     -p publisherEmail=<you@example.com>
 
 @description('APIM tier. Developer = cheapest/no-SLA, right for dev/test.')
@@ -14,7 +14,7 @@ param location string = resourceGroup().location
 
 param publisherEmail string
 param publisherName string = 'TokenGov'
-param apimName string = 'apim-tokengov-${uniqueString(resourceGroup().id)}'
+param apimName string = 'apim-te-${uniqueString(resourceGroup().id)}'
 
 resource apim 'Microsoft.ApiManagement/service@2023-05-01-preview' = {
   name: apimName

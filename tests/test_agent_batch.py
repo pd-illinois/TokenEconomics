@@ -40,7 +40,7 @@ def test_local_rag_credential_can_pin_the_authenticated_cli_subscription(monkeyp
     expected = object()
     monkeypatch.setenv(
         "TOKENGOV_RAG_AZURE_CLI_SUBSCRIPTION",
-        "a91cc1ba-bd19-43a7-90ea-120794c0fbc6",
+        "11111111-1111-1111-1111-111111111111",
     )
     monkeypatch.setattr(
         azure.identity,
@@ -49,12 +49,12 @@ def test_local_rag_credential_can_pin_the_authenticated_cli_subscription(monkeyp
     )
     assert batch._credential() is expected
     assert calls == [{
-        "subscription": "a91cc1ba-bd19-43a7-90ea-120794c0fbc6",
+        "subscription": "11111111-1111-1111-1111-111111111111",
         "process_timeout": 40,
     }]
 
 
-@pytest.mark.parametrize("subscription", ["not-a-uuid", " a91cc1ba "])
+@pytest.mark.parametrize("subscription", ["not-a-uuid", " 11111111 "])
 def test_local_rag_credential_rejects_invalid_subscription(monkeypatch, subscription):
     monkeypatch.setenv("TOKENGOV_RAG_AZURE_CLI_SUBSCRIPTION", subscription)
     with pytest.raises(ValueError, match="subscription UUID"):
@@ -66,7 +66,7 @@ def test_hosted_rag_runtime_rejects_local_cli_identity_pin(monkeypatch, host):
     monkeypatch.setenv(host, "hosted-runtime")
     monkeypatch.setenv(
         "TOKENGOV_RAG_AZURE_CLI_SUBSCRIPTION",
-        "a91cc1ba-bd19-43a7-90ea-120794c0fbc6",
+        "11111111-1111-1111-1111-111111111111",
     )
     with pytest.raises(ValueError, match="local-development only"):
         batch._credential()

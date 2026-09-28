@@ -3,14 +3,14 @@
 targetScope = 'resourceGroup'
 
 param location string = 'eastus2'
-param accountName string = 'ai-eval-xbk6ickycmp22'
-param projectName string = 'ai-project-tokengov-eval'
-param storageAccountName string = 'stxbk6ickycmp22'
-param vnetName string = 'vnet-tokengov-eval'
+param accountName string
+param projectName string
+param storageAccountName string
+param vnetName string
 param operatorPrincipalId string
 @description('Single public IPv4 address allowed to submit evaluations; storage remains private.')
 param operatorIpAddress string
-param judgeDeploymentName string = 'rag-agent-runtime-gpt-4-1-mini'
+param judgeDeploymentName string
 param judgeCapacity int = 100
 param vnetAddressPrefix string = '172.28.240.0/23'
 param evaluationSubnetPrefix string = '172.28.240.0/24'

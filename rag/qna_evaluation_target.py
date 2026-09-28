@@ -6,13 +6,14 @@ does not change the source agent, policy authority, acceptance or cost claims.
 """
 
 from collections.abc import Mapping
+import os
 
 from rag.foundry_evaluation_transport import JUDGES, PROJECT_ENDPOINT, TransportError
 
 TARGET_SCHEMA_VERSION = "qna-evaluation-target.v1"
-EVALUATION_PROJECT_ENDPOINT = (
-    "https://ai-eval-xbk6ickycmp22.services.ai.azure.com"
-    "/api/projects/ai-project-tokengov-eval"
+EVALUATION_PROJECT_ENDPOINT = os.environ.get(
+    "RAG_DEDICATED_EVALUATION_PROJECT_ENDPOINT",
+    "https://example-evaluation.services.ai.azure.com/api/projects/example-evaluation-project",
 )
 _FIELDS = {"schema_version", "project_endpoint", "judge_deployment", "judge_model", "judge_sku"}
 

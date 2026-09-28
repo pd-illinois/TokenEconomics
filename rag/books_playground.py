@@ -53,12 +53,12 @@ def configuration():
         "token_cost_rule": TOKEN_COST_RULE,
         "workload": "books",
         "search_endpoint": os.environ.get(
-            "RAG_PLAYGROUND_SEARCH_ENDPOINT", "https://search-xbk6ickycmp22.search.windows.net"
+            "RAG_PLAYGROUND_SEARCH_ENDPOINT", "https://example.search.windows.net"
         ),
         "index": "books",
         "model_endpoint": os.environ.get(
             "RAG_PLAYGROUND_MODEL_ENDPOINT",
-            "https://ai-account-xbk6ickycmp22.cognitiveservices.azure.com",
+            "https://example.cognitiveservices.azure.com",
         ),
         "deployment": os.environ.get("RAG_PLAYGROUND_DEPLOYMENT", "gpt-5-6-luna"),
         "model": MODEL,

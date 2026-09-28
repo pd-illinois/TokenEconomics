@@ -218,7 +218,7 @@ def azure_policy_runtime(monkeypatch):
 
 def test_explicit_policy_subscription_pins_cli_without_changing_authority(azure_policy_runtime, monkeypatch):
     calls, _, cli = azure_policy_runtime
-    subscription = "a91cc1ba-bd19-43a7-90ea-120794c0fbc6"
+    subscription = "11111111-1111-1111-1111-111111111111"
     monkeypatch.setenv("TOKENGOV_POLICY_AZURE_CLI_SUBSCRIPTION", subscription)
     loaded = load_policy_from_environment()
     assert calls == [
@@ -246,7 +246,7 @@ def test_unpinned_policy_preserves_default_runtime_identity(azure_policy_runtime
 def test_hosted_policy_rejects_local_cli_override(azure_policy_runtime, monkeypatch, host):
     calls, _, _ = azure_policy_runtime
     monkeypatch.setenv(host, "hosted-runtime")
-    monkeypatch.setenv("TOKENGOV_POLICY_AZURE_CLI_SUBSCRIPTION", "a91cc1ba-bd19-43a7-90ea-120794c0fbc6")
+    monkeypatch.setenv("TOKENGOV_POLICY_AZURE_CLI_SUBSCRIPTION", "11111111-1111-1111-1111-111111111111")
     with pytest.raises(PolicyLoadError, match="local-development only"):
         load_policy_from_environment()
     assert not calls
@@ -269,7 +269,7 @@ def test_pinned_auth_failure_does_not_try_default_identity_or_local_policy(azure
     path = tmp_path / "fallback.json"
     path.write_text(json.dumps(_policy()), encoding="utf-8")
     monkeypatch.setenv("TOKENGOV_POLICY_FILE", str(path))
-    monkeypatch.setenv("TOKENGOV_POLICY_AZURE_CLI_SUBSCRIPTION", "a91cc1ba-bd19-43a7-90ea-120794c0fbc6")
+    monkeypatch.setenv("TOKENGOV_POLICY_AZURE_CLI_SUBSCRIPTION", "11111111-1111-1111-1111-111111111111")
 
     def fail(**kwargs):
         raise ClientAuthenticationError("Selected account requires login")

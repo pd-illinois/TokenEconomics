@@ -3,7 +3,7 @@
   "contentVersion": "1.0.0.0",
   "parameters": {
     "location": { "value": "eastus2" },
-    "accountName": { "value": "tokengov-aoai" },
+    "accountName": { "value": "example-ai-account" },
     "principalId": { "value": "<REPLACE: az ad signed-in-user show --query id -o tsv>" },
     "policyReaderPrincipalId": { "value": "<REPLACE: Studio managed identity or signed-in user object ID>" },
     "policyReaderPrincipalType": { "value": "User" },

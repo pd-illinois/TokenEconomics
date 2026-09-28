@@ -1,8 +1,8 @@
 // platform.bicep - promotes the in-process CONTROL PLANE to real Azure services.
-// Deploys into rg-tokengov alongside the models. (Semantic cache stays in-process per
+// Deploys into the selected resource group alongside the models. (Semantic cache stays in-process per
 // decision - no Redis; APIM gateway handles routing + token caps + metrics.)
 //
-//   az deployment group create -g rg-tokengov -f infra/platform.bicep \
+//   az deployment group create -g <resource-group> -f infra/platform.bicep \
 //     -p budgetContactEmail=<you@example.com>
 //
 // Adds:
@@ -16,13 +16,13 @@
 param location string = resourceGroup().location
 
 @description('Existing AI Services account (models) name.')
-param accountName string = 'tokengov-aoai'
+param accountName string
 
 @description('Existing App Configuration store name.')
-param appConfigName string = 'tokengov-aoai-appcfg'
+param appConfigName string
 
 @description('Existing Application Insights name.')
-param appInsightsName string = 'tokengov-aoai-ai'
+param appInsightsName string
 
 @description('Email for budget + action group notifications.')
 param budgetContactEmail string
@@ -32,7 +32,7 @@ param budgetAmount int = 200
 
 var suffix = uniqueString(resourceGroup().id)
 var funcName = 'func-tokengov-${suffix}'
-var storageName = 'sttokengov${substring(suffix, 0, 8)}'
+var storageName = 'stte${substring(suffix, 0, 12)}'
 
 // ---- existing resources we bind to ----
 resource account 'Microsoft.CognitiveServices/accounts@2024-10-01' existing = { name: accountName }

@@ -84,9 +84,9 @@ jobs:
           "${{ needs.resolve.outputs.policy_path }}"
           --expected-etag "${{ needs.resolve.outputs.expected_etag }}"
           --action "${{ needs.resolve.outputs.action }}"
-          --endpoint "https://appcs-xbk6ickycmp22.azconfig.io"
-          --key "tokengov:policy"
-          --label "te003-live-v2"
+          --endpoint "${{ vars.TOKENGOV_APPCONFIG_ENDPOINT }}"
+          --key "${{ vars.TOKENGOV_POLICY_KEY }}"
+          --label "${{ vars.TOKENGOV_POLICY_LABEL }}"
           --validate-only
 
   publish:
@@ -114,9 +114,9 @@ jobs:
           "${{ needs.resolve.outputs.policy_path }}"
           --expected-etag "${{ needs.resolve.outputs.expected_etag }}"
           --action "${{ needs.resolve.outputs.action }}"
-          --endpoint "https://appcs-xbk6ickycmp22.azconfig.io"
-          --key "tokengov:policy"
-          --label "te003-live-v2"
+          --endpoint "${{ vars.TOKENGOV_APPCONFIG_ENDPOINT }}"
+          --key "${{ vars.TOKENGOV_POLICY_KEY }}"
+          --label "${{ vars.TOKENGOV_POLICY_LABEL }}"
           --output publication-evidence.json
       - uses: actions/upload-artifact@v4
         if: always()

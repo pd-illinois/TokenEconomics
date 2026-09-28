@@ -19,9 +19,9 @@ import re
 import time
 from typing import Any, Callable, Mapping, Sequence
 
-PROJECT_ENDPOINT = (
-    "https://ai-account-xbk6ickycmp22.services.ai.azure.com"
-    "/api/projects/ai-project-tokeneconomics-te003"
+PROJECT_ENDPOINT = os.environ.get(
+    "RAG_EVALUATION_PROJECT_ENDPOINT",
+    "https://example.services.ai.azure.com/api/projects/example-project",
 )
 JUDGES = {
     "rag-agent-runtime-gpt-4-1-mini": ("gpt-4.1-mini", "2025-04-14"),
