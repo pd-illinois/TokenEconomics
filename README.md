@@ -304,7 +304,7 @@ Invoke-RestMethod http://127.0.0.1:8765/api/govern/decisions |
 ### Use the deployed Azure Container App
 
 TokenEconomics Studio is deployed at
-<https://ca-tokeneconomics-studio.wittysand-085ba2f3.eastus2.azurecontainerapps.io>.
+
 It uses the same immutable evidence and policy contracts described above.
 
 The hosted release enables **Microsoft Foundry** only. The other eight delivery
@@ -316,7 +316,7 @@ historical evidence. This setting does not grant execution or policy authority.
 Verify the deployment from PowerShell:
 
 ```powershell
-$studio = "https://ca-tokeneconomics-studio.wittysand-085ba2f3.eastus2.azurecontainerapps.io"
+
 
 Invoke-RestMethod "$studio/health"
 Invoke-RestMethod "$studio/api/policy" |
