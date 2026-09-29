@@ -23,6 +23,7 @@ docs/*
 !docs/architecture/
 docs/architecture/*
 !docs/architecture/token-economics-azure-architecture.mmd
+!docs/architecture/TokenEconomicStudioArch.png
 !docs/architecture/icons/
 !docs/architecture/icons/*.png
 !.github/

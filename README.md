@@ -54,50 +54,9 @@ base, MCP retrieval, Azure AI Search, cited synthesis, and provider-reported tok
 Workload-specific Foundry, Search, MCP, and corpus translation remains under `rag/`;
 reusable TokenGov contracts remain under `costgov/`.
 
-### Latest progress
-
-| Milestone | Status | Evidence boundary |
-|---|---|---|
-| Studio Plan release hardening | Complete | Experience-led intake, deterministic workload analysis, immutable schema-5 receipts, and saved-plan restoration |
-| Copilot and GitHub economics | Complete | Subscriptions, entitlements, Microsoft Copilot Credits, GitHub AI Credits, model tokens, and resource meters remain separate |
-| Foundry model release `2026-08-25.2` | Complete | 98 sourced OpenAI/Anthropic offerings; 50 verified coordinator models are selectable |
-| Framework-neutral trajectory contract | Complete | Stable workload, task, trajectory, segment, prediction, policy, run, and trace identities |
-| Foundry RAG adapter (TE-003) | Complete | A versioned report preserves one policy-bound deployed trajectory |
-| Experiment manifest (TE-004) | Complete | `experiment-manifest.v1` pins shared evidence and machine-readable arm differences |
-| Accepted-task outcomes (TE-005) | Complete | Segment-specific rules produce immutable `accepted`, `rejected`, or `inconclusive` evidence distinct from raw scores |
-| Multi-meter trajectory ledger (TE-006) | Complete | Native quantities, currencies, entitlements, allocations, unknown costs, and coverage-aware reconciliation remain explicit |
-| Accepted-task Observe economics (TE-007) | Complete | Read-only denominator, segment, native-meter, entitlement, priced-cost, and uncovered-cost views reopen verified immutable run evidence |
-| Immutable policy candidates (TE-008) | Complete | Hash-bound candidate revisions validate control authority/capability without mutating active Azure policy |
-| Copilot/native-meter forecasting | Complete prototype | Microsoft Copilot Credits, GitHub AI Credits, entitlements, model tokens, and infrastructure charges remain separate |
-| Human quality acceptance | Complete prototype | Foundry grades remain advisory; reviewers append `accepted`, `rejected`, or `inconclusive` outcomes |
-| Campaign authorization | Published | A versioned Azure policy authorizes bounded repeated measurement |
-| Repeated quality campaign | Paused | First repetition preserved 17 responses; eight undispatched calls require a tested no-replay continuation contract |
-| Cross-report portfolio Home | Complete prototype | Read-only evidence readiness, attention queue, and decision matrix across reports |
-| Hosted Studio pattern | Reference implementation | Environment-specific endpoints and deployment evidence are intentionally private |
-
-The current measured local regression boundary is **1,428 TokenEconomics tests passed**
-with one skipped and **530 FutureTokenPredictor tests passed** through its evidence
-runner. This proves the local contracts and modeled
-calculations at the tested revision; it is not production-capacity evidence.
-
-The remaining end-to-end work is material: safe within-repetition continuation,
-representative segment samples, complete-trajectory cost, calibrated budget-risk
-evidence, bounded response/reversion, independent billing reconciliation, demonstrated
-predictor improvement, and a decision-grade non-Foundry portability proof.
-
 ## Architecture at a glance
 
-```mermaid
-flowchart LR
-    U[Operator] --> S[TokenEconomics Studio]
-    S --> P[FutureTokenPredictor]
-    S --> G[TokenGov control plane]
-    G --> A[Authoritative Azure policy]
-    G --> W[Workload adapter]
-    W --> F[Foundry agent, retrieval and tools]
-    F --> E[Immutable evidence]
-    E --> G
-```
+![TokenEconomics Azure reference architecture](docs/architecture/TokenEconomicStudioArch.png)
 
 The architecture preserves two planes:
 
@@ -117,9 +76,9 @@ Microsoft 365 and Copilot product meters enter Forecast as versioned native-mete
 evidence. They do not become Azure TokenGov runtime controls, and workload-specific RAG
 logic remains under `rag/` rather than in reusable `costgov/` core.
 
-The public [Mermaid source](docs/architecture/token-economics-azure-architecture.mmd)
-uses generic resource roles. Environment-specific diagrams and deployment evidence are
-kept outside the public repository.
+The architecture image is stored under `docs/architecture/`. The editable
+[Mermaid source](docs/architecture/token-economics-azure-architecture.mmd) remains
+available for future revisions.
 
 ## Run Studio locally
 
@@ -222,64 +181,6 @@ Policy versions, content hashes, and ETags are environment-specific evidence. Do
 publish them in public documentation or compare runs as if they used the same authority
 unless their immutable provenance matches.
 
-### Run the one-task measured smoke proof
-
-This command creates a new Plan and report, admits the exact receipt against Azure
-policy, invokes the pinned agent, persists the trajectory, and reopens it:
-
-```powershell
-.\.venv\Scripts\python.exe .\scripts\run_te003_live_test.py `
-  --agent-name <agent-name> `
-  --agent-version 4 `
-  --policy-label <policy-label>
-```
-
-A successful result exits with code `0` and prints JSON containing:
-
-- `evidence_status: "measured_live"`;
-- `report_id`, `plan_id`, `receipt_id`, `handoff_id`, `run_id`, and `trajectory_id`;
-- the exact `policy_version` and `policy_etag`;
-- a trajectory `content_hash`;
-- `reopened: true`;
-- a cited `response_text`.
-
-Treat the test as failed if admission is rejected, MCP retrieval is absent, the response
-lacks grounding/citations, provider usage is unavailable, or the persisted trajectory
-does not reopen byte-equivalently through its contract.
-
-### Run or resume the decision-grade baseline
-
-The complete baseline performs 120 billable tasks. Give every new execution a stable,
-unique run ID; rerunning a completed ID reopens its result instead of duplicating calls:
-
-```powershell
-.\.venv\Scripts\python.exe .\rag\run_live_policy_evaluation.py `
-  --run-id te009-baseline-<yyyymmdd> `
-  --agent-name <agent-name> `
-  --agent-version 2 `
-  --arm-id live-baseline `
-  --candidate data/policy_candidates/live-gpt-4-1-mini-topk4.2026-09-01.1.json `
-  --segments all `
-  --policy-label <policy-label>
-```
-
-For troubleshooting or bounded verification, select only `easy` or `hard`, but a
-single segment must still complete all 60 tasks before it is sufficient for the current
-decision criteria. Do not combine partial runs and call them one decision window.
-
-The measured reference cohort is retained in an environment-specific report. Its
-expected evidence is:
-
-| Segment | Accepted | Quality lower bound | Budget breaches | Monetary upper bound | Outcome |
-|---|---:|---:|---:|---:|---|
-| Easy | 54 / 60 | 0.81808 | 0 / 60 | 0.0487029 | Quality and monetary constraints pass |
-| Hard | 36 / 60 | 0.49383 | 0 / 60 | 0.0487029 | Quality constraint fails |
-
-The aggregate candidate outcome is therefore `none_eligible`; the passing easy segment
-must not hide the failing hard segment. The reduced-retrieval candidate subsequently
-accepted 28/60 and 23/60 hard tasks in two independent windows and reached
-`admission_blocked`. It was never authoritative, so this is not a rollback claim.
-
 ### Verify existing evidence in Studio
 
 The following reference evidence is available in the local development stores:
@@ -306,40 +207,6 @@ Invoke-RestMethod http://127.0.0.1:8765/api/reports/<report-id> |
 Invoke-RestMethod http://127.0.0.1:8765/api/govern/decisions |
   ConvertTo-Json -Depth 12
 ```
-
-### Deploy privately
-
-The public repository does not publish a live hostname, report identifier, resource
-inventory, policy provenance, revision, image digest, security exception, incident
-timeline, or verification transcript. Use the generic infrastructure templates with
-private CI/CD variables and keep environment-specific deployment evidence in a private
-operational system.
-
-Health and readiness endpoints should expose only the minimum information required by
-the hosting platform. Application, policy, evidence, and administration APIs must be
-protected by the target environment's authentication and authorization controls.
-
-An explicit operator-only alternative can read aggregated **ActualCost** through
-the Cost Management Query API. Configure the server-owned `query` section in
-`data\workload_adapters\books-billing.v1.json`, then use:
-
-```powershell
-python scripts\sync_batch_feedback.py --plan-id <saved-plan-id> --run-id <saved-run-id> --sync-billing --billing-source query
-```
-
-This requires an existing authorized Azure credential with read access at the
-configured query scope. It is never an automatic fallback when export access fails;
-the browser's **Sync Azure billing** action still uses the export path. Queries
-filter the exact bound resources and run month through the selected run day,
-retain original response bytes and hashes, and label the result as aggregated
-billing rather than an itemized export. Missing meter quantities stay unknown.
-Successive snapshots are alternatives, not additive bills. Recording the same
-batch again does not create another independent learning sample.
-
-Environment-specific billing snapshots and monetary values are intentionally excluded
-from this public repository. Aggregated resource charges remain unallocated to a task
-until a measured allocation rule and compatible evidence scope are established. See D96
-in `docs\decision.md` for the public attribution boundary.
 
 ### Prospective RAG learning and Foundry quality pilot
 
